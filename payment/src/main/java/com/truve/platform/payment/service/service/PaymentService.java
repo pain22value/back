@@ -29,4 +29,15 @@ public class PaymentService {
 
 		return paymentRepository.save(payment).getId();
 	}
+
+	@Transactional
+	public void confirm(String orderId, String paymentKey, Long amount) {
+		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+
+		payment.validateAmount(amount);
+
+		// TODO Toss 결제 승인 API 호출
+
+		payment.processConfirm(paymentKey);
+	}
 }

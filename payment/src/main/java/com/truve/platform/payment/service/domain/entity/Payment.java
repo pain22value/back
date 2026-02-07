@@ -67,18 +67,30 @@ public class Payment extends BaseEntity {
 		this.status = PaymentStatus.READY;
 	}
 
-	public void waitDeposit(String paymentKey) {
-		validateWaitDepositStatus();
-
-		this.paymentKey = paymentKey;
-		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
-	}
-
 	public void expire() {
 		validateExpireStatus();
 
 		this.status = PaymentStatus.EXPIRED;
 		this.cancelableAmount = 0L;
+	}
+
+	public void validateAmount(Long amount) {
+		Preconditions.validate(this.amount.equals(amount), ErrorCode.INVALID_PAYMENT_AMOUNT);
+	}
+
+	public void processConfirm(String paymentKey) {
+		if (this.method == PaymentMethod.TRANSFER) {
+			waitDeposit(paymentKey);
+		} else {
+			complete(paymentKey);
+		}
+	}
+
+	public void waitDeposit(String paymentKey) {
+		validateWaitDepositStatus();
+
+		this.paymentKey = paymentKey;
+		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
 	}
 
 	public void complete(String paymentKey) {

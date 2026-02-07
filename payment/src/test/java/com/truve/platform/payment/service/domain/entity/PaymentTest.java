@@ -400,4 +400,31 @@ class PaymentTest {
 			}
 		}
 	}
+
+	@Nested
+	@DisplayName("결제 금액 검증 테스트")
+	class ValidateAmountTest {
+
+		@Test
+		@DisplayName("기존 금액과 요청 금액이 다르면 INVALID_PAYMENT_AMOUNT 예외를 던진다")
+		void 결제금액_검증_예외() {
+			// given
+			Payment payment = createDefaultPayment();
+
+			// when & then
+			assertThatThrownBy(() -> payment.validateAmount(5000L))
+				.isInstanceOf(CustomException.class)
+				.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_AMOUNT);
+		}
+
+		@Test
+		@DisplayName("기존 금액과 요청 금액이 일치하면 예외를 던지지 않는다")
+		void it_does_not_throw_when_amount_matches() {
+			// given
+			Payment payment = createDefaultPayment();
+
+			// when & then
+			assertDoesNotThrow(() -> payment.validateAmount(DEFAULT_AMOUNT));
+		}
+	}
 }
