@@ -8,7 +8,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-public class OpenApiConfig { // 명칭 변경!
+public class OpenApiConfig {
 
 	@Bean
 	public OpenAPI customOpenAPI() {
