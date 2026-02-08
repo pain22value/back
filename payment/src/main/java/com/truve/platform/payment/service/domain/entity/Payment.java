@@ -78,11 +78,11 @@ public class Payment extends BaseEntity {
 		Preconditions.validate(this.amount.equals(amount), ErrorCode.INVALID_PAYMENT_AMOUNT);
 	}
 
-	public void processConfirm(String paymentKey) {
+	public void processConfirm(String paymentKey, LocalDateTime approvedAt) {
 		if (this.method == PaymentMethod.TRANSFER) {
 			waitDeposit(paymentKey);
 		} else {
-			complete(paymentKey);
+			complete(paymentKey, approvedAt);
 		}
 	}
 
@@ -93,13 +93,13 @@ public class Payment extends BaseEntity {
 		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
 	}
 
-	public void complete(String paymentKey) {
+	public void complete(String paymentKey, LocalDateTime approvedAt) {
 		validateCompleteStatus();
 		verifyPaymentKey(paymentKey);
 
 		this.paymentKey = paymentKey;
 		this.status = PaymentStatus.DONE;
-		this.approvedAt = LocalDateTime.now();
+		this.approvedAt = approvedAt;
 	}
 
 	public void applyCancel(Long cancelAmount, String reason, CancelType type) {
