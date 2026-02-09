@@ -22,6 +22,8 @@ public class User extends BaseEntity {
 
 	@Column(nullable = false, unique = true)
 	private String email;
+
+	// TODO: 기획 논의 이후 비밀번호 정책 정규식 설정
 	@Column(nullable = false)
 	private String password;
 
@@ -39,10 +41,6 @@ public class User extends BaseEntity {
 		this.password = password;
 		this.provider = provider;
 		this.role = role;
-	}
-
-	public static User create(String email, String password, AuthProvider provider, UserRole role) {
-		return new User(email, password, provider, role);
 	}
 
 }
