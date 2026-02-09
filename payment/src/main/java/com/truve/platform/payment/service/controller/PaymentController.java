@@ -18,6 +18,9 @@ import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
 import com.truve.platform.payment.service.service.PaymentService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,15 +35,19 @@ public class PaymentController {
 	@Value("${app.frontend.fail-url}")
 	private String failUrl;
 
+	@Operation(summary = "결제 생성", description = "Toss Payments에 결제를 요청하기 전에 호출해 주세요")
 	@PostMapping
-	public ApiResult<PaymentResponse.Create> create(@RequestBody PaymentRequest.Create request) {
+	public ApiResult<PaymentResponse.Create> create(@RequestBody @Valid PaymentRequest.Create request) {
 		Long paymentId = paymentService.create(request);
 		var response = new PaymentResponse.Create(paymentId);
 
 		return ApiResult.ok(response);
 	}
 
+	@Operation(summary = "결제 승인",
+		description = "Toss Payments에서 결제 요청 승인 후 successUrl로 호출하는 API입니다. 프론트엔드의 성공 페이지로 orderId를 담아 리다이렉트 합니다.")
 	@GetMapping("/confirm")
+	@ApiResponse(responseCode = "302")
 	public ResponseEntity<Void> confirm(
 		@RequestParam String paymentType,
 		@RequestParam String orderId,
@@ -54,7 +61,10 @@ public class PaymentController {
 			.build();
 	}
 
+	@Operation(summary = "결제 실패",
+		description = "Toss Payments에서 결제 요청이 실패했을 때 failUrl로 호출하는 API입니다. 프론트엔드의 실패 페이지로 code, message, orderId를 담아 리다이렉트합니다.")
 	@GetMapping("/fail")
+	@ApiResponse(responseCode = "302")
 	public ResponseEntity<Void> fail(
 		@RequestParam String code,
 		@RequestParam String message,
