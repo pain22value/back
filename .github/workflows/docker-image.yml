@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ "feat/dockerfile-setup" ]
+    branches: [ "dev" ]
 
 jobs:
   build-and-push:
