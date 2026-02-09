@@ -2,7 +2,7 @@ services:
   # 1. MySQL
   db:
     image: mysql
-    container_name: truve-db
+    container_name: truve-db-dev
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: user_db
@@ -42,6 +42,9 @@ services:
     image: truve/api-gateway:1.0.0
     ports:
       - "8080:8080"
+    environment:
+      - AUTH_SERVER_URI=http://auth-server:8081
+      - PAYMENT_SERVER_URI=http://payment:8082
     networks:
       - truve-network
 
@@ -59,7 +62,7 @@ services:
       - USER_MYSQL_URL=jdbc:mysql://db:3306/user_db
       - USER_MYSQL_USERNAME=root
       - USER_MYSQL_PASSWORD=1234
-      - USER_REDIS_HOST=redis
+      - USER_REDIS_HOST=user-redis
       - USER_REDIS_PORT=6379
       - SPRING_PROFILES_ACTIVE=local
     depends_on:
