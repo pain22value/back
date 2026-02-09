@@ -10,6 +10,7 @@ public class AuthResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class Login {
-		Pair<String, String> tokens;
+		public String accessToken;
+		public String refreshToken;
 	}
 }

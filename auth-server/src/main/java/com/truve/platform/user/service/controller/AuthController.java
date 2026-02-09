@@ -35,7 +35,7 @@ public class AuthController {
 	) {
 		Pair<String,String> tokens = authService.login(request.getEmail(), request.getPassword());
 
-		AuthResponse.Login res = new AuthResponse.Login(tokens);
+		AuthResponse.Login res = new AuthResponse.Login(tokens.getFirst(), tokens.getSecond());
 		return ApiResult.ok(res);
 	}
 
