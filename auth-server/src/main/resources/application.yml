@@ -45,7 +45,7 @@ springdoc:
 
 oauth:
   kakao:
-    rest-api-key: ${KAKAO_REST_API_KEY}
+    client-id: ${KAKAO_CLIENT_ID}
     redirect-uri: ${KAKAO_REDIRECT_URI}
     client-secret: ${KAKAO_CLIENT_SECRET}
     kakao-token-url: ${KAKAO_TOKEN_URL}
