@@ -88,7 +88,6 @@ public class AuthController {
 		HttpServletResponse response
 	) {
 
-		System.out.println("accessToken = " + accessToken);
 		authService.logout(Long.parseLong(userId), accessToken);
 
 		cookieManager.clearRefreshToken(response);
