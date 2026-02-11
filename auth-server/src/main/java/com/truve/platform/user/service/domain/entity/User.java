@@ -35,6 +35,13 @@ public class User extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private UserRole role;
 
+	@Column
+	private String oAuthAccessToken;
+
+	@Column
+	private String oAuthRefreshToken;
+
+
 	@Builder
 	public User(String email, String password, AuthProvider provider, UserRole role) {
 		this.email = email;
@@ -43,4 +50,13 @@ public class User extends BaseEntity {
 		this.role = role;
 	}
 
+	@Builder
+	public User(String email, String password, AuthProvider provider, UserRole role, String oAuthAccessToken, String oAuthRefreshToken) {
+		this.email = email;
+		this.password = password;
+		this.provider = provider;
+		this.role = role;
+		this.oAuthAccessToken = oAuthAccessToken;
+		this.oAuthRefreshToken = oAuthRefreshToken;
+	}
 }
