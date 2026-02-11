@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class AuthCookieManager {
 
-	private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+	private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
 
 	private static final boolean HTTP_ONLY = true;
 	// TODO: SECURE True로 변경 후 배포

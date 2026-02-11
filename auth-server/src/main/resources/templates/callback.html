@@ -14,16 +14,16 @@
 <pre id="result"></pre>
 
 <script>
-    // async function reissue() {
-    //     const res = await fetch("/api/auth/token", {
-    //         method: "PUT",
-    //         credentials: "include"
-    //     });
-    //
-    //     const data = await res.json();
-    //     document.getElementById("result").innerText =
-    //         JSON.stringify(data, null, 2);
-    // }
+    async function reissue() {
+        const res = await fetch("http://localhost:8080/api/auth/reissue", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        const data = await res.json();
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    }
 </script>
 
 </body>
