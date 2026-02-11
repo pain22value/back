@@ -13,7 +13,7 @@ public class OAuthClientConfig {
 	private final String NAVER_API_URL = "https://openapi.naver.com/v1/nid";
 
 	@Bean
-	public RestClient kakaoOauthRestClient() {
+	public RestClient kakaoOAuthRestClient() {
 		return RestClient.builder()
 			.baseUrl(KAKAO_OAUTH_URL)
 			.build();
@@ -27,14 +27,14 @@ public class OAuthClientConfig {
 	}
 
 	@Bean
-	public RestClient NaverOauthRestClient() {
+	public RestClient naverOAuthRestClient() {
 		return RestClient.builder()
 			.baseUrl(NAVER_OAUTH_URL)
 			.build();
 	}
 
 	@Bean
-	public RestClient NaverApiRestClient() {
+	public RestClient naverApiRestClient() {
 		return RestClient.builder()
 			.baseUrl(NAVER_API_URL)
 			.build();

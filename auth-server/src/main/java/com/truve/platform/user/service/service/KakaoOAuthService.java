@@ -27,13 +27,13 @@ public class KakaoOAuthService {
 	private final KakaoOAuthProperties kakaoOAuthProperties;
 	private final JwtService jwtService;
 	private final RefreshTokenService refreshTokenService;
-	private final RestClient kakaoOauthRestClient;
+	private final RestClient kakaoOAuthRestClient;
 	private final RestClient kakaoApiRestClient;
 	private final UserRepository userRepository;
 
 
 	// TODO: 에러 코드에 따른 로직 처리
-	// https://developers.kakao.com/docs/latest/ko/kakaologin/trouble-shooting
+	// https://developers.naver.com/docs/login/devguide/devguide.md#3-1-1-%EC%84%9C%EB%B9%84%EC%8A%A4-%ED%99%98%EA%B2%BD-%ED%99%95%EC%9D%B8
 	@Transactional
 	public Pair<String, String> login(String code, String error, String errorDescription, String state) {
 
@@ -79,7 +79,7 @@ public class KakaoOAuthService {
 		form.add("code", code);
 		form.add("client_secret", kakaoOAuthProperties.getClientSecret());
 
-		return kakaoOauthRestClient.post()
+		return kakaoOAuthRestClient.post()
 			.uri("/token")
 			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
 			.body(form)
