@@ -61,6 +61,16 @@ public class AuthController {
 		return ApiResult.ok(res);
 	}
 
+	@Operation(summary = "토큰 재발급")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "Access Token 재발급 성공",
+			content = @Content(
+				schema = @Schema(implementation = AuthResponse.Login.class)
+			)
+		)
+	})
 	@PostMapping("/reissue")
 	public ApiResult<AuthResponse.Login> reissue(
 		@CookieValue(name = "refreshToken") String refreshToken,
@@ -81,8 +91,16 @@ public class AuthController {
 		return ApiResult.ok(new AuthResponse.Login(newAccessToken, null));
 	}
 
+
+	@Operation(summary = "로그아웃")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "로그아웃 성공"
+		),
+	})
 	@DeleteMapping("/logout")
-	public ResponseEntity<Void> logout(
+	public ApiResult<Void> logout(
 		@RequestHeader("X-User-Id") String userId,
 		@RequestHeader("X-Token") String accessToken,
 		HttpServletResponse response
@@ -92,7 +110,7 @@ public class AuthController {
 
 		cookieManager.clearRefreshToken(response);
 
-		return ResponseEntity.ok().build();
+		return ApiResult.ok();
 	}
 
 
