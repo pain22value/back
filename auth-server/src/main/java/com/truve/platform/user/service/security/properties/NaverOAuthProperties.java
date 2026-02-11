@@ -12,6 +12,8 @@ public class NaverOAuthProperties {
 	private String clientId;
 	private String clientSecret;
 	private String redirectUrl;
+	private String tokenUrl;
+	private String authorizationUrl;
 }
 
 
