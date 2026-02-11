@@ -11,6 +11,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import com.truve.platform.common.constants.AuthProvider;
+import com.truve.platform.common.exception.ErrorCode;
+import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.user.service.domain.entity.User;
 import com.truve.platform.user.service.repository.UserRepository;
 import com.truve.platform.user.service.security.JwtService;
@@ -36,6 +38,9 @@ public class KakaoOAuthService {
 	public Pair<String, String> login(String code, String error, String errorDescription, String state) {
 
 		KakaoLoginResponse kakaoDTO = requestToken(code);
+
+		Preconditions.validate(!(kakaoDTO == null), ErrorCode.NOT_FOUND_EMAIL);
+
 		String kakaoAccessToken = kakaoDTO.getAccessToken();
 		String kakaoRefreshToken = kakaoDTO.getRefreshToken();
 		KakaoUserInfo info = requestUserInfo(kakaoAccessToken);
