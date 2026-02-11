@@ -1,9 +1,12 @@
 package com.truve.platform.user.service.controller;
 
 import org.springframework.data.util.Pair;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,5 +80,21 @@ public class AuthController {
 		// TODO: 자체 로그인 리프레시 토큰 전달 방식 변경 시 DTO 같이 변경
 		return ApiResult.ok(new AuthResponse.Login(newAccessToken, null));
 	}
+
+	@DeleteMapping("/logout")
+	public ResponseEntity<Void> logout(
+		@RequestHeader("X-User-Id") String userId,
+		@RequestHeader("X-Token") String accessToken,
+		HttpServletResponse response
+	) {
+
+		System.out.println("accessToken = " + accessToken);
+		authService.logout(Long.parseLong(userId), accessToken);
+
+		cookieManager.clearRefreshToken(response);
+
+		return ResponseEntity.ok().build();
+	}
+
 
 }
