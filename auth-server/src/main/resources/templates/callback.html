@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>OAuth Callback</title>
+</head>
+<body>
+
+<h2>OAuth Callback Success</h2>
+
+<p>Refresh Token은 HttpOnly 쿠키로 저장되었습니다.</p>
+
+<button onclick="reissue()">Access Token 재발급 테스트</button>
+
+<pre id="result"></pre>
+
+<script>
+    // async function reissue() {
+    //     const res = await fetch("/api/auth/token", {
+    //         method: "PUT",
+    //         credentials: "include"
+    //     });
+    //
+    //     const data = await res.json();
+    //     document.getElementById("result").innerText =
+    //         JSON.stringify(data, null, 2);
+    // }
+</script>
+
+</body>
+</html>
