@@ -46,14 +46,14 @@ public class KakaoOAuthController {
 		@RequestParam(required = false) String error,
 		@RequestParam(required = false) String error_description,
 		@RequestParam(required = false) String state,
-		HttpServletResponse response
+		HttpServletResponse httpServletResponse
 	) {
 		Pair<String, String> tokens = kakaoOAuthService.login(code, error, error_description, state);
 
 		String refreshToken = tokens.getSecond();
 
 		authCookieManager.setRefreshToken(
-			response,
+			httpServletResponse,
 			refreshToken,
 			60L * 60 * 24 * 14
 		);

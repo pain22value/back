@@ -52,7 +52,7 @@ public class AuthController {
 	})
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse.Login> login(
-		HttpServletResponse response,
+		HttpServletResponse httpServletResponse,
 		@RequestBody @Valid AuthRequest.Login request
 	) {
 		Pair<String,String> tokens = authService.login(request.getEmail(), request.getPassword());
@@ -60,16 +60,16 @@ public class AuthController {
 		String accessToken = tokens.getFirst();
 		String refreshToken = tokens.getSecond();
 
-		AuthResponse.Login res = new AuthResponse.Login(accessToken);
+		var response = new AuthResponse.Login(accessToken);
 
 
 		authCookieManager.setRefreshToken(
-			response,
+			httpServletResponse,
 			refreshToken,
 			60L * 60 * 24 * 14
 			);
 
-		return ResponseEntity.ok(res);
+		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary = "토큰 재발급")
@@ -85,7 +85,7 @@ public class AuthController {
 	@PostMapping("/reissue")
 	public ApiResult<AuthResponse.Login> reissue(
 		@CookieValue(name = "refreshToken") String refreshToken,
-		HttpServletResponse response
+		HttpServletResponse httpServletResponse
 	) {
 		Pair<String, String> tokens = authService.reissue(refreshToken);
 
@@ -93,12 +93,14 @@ public class AuthController {
 		String newRefreshToken = tokens.getSecond();
 
 		authCookieManager.setRefreshToken(
-			response,
+			httpServletResponse,
 			newRefreshToken,
 			60L * 60 * 24 * 14
 		);
 
-		return ApiResult.ok(new AuthResponse.Login(newAccessToken));
+		var response = new AuthResponse.Login(newAccessToken);
+
+		return ApiResult.ok(response);
 	}
 
 
@@ -113,12 +115,12 @@ public class AuthController {
 	public ApiResult<Void> logout(
 		@RequestHeader("X-User-Id") String userId,
 		@RequestHeader("X-Token") String accessToken,
-		HttpServletResponse response
+		HttpServletResponse httpServletResponse
 	) {
 
 		authService.logout(Long.parseLong(userId), accessToken);
 
-		authCookieManager.clearRefreshToken(response);
+		authCookieManager.clearRefreshToken(httpServletResponse);
 
 		return ApiResult.ok();
 	}
