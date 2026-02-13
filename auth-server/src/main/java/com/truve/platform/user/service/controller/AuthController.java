@@ -1,6 +1,7 @@
 package com.truve.platform.user.service.controller;
 
 import org.springframework.data.util.Pair;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,13 +30,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 public class AuthController {
 	private final AuthService authService;
-	private final AuthCookieManager cookieManager;
+	private final AuthCookieManager authCookieManager;
 
 	@PostMapping("/sign-up")
 	public ApiResult<Void> signUp(
 		@RequestBody  @Valid AuthRequest.SignUp request
 	) {
-		System.out.println(request.getEmail());
 		authService.signUp(request.getEmail(), request.getPassword());
 
 		return ApiResult.ok();
@@ -51,13 +51,25 @@ public class AuthController {
 		),
 	})
 	@PostMapping("/login")
-	public ApiResult<AuthResponse.Login> login(
+	public ResponseEntity<AuthResponse.Login> login(
+		HttpServletResponse response,
 		@RequestBody @Valid AuthRequest.Login request
 	) {
 		Pair<String,String> tokens = authService.login(request.getEmail(), request.getPassword());
 
-		AuthResponse.Login res = new AuthResponse.Login(tokens.getFirst(), tokens.getSecond());
-		return ApiResult.ok(res);
+		String accessToken = tokens.getFirst();
+		String refreshToken = tokens.getSecond();
+
+		AuthResponse.Login res = new AuthResponse.Login(accessToken);
+
+
+		authCookieManager.setRefreshToken(
+			response,
+			refreshToken,
+			60L * 60 * 24 * 14
+			);
+
+		return ResponseEntity.ok(res);
 	}
 
 	@Operation(summary = "토큰 재발급")
@@ -80,14 +92,13 @@ public class AuthController {
 		String newAccessToken = tokens.getFirst();
 		String newRefreshToken = tokens.getSecond();
 
-		cookieManager.setRefreshToken(
+		authCookieManager.setRefreshToken(
 			response,
 			newRefreshToken,
 			60L * 60 * 24 * 14
 		);
 
-		// TODO: 자체 로그인 리프레시 토큰 전달 방식 변경 시 DTO 같이 변경
-		return ApiResult.ok(new AuthResponse.Login(newAccessToken, null));
+		return ApiResult.ok(new AuthResponse.Login(newAccessToken));
 	}
 
 
@@ -107,7 +118,7 @@ public class AuthController {
 
 		authService.logout(Long.parseLong(userId), accessToken);
 
-		cookieManager.clearRefreshToken(response);
+		authCookieManager.clearRefreshToken(response);
 
 		return ApiResult.ok();
 	}
