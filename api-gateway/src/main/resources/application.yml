@@ -1,9 +1,21 @@
 server:
   port: 8080
-
 spring:
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins:
+              - "*"
+            allow-credentials: true
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
       server:
         webflux:
           routes:
