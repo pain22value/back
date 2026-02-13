@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.truve.platform.user.service.security.AuthCookieManager;
+import com.truve.platform.user.service.security.properties.FrontOAuthProperties;
 import com.truve.platform.user.service.security.properties.NaverOAuthProperties;
 import com.truve.platform.user.service.service.NaverOAuthService;
 
@@ -22,18 +23,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth/naver")
 public class NaverOAuthController {
+	private final FrontOAuthProperties frontOAuthProperties;
 	private final NaverOAuthProperties naverOAuthProperties;
 	private final NaverOAuthService naverOAuthService;
 	private final AuthCookieManager authCookieManager;
 
 	@GetMapping("/login")
 	public ResponseEntity<Void> login() {
-		String redirectUri =
-			"https://nid.naver.com/oauth2.0/authorize"
-				+ "?response_type=code&client_id=" + naverOAuthProperties.getClientId()
+		String redirectUri = naverOAuthProperties.getAuthorizationUrl()
+			+ "?response_type=code&client_id=" + naverOAuthProperties.getClientId()
 				// TODO: 유저 별 랜덤 문자열 레디스 저장 후 CSRF 방지
-				+ "&state=" + UUID.randomUUID()
-				+ "&redirect_uri=" + naverOAuthProperties.getRedirectUrl();
+			+ "&state=" + UUID.randomUUID()
+			+ "&redirect_uri=" + naverOAuthProperties.getRedirectUrl();
 
 		return ResponseEntity
 			.status(HttpStatus.FOUND)
@@ -59,8 +60,7 @@ public class NaverOAuthController {
 		);
 
 		return ResponseEntity.status(HttpStatus.FOUND)
-			// TODO: 프론트 연동시 url 변경
-			.location(URI.create("http://localhost:8081/test/callback"))
+			.location(URI.create(frontOAuthProperties.getCallback()))
 			.build();
 	}
 }
