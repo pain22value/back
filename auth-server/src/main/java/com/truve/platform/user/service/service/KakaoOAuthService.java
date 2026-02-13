@@ -33,7 +33,7 @@ public class KakaoOAuthService {
 
 
 	// TODO: 에러 코드에 따른 로직 처리
-	// https://developers.naver.com/docs/login/devguide/devguide.md#3-1-1-%EC%84%9C%EB%B9%84%EC%8A%A4-%ED%99%98%EA%B2%BD-%ED%99%95%EC%9D%B8
+	//  https://developers.kakao.com/docs/latest/ko/kakaologin/trouble-shooting
 	@Transactional
 	public Pair<String, String> login(String code, String error, String errorDescription, String state) {
 
