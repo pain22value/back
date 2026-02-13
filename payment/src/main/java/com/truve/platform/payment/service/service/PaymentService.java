@@ -49,6 +49,13 @@ public class PaymentService {
 		payment.processConfirm(response.getPaymentKey(), parseLocalDateTime(response.getApprovedAt()));
 	}
 
+	@Transactional
+	public void completeDeposit(String orderId, String time) {
+		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+
+		payment.complete(payment.getPaymentKey(), parseLocalDateTime(time));
+	}
+
 	private LocalDateTime parseLocalDateTime(String time) {
 		return !StringUtils.hasText(time) ? null : OffsetDateTime.parse(time).toLocalDateTime();
 	}
