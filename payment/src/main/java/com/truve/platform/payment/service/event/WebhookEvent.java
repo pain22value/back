@@ -7,7 +7,7 @@ public record WebhookEvent(
 	String status,
 	String orderId
 ) {
-	public WebhookEvent from(WebhookRequest.Deposit request) {
+	public static WebhookEvent from(WebhookRequest.Deposit request) {
 		return new WebhookEvent(
 			request.getCreatedAt(),
 			request.getStatus(),
