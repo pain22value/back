@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.truve.platform.queue.service.common.response.ApiResult;
+import org.truve.platform.queue.service.queue.dto.QueueResponse;
 import org.truve.platform.queue.service.queue.service.QueueService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,15 @@ public class QueueController {
 	) {
 		queueService.enter(showId, userId);
 		return ApiResult.ok();
+	}
+
+	@GetMapping("/{showId}/status")
+	public ApiResult<QueueResponse.Status> status(
+		@PathVariable String showId,
+		@RequestHeader(value = USER_ID_HEADER) String userId
+	) {
+		var response = queueService.status(showId, userId);
+		return ApiResult.ok(response);
 	}
 
 }
