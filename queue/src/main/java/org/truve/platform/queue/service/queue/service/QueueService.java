@@ -1,7 +1,6 @@
 package org.truve.platform.queue.service.queue.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -10,10 +9,7 @@ import org.truve.platform.queue.service.common.exception.CustomException;
 import org.truve.platform.queue.service.common.exception.ErrorCode;
 import org.truve.platform.queue.service.common.support.Preconditions;
 import org.truve.platform.queue.service.queue.config.QueueProperties;
-import org.truve.platform.queue.service.queue.dto.EnterQueueResponse;
-import org.truve.platform.queue.service.queue.dto.LeaveQueueResponse;
 import org.truve.platform.queue.service.queue.dto.QueueResponse;
-import org.truve.platform.queue.service.queue.dto.QueueStatusResponse;
 import org.truve.platform.queue.service.queue.repository.QueueRedisRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -42,12 +38,34 @@ public class QueueService {
 		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
 		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
 
+		var readyToken = queueRedisRepository.getReadyToken(showId, userId);
+		if (readyToken.isPresent()) {
+			long ttl = queueRedisRepository.getReadyTokenTtlSec(showId, userId)
+				.orElse(queueProperties.getReadyTtlSec());
+			return QueueResponse.Status.ready(readyToken.get(), ttl);
+		}
+
 		var rank = queueRedisRepository.getRank(showId, userId);
 		if (rank.isPresent()) {
 			return QueueResponse.Status.wait(rank.get());
 		}
 
+		throw new CustomException(ErrorCode.QUEUE_ENTRY_NOT_FOUND);
+	}
 
+
+	public int promoteWaitingUsers(String showId) {
+
+		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
+
+		int permit = queueProperties.getPermitPerTick();
+		List<String> users = queueRedisRepository.popWaitingUsers(showId, permit);
+		for (String userId : users) {
+			// TODO: 토큰 UUID -> JWT
+			String token = UUID.randomUUID().toString();
+			queueRedisRepository.saveReadyToken(showId, userId, token, queueProperties.getReadyTtlSec());
+		}
+		return users.size();
 	}
 
 }

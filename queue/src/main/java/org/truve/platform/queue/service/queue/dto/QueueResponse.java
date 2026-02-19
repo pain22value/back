@@ -22,5 +22,9 @@ public class QueueResponse {
 		public static Status wait (Long rank) {
 			return new Status("wait", rank, null, null);
 		}
+
+		public static Status ready (String admissionToken, long expiresTime) {
+			return new Status("ready", 0L, admissionToken, expiresTime);
+		}
 	}
 }
