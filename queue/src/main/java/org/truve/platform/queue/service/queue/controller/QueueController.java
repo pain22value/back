@@ -10,17 +10,32 @@ import org.truve.platform.queue.service.common.response.ApiResult;
 import org.truve.platform.queue.service.queue.dto.QueueResponse;
 import org.truve.platform.queue.service.queue.service.QueueService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/queue")
 @RequiredArgsConstructor
+
+@Tag(name = "Queue", description = "티켓팅 대기열 API")
 public class QueueController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
 
 	private final QueueService queueService;
 
+	@Operation(summary = "대기열 진입", description = "사용자를 공연 회차별 대기열에 등록합니다.")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "대기열 진입 성공"
+		)
+	})
 	@PostMapping("/{showId}/enter")
 	public ApiResult<Void> enter(
 		@PathVariable String showId,
@@ -30,6 +45,14 @@ public class QueueController {
 		return ApiResult.ok();
 	}
 
+	@Operation(summary = "대기열 상태 조회", description = "대기열 순번 또는 READY 토큰 상태를 조회합니다.")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "대기열 상태 조회 성공",
+			content = @Content(schema = @Schema(implementation =  QueueResponse.Status.class))
+		)
+	})
 	@GetMapping("/{showId}/status")
 	public ApiResult<QueueResponse.Status> status(
 		@PathVariable String showId,
