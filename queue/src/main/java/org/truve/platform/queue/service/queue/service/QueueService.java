@@ -39,15 +39,17 @@ public class QueueService {
 		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
 
 		var readyToken = queueRedisRepository.getReadyToken(showId, userId);
+		Long waitingUserCount = queueRedisRepository.getWaitingUserCount(showId);
+
 		if (readyToken.isPresent()) {
 			long ttl = queueRedisRepository.getReadyTokenTtlSec(showId, userId)
 				.orElse(queueProperties.getReadyTtlSec());
-			return QueueResponse.Status.ready(readyToken.get(), ttl);
+			return QueueResponse.Status.ready(readyToken.get(), ttl, waitingUserCount);
 		}
 
 		var rank = queueRedisRepository.getRank(showId, userId);
 		if (rank.isPresent()) {
-			return QueueResponse.Status.wait(rank.get());
+			return QueueResponse.Status.wait(rank.get(), waitingUserCount);
 		}
 
 		throw new CustomException(ErrorCode.QUEUE_ENTRY_NOT_FOUND);

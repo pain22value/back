@@ -69,6 +69,10 @@ public class QueueRedisRepository {
 		return Objects.requireNonNullElse(shows, Set.of());
 	}
 
+	public Long getWaitingUserCount(String showId) {
+		return redisTemplate.opsForZSet().size(waitKey(showId));
+	}
+
 
 	private static String waitKey(String showId) {
 		return WAIT_KEY_PREFIX + showId;

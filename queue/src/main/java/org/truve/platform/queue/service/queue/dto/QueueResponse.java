@@ -20,13 +20,14 @@ public class QueueResponse {
 		private final Long rank;
 		private final String admissionToken;
 		private final Long expireTime;
+		private final Long waitingUserCount;
 
-		public static Status wait (Long rank) {
-			return new Status(QueueStatus.WAITING, rank, null, null);
+		public static Status wait (Long rank, Long waitingUserCount) {
+			return new Status(QueueStatus.WAITING, rank, null, null, waitingUserCount);
 		}
 
-		public static Status ready (String admissionToken, long expiresTime) {
-			return new Status(QueueStatus.READY, 0L, admissionToken, expiresTime);
+		public static Status ready (String admissionToken, long expiresTime, Long waitingUserCount) {
+			return new Status(QueueStatus.READY, 0L, admissionToken, expiresTime, waitingUserCount);
 		}
 	}
 }
