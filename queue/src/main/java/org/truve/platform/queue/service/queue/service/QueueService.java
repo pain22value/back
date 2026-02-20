@@ -1,7 +1,6 @@
 package org.truve.platform.queue.service.queue.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -10,6 +9,7 @@ import org.truve.platform.queue.service.common.exception.ErrorCode;
 import org.truve.platform.queue.service.common.support.Preconditions;
 import org.truve.platform.queue.service.queue.config.QueueProperties;
 import org.truve.platform.queue.service.queue.dto.QueueResponse;
+import org.truve.platform.queue.service.queue.jwt.JwtService;
 import org.truve.platform.queue.service.queue.repository.QueueRedisRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,7 @@ public class QueueService {
 
 	private final QueueRedisRepository queueRedisRepository;
 	private final QueueProperties queueProperties;
+	private final JwtService jwtService;
 
 	public void enter(String showId, String userId) {
 
@@ -61,11 +62,12 @@ public class QueueService {
 		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
 
 		int permit = queueProperties.getPermitPerTick();
+		long ttlSec = queueProperties.getReadyTtlSec();
+
 		List<String> users = queueRedisRepository.popWaitingUsers(showId, permit);
 		for (String userId : users) {
-			// TODO: 토큰 UUID -> JWT
-			String token = UUID.randomUUID().toString();
-			queueRedisRepository.saveReadyToken(showId, userId, token, queueProperties.getReadyTtlSec());
+			String admissionToken = jwtService.issue(showId, userId, ttlSec);
+			queueRedisRepository.saveReadyToken(showId, userId, admissionToken, queueProperties.getReadyTtlSec());
 		}
 		return users.size();
 	}
