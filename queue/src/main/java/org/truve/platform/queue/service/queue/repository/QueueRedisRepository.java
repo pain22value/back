@@ -17,9 +17,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class QueueRedisRepository {
 
-	private static final String WAIT_KEY_PREFIX = "q:wait:";
-	private static final String READY_KEY_PREFIX = "q:ready:";
-	private static final String SHOW_SET_KEY = "q:shows";
+	private static final String WAIT_KEY_PREFIX = "queue:wait:";
+	private static final String READY_KEY_PREFIX = "queue:ready:";
+	private static final String SHOW_SET_KEY = "queue:shows";
 
 	private final StringRedisTemplate redisTemplate;
 
