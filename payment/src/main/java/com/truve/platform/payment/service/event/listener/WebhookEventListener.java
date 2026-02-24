@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebhookEventListener {
 
-	PaymentService paymentService;
+	private final PaymentService paymentService;
 
 	@Async
 	@EventListener

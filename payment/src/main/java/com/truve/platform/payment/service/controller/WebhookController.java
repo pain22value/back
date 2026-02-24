@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/webhooks")
 @Hidden
 public class WebhookController {
-	ApplicationEventPublisher eventPublisher;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@PostMapping("/deposit")
 	public ResponseEntity<Void> handleDepositWebhook(@RequestBody WebhookRequest.Deposit request) {
