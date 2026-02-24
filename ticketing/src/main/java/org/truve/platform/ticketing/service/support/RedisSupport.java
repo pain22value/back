@@ -66,20 +66,20 @@ public class RedisSupport {
 		}
 	}
 
-	public Boolean setIfAbsent(String key, String value, Duration duration) {
-		return redisTemplate.opsForValue().setIfAbsent(key, value, duration);
+	public boolean setIfAbsent(String key, String value, Duration duration) {
+		return Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, value, duration));
 	}
 
-	public Boolean zAdd(String key, String member, double score) {
-		return redisTemplate.opsForZSet().add(key, member, score);
+	public boolean zAdd(String key, String member, double score) {
+		return Boolean.TRUE.equals(redisTemplate.opsForZSet().add(key, member, score));
 	}
 
-	public Long zRemRangeByScore(String key, double minScore, double maxScore) {
+	public long zRemRangeByScore(String key, double minScore, double maxScore) {
 		return redisTemplate.opsForZSet().removeRangeByScore(key, minScore, maxScore);
 	}
 
-	public Boolean expireSeconds(String key, long ttl) {
-		return redisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+	public boolean expireSeconds(String key, long ttl) {
+		return Boolean.TRUE.equals(redisTemplate.expire(key, ttl, TimeUnit.SECONDS));
 	}
 
 }
