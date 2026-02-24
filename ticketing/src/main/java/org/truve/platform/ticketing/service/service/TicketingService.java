@@ -5,7 +5,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.truve.platform.ticketing.service.dto.AdmissionTokenClaimsDTO;
+import org.truve.platform.ticketing.service.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.dto.TicketingResponse;
+import org.truve.platform.ticketing.service.config.TicketingProperties;
 import org.truve.platform.ticketing.service.jwt.AdmissionTokenService;
 import org.truve.platform.ticketing.service.repository.TicketingRedisRepository;
 
@@ -20,6 +22,7 @@ public class TicketingService {
 
 	private final TicketingRedisRepository ticketingRedisRepository;
 	private final AdmissionTokenService admissionTokenService;
+	private final TicketingProperties ticketingProperties;
 
 	public TicketingResponse.Enter enter(String showId, String userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showId, userId);
@@ -37,4 +40,22 @@ public class TicketingService {
 		return new TicketingResponse.Enter(sessionToken, sessionTokenTtl);
 	}
 
+	public void heartbeat(String showId, String userId, String sessionToken) {
+		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
+
+		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);
+
+		Preconditions.validate(sessionValue != null, ErrorCode.INVALID_SESSION_TOKEN);
+		Preconditions.validate(userId.equals(sessionValue.getUserId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+		Preconditions.validate(showId.equals(sessionValue.getShowId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+
+		ticketingRedisRepository.addActiveTicketingUser(showId, sessionToken);
+		long nowMs = System.currentTimeMillis();
+		long activeWindowMs = ticketingProperties.getActiveWindowMs();
+		ticketingRedisRepository.removeInactiveTicketingUsers(showId, nowMs - activeWindowMs);
+
+		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
+		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
+
+	}
 }

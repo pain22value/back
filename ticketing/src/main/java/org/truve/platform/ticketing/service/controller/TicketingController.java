@@ -19,7 +19,7 @@ public class TicketingController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
 	private static final String ADMISSION_HEADER = "X-Admission-Token";
-	private static final String SESSION_HEADER = "X-Session-Id";
+	private static final String SESSION_HEADER = "X-Session-Ticket";
 
 	private final TicketingService ticketingService;
 
@@ -39,7 +39,7 @@ public class TicketingController {
 		@RequestHeader(value = USER_ID_HEADER) String userId,
 		@RequestHeader(value = SESSION_HEADER) String sessionToken
 	) {
-		ticketingService.heartBeat(showId, userId, sessionToken);
+		ticketingService.heartbeat(showId, userId, sessionToken);
 		return ApiResult.ok();
 	}
 
