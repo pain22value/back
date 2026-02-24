@@ -1,6 +1,7 @@
 package org.truve.platform.ticketing.service.support;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,12 @@ public class RedisSupport {
 	private final StringRedisTemplate redisTemplate;
 	private final ObjectMapper objectMapper;
 
-	public void setValue(String key, String value, Duration duration) {
+
+	public void setValue(String key, String value) {
+		redisTemplate.opsForValue().set(key, value);
+	}
+
+	public void setValueWithTtl(String key, String value, Duration duration) {
 		redisTemplate.opsForValue().set(key, value, duration);
 	}
 
@@ -28,13 +34,23 @@ public class RedisSupport {
 	}
 
 	public boolean delete(String key) {
-		return redisTemplate.delete(key);
+		return Boolean.TRUE.equals(redisTemplate.delete(key));
 	}
 
-	public void setJsonValue(String key, String value, Duration duration) {
+
+	public void setJsonValue(String key, Object value) {
 		try {
 			String json = objectMapper.writeValueAsString(value);
-			setValue(key, json, duration);
+			setValue(key, json);
+		} catch (JsonProcessingException e) {
+			throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
+		}
+	}
+
+	public void setJsonValueWithTtl(String key, Object value, Duration duration) {
+		try {
+			String json = objectMapper.writeValueAsString(value);
+			setValueWithTtl(key, json, duration);
 		} catch (JsonProcessingException e) {
 			throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
 		}
@@ -44,15 +60,14 @@ public class RedisSupport {
 		String json = getValue(key);
 		if (json == null) return null;
 		try {
-			return  objectMapper.readValue(json, type);
+			return objectMapper.readValue(json, type);
 		} catch (JsonProcessingException e) {
 			throw new CustomException(ErrorCode.JSON_PARSE_ERROR);
 		}
 	}
 
-	public boolean setIfAbsent(String key, String value, Duration duration) {
-		Boolean flag = redisTemplate.opsForValue().setIfAbsent(key, value, duration);
-		return Boolean.TRUE.equals(flag);
+	public Boolean setIfAbsent(String key, String value, Duration duration) {
+		return redisTemplate.opsForValue().setIfAbsent(key, value, duration);
 	}
 
 	public Boolean zAdd(String key, String member, double score) {
@@ -60,6 +75,11 @@ public class RedisSupport {
 	}
 
 	public Long zRemRangeByScore(String key, double minScore, double maxScore) {
-		return redisTemplate.opsForZSet().remove(key, minScore, maxScore);
+		return redisTemplate.opsForZSet().removeRangeByScore(key, minScore, maxScore);
 	}
+
+	public Boolean expireSeconds(String key, long ttl) {
+		return redisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+	}
+
 }
