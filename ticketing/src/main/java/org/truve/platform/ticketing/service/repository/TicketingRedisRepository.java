@@ -55,4 +55,20 @@ public class TicketingRedisRepository {
 		return redisSupport.getTtlMillis(key);
 	}
 
+	public SessionTicketValueDTO getSessionTokenValue(String sessionToken) {
+		String key = SESSION_TOKEN_PREFIX + sessionToken;
+		return redisSupport.getJsonValue(key, SessionTicketValueDTO.class);
+	}
+
+	public long removeInactiveTicketingUsers(String showId, long beforeMs) {
+		String key = TICKET_ACTIVE_PERFORMANCE_USER_PREFIX + showId;
+		return redisSupport.zRemRangeByScore(key, 0, beforeMs - 1);
+	}
+
+	public boolean refreshSessionTokenTtl(String sessionToken, long ttlSeconds) {
+		String key = SESSION_TOKEN_PREFIX + sessionToken;
+		return redisSupport.expireSeconds(key, ttlSeconds);
+	}
+
+
 }

@@ -78,8 +78,8 @@ public class RedisSupport {
 		return redisTemplate.opsForZSet().removeRangeByScore(key, minScore, maxScore);
 	}
 
-	public boolean expireMilliSeconds(String key, long ttl) {
-		return Boolean.TRUE.equals(redisTemplate.expire(key, ttl, TimeUnit.MILLISECONDS));
+	public boolean expireSeconds(String key, long ttl) {
+		return Boolean.TRUE.equals(redisTemplate.expire(key, ttl, TimeUnit.SECONDS));
 	}
 
 	public long getTtlMillis(String key) {
