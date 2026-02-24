@@ -3,7 +3,7 @@ package org.truve.platform.ticketing.service;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.truve.platform")
 public class TicketingApplication {
 
 	public static void main(String[] args) {
