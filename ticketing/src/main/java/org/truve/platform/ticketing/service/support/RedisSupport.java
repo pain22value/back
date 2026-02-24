@@ -70,16 +70,19 @@ public class RedisSupport {
 		return Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, value, duration));
 	}
 
-	public boolean zAdd(String key, String member, double score) {
-		return Boolean.TRUE.equals(redisTemplate.opsForZSet().add(key, member, score));
+	public void zAdd(String key, String member, double score) {
+		redisTemplate.opsForZSet().add(key, member, score);
 	}
 
 	public long zRemRangeByScore(String key, double minScore, double maxScore) {
 		return redisTemplate.opsForZSet().removeRangeByScore(key, minScore, maxScore);
 	}
 
-	public boolean expireSeconds(String key, long ttl) {
-		return Boolean.TRUE.equals(redisTemplate.expire(key, ttl, TimeUnit.SECONDS));
+	public boolean expireMilliSeconds(String key, long ttl) {
+		return Boolean.TRUE.equals(redisTemplate.expire(key, ttl, TimeUnit.MILLISECONDS));
 	}
 
+	public long getTtlMillis(String key) {
+		return redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+	}
 }
