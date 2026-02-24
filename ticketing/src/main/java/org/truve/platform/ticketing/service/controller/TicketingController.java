@@ -19,6 +19,7 @@ public class TicketingController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
 	private static final String ADMISSION_HEADER = "X-Admission-Token";
+	private static final String SESSION_HEADER = "X-Session-Id";
 
 	private final TicketingService ticketingService;
 
@@ -28,8 +29,18 @@ public class TicketingController {
 		@RequestHeader(value = USER_ID_HEADER) String userId,
 		@RequestHeader(value = ADMISSION_HEADER, required = false) String admissionToken
 	) {
-
 		var response = ticketingService.enter(showId, userId, admissionToken);
 		return ApiResult.ok(response);
 	}
+
+	@PostMapping("/{showId}/heartbeat")
+	public ApiResult<Void> heartbeat(
+		@PathVariable String showId,
+		@RequestHeader(value = USER_ID_HEADER) String userId,
+		@RequestHeader(value = SESSION_HEADER) String sessionToken
+	) {
+		ticketingService.heartBeat(showId, userId, sessionToken);
+		return ApiResult.ok();
+	}
+
 }
