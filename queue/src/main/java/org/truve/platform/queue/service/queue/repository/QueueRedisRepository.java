@@ -18,6 +18,7 @@ public class QueueRedisRepository {
 	private static final String WAIT_KEY_PREFIX = "queue:wait:";
 	private static final String READY_KEY_PREFIX = "queue:ready:";
 	private static final String SHOW_SET_KEY = "queue:shows";
+	private static final String TICKET_ACTIVE_PREFIX = "ticket:active:";
 
 	private final RedisSupport redisSupport;
 
@@ -33,7 +34,7 @@ public class QueueRedisRepository {
 		return redisSupport.zRank(waitKey(showId), userId);
 	}
 
-	public List<String> popWaitingUsers(String showId, int count) {
+	public List<String> popWaitingUsers(String showId, long count) {
 		List<String> userIds = new ArrayList<>();
 		for (int i = 0; i < count; i++) {
 			String userId = redisSupport.zSetPop(waitKey(showId));
@@ -65,10 +66,14 @@ public class QueueRedisRepository {
 		return redisSupport.sMembers(SHOW_SET_KEY);
 	}
 
-	public Long getWaitingUserCount(String showId) {
+	public long getWaitingUserCount(String showId) {
 		return redisSupport.zSetSize(waitKey(showId)).orElse(0L);
 	}
 
+	public long countActiveUsers(String showId, long minScore) {
+		String key = TICKET_ACTIVE_PREFIX + showId;
+		return redisSupport.zSetCount(key, minScore).orElse(0L);
+	}
 
 	private static String waitKey(String showId) {
 		return WAIT_KEY_PREFIX + showId;

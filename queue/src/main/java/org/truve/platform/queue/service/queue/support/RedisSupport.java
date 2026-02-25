@@ -72,4 +72,8 @@ public class RedisSupport {
 		return Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, value, duration));
 	}
 
+	public Optional<Long> zSetCount(String key, long minScore) {
+		return Optional.ofNullable(redisTemplate.opsForZSet().count(key, minScore, Double.MAX_VALUE));
+	}
+
 }
