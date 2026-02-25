@@ -25,4 +25,8 @@ public class RedisSupport {
 		return redisTemplate.opsForValue().get(key);
 	}
 
+	public void expire(String key, Duration duration) {
+		redisTemplate.expire(key, duration);
+	}
+
 }

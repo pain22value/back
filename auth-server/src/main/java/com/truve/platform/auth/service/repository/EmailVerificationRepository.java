@@ -19,7 +19,7 @@ public class EmailVerificationRepository {
 		String key = VERIFY_EMAIL_PREFIX + email;
 		redisSupport.setValueWithTtl(
 			key, verificationCode,
-			Duration.ofMinutes(5)
+			Duration.ofMinutes(10)
 		);
 	}
 
@@ -40,4 +40,13 @@ public class EmailVerificationRepository {
 		redisSupport.setValueWithTtl(key, verifiedAt, Duration.ofMinutes(30));
 	}
 
+	public String isVerifiedEmail(String email) {
+		String key = VERIFIED_EMAIL_PREFIX + email;
+		return redisSupport.getValue(key);
+	}
+
+	public void expireVerifiedEmail(String email) {
+		String key = VERIFIED_EMAIL_PREFIX + email;
+		redisSupport.expire(key, Duration.ZERO);
+	}
 }
