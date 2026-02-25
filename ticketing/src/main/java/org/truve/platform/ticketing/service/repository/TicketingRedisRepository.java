@@ -6,9 +6,6 @@ import org.springframework.stereotype.Repository;
 import org.truve.platform.ticketing.service.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.support.RedisSupport;
 
-import com.truve.platform.common.exception.ErrorCode;
-import com.truve.platform.common.support.Preconditions;
-
 import lombok.RequiredArgsConstructor;
 
 @Repository
@@ -21,21 +18,9 @@ public class TicketingRedisRepository {
 
 	private final RedisSupport redisSupport;
 
-	public boolean deleteAdmissionToken(String showId, String userId, String admissionToken) {
+	public boolean consumeAdmissionToken(String showId, String userId, String admissionToken) {
 		String key = READY_KEY_PREFIX + showId + ":" + userId;
-		String savedAdmissionToken = redisSupport.getValue(key);
-
-		Preconditions.validate(
-			savedAdmissionToken != null,
-			ErrorCode.INVALID_ADMISSION_TOKEN
-		);
-
-		Preconditions.validate(
-			savedAdmissionToken.equals(admissionToken),
-			ErrorCode.INVALID_ADMISSION_TOKEN
-		);
-
-		return redisSupport.delete(key);
+		return redisSupport.consumeIfEquals(key, admissionToken);
 	}
 
 	public void saveSessionToken(String sessionToken, String userId, String showId, Duration ttl) {
