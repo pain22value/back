@@ -106,7 +106,7 @@ public class AuthService {
 
 		User user = User.createLocalUser(email, encodedPassword);
 		userRepository.save(user);
-		emailVerificationRepository.expireVerifiedEmail(email);
+		emailVerificationRepository.deleteVerifiedEmail(email);
 
 	}
 

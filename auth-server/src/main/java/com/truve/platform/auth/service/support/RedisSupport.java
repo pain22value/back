@@ -29,4 +29,8 @@ public class RedisSupport {
 		redisTemplate.expire(key, duration);
 	}
 
+	public void delete(String key) {
+		redisTemplate.delete(key);
+	}
+
 }

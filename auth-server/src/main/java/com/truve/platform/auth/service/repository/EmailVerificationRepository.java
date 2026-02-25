@@ -45,8 +45,8 @@ public class EmailVerificationRepository {
 		return redisSupport.getValue(key);
 	}
 
-	public void expireVerifiedEmail(String email) {
+	public void deleteVerifiedEmail(String email) {
 		String key = VERIFIED_EMAIL_PREFIX + email;
-		redisSupport.expire(key, Duration.ZERO);
+		redisSupport.delete(key);
 	}
 }
