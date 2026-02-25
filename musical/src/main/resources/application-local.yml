@@ -1,0 +1,17 @@
+server:
+  port: 8083
+
+spring:
+  datasource:
+    url: ${MUSICAL_MYSQL_URL:jdbc:mysql://localhost:3306/musical_db}
+    username: ${MUSICAL_MYSQL_USERNAME:root}
+    password: ${MUSICAL_MYSQL_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
