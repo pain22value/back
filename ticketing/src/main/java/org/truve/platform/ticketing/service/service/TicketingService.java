@@ -27,8 +27,8 @@ public class TicketingService {
 	public TicketingResponse.Enter enter(String showId, String userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showId, userId);
 
-		boolean deleteFlag = ticketingRedisRepository.deleteAdmissionToken(claims.getShowId(), claims.getUserId(), admissionToken);
-		Preconditions.validate(deleteFlag, ErrorCode.INVALID_ADMISSION_TOKEN);
+		boolean consumedAdmissionToken = ticketingRedisRepository.consumeAdmissionToken(claims.getShowId(), claims.getUserId(), admissionToken);
+		Preconditions.validate(consumedAdmissionToken, ErrorCode.INVALID_ADMISSION_TOKEN);
 
 		String sessionToken = UUID.randomUUID().toString();
 

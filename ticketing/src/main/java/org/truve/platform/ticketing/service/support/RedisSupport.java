@@ -1,9 +1,11 @@
 package org.truve.platform.ticketing.service.support;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,6 +37,24 @@ public class RedisSupport {
 
 	public boolean delete(String key) {
 		return Boolean.TRUE.equals(redisTemplate.delete(key));
+	}
+
+	public boolean consumeIfEquals(String key, String expectedValue) {
+		String script =
+			"local current = redis.call('GET', KEYS[1]) " +
+				"if (not current) then return 0 end " +
+				"if (current == ARGV[1]) then " +
+				"redis.call('DEL', KEYS[1]) " +
+				"return 1 " +
+				"end " +
+				"return 0";
+
+		Long result = redisTemplate.execute(
+			new DefaultRedisScript<>(script, Long.class),
+			Collections.singletonList(key),
+			expectedValue
+		);
+		return Long.valueOf(1L).equals(result);
 	}
 
 
