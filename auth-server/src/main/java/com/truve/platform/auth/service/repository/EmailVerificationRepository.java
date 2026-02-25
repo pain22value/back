@@ -49,4 +49,9 @@ public class EmailVerificationRepository {
 		String key = VERIFIED_EMAIL_PREFIX + email;
 		redisSupport.delete(key);
 	}
+
+	public void  deleteEmailVerificationCode(String email) {
+		String key = VERIFY_EMAIL_PREFIX + email;
+		redisSupport.delete(key);
+	}
 }

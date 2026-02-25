@@ -70,5 +70,6 @@ public class EmailService {
 		boolean isVerified = emailVerificationRepository.verifyEmailVerificationCode(email, code);
 		Preconditions.validate(isVerified, ErrorCode.NOT_CORRECT_EMAIL_CODE);
 		emailVerificationRepository.registerVerifiedEmail(email);
+		emailVerificationRepository.deleteEmailVerificationCode(email);
 	}
 }
