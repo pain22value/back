@@ -1,26 +1,48 @@
 package com.truve.platform.auth.service.repository;
 
+import java.time.Duration;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import com.truve.platform.common.exception.CustomException;
+import com.truve.platform.auth.service.support.RedisSupport;
 import com.truve.platform.common.exception.ErrorCode;
-import com.truve.platform.auth.service.domain.entity.EmailVerificationToken;
+import com.truve.platform.common.support.Preconditions;
 
-public interface EmailVerificationRepository extends JpaRepository<EmailVerificationToken, Long> {
+import lombok.RequiredArgsConstructor;
 
-	boolean existsByEmail(String email);
+@Repository
+@RequiredArgsConstructor
+public class EmailVerificationRepository {
 
-	Optional<EmailVerificationToken> findByEmail(String email);
+	private static final String VERIFY_EMAIL_PREFIX = "email:verify:";
+	private static final String VERIFIED_EMAIL_PREFIX = "email:verified:";
 
-	boolean existsByEmailAndIsVerifiedTrue(String email);
+	private final RedisSupport redisSupport;
 
-	default EmailVerificationToken findByEmailOrThrow(String email) {
-		return findByEmail(email).orElseThrow(
-			() -> new CustomException(ErrorCode.NOT_FOUND_EMAIL)
+	public void registerEmailVerificationCode(String email, String verificationCode) {
+		String key = VERIFY_EMAIL_PREFIX + email;
+		redisSupport.setValueWithTtl(
+			key, verificationCode,
+			Duration.ofMinutes(5)
 		);
 	}
 
-	void deleteByEmail(String email);
+	public boolean verifyEmailVerificationCode(String email, String verificationCode) {
+		String key =  VERIFY_EMAIL_PREFIX + email;
+		String savedVerificationCode = redisSupport.getValue(key);
+
+		if (savedVerificationCode == null || savedVerificationCode.isBlank()) {
+			return false;
+		}
+
+		return savedVerificationCode.equals(verificationCode);
+	}
+
+	public void registerVerifiedEmail(String email) {
+		String key = VERIFIED_EMAIL_PREFIX + email;
+		String verifiedAt = String.valueOf(System.currentTimeMillis());
+		redisSupport.setValueWithTtl(key, verifiedAt, Duration.ofMinutes(30));
+	}
+
 }
