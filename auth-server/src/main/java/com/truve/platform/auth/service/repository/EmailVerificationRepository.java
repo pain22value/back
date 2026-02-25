@@ -1,13 +1,8 @@
 package com.truve.platform.auth.service.repository;
 
 import java.time.Duration;
-import java.util.Optional;
-
 import org.springframework.stereotype.Repository;
-
 import com.truve.platform.auth.service.support.RedisSupport;
-import com.truve.platform.common.exception.ErrorCode;
-import com.truve.platform.common.support.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmailVerificationRepository {
 
-	private static final String VERIFY_EMAIL_PREFIX = "email:verify:";
+	private static final String VERIFY_EMAIL_PREFIX = "email:";
 	private static final String VERIFIED_EMAIL_PREFIX = "email:verified:";
 
 	private final RedisSupport redisSupport;
