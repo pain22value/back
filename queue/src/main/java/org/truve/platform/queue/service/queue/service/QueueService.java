@@ -61,12 +61,21 @@ public class QueueService {
 
 		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
 
-		int permit = queueProperties.getPermitPerTick();
-		long ttlSec = queueProperties.getReadyTtlSec();
+		long now = System.currentTimeMillis();
+		
+		long readyTtlSec = queueProperties.getReadyTtlSec();
 
-		List<String> users = queueRedisRepository.popWaitingUsers(showId, permit);
+		long activeWindowMs = queueProperties.getActiveWindowMs();
+		long minScore = now - activeWindowMs;
+
+		long activeNow = queueRedisRepository.countActiveUsers(showId, minScore);
+
+		long activeLimit = queueProperties.getActiveLimit();
+		long permitActiveUserCount = activeLimit - activeNow;
+
+		List<String> users = queueRedisRepository.popWaitingUsers(showId, permitActiveUserCount);
 		for (String userId : users) {
-			String admissionToken = jwtService.issue(showId, userId, ttlSec);
+			String admissionToken = jwtService.issue(showId, userId, readyTtlSec);
 			queueRedisRepository.saveReadyToken(showId, userId, admissionToken, queueProperties.getReadyTtlSec());
 		}
 		return users.size();
