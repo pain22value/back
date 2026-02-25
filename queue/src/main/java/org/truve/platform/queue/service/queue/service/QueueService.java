@@ -23,6 +23,7 @@ public class QueueService {
 	private final QueueRedisRepository queueRedisRepository;
 	private final QueueProperties queueProperties;
 	private final JwtService jwtService;
+	private final QueuePollingPolicy queuePollingPolicy;
 
 	public void enter(String showId, String userId) {
 
@@ -45,17 +46,17 @@ public class QueueService {
 		if (readyToken.isPresent()) {
 			long ttl = queueRedisRepository.getReadyTokenTtlSec(showId, userId)
 				.orElse(queueProperties.getReadyTtlSec());
-			return QueueResponse.Status.ready(readyToken.get(), ttl, waitingUserCount);
+			return QueueResponse.Status.ready(readyToken.get(), ttl, waitingUserCount, queuePollingPolicy.forReady());
 		}
 
 		var rank = queueRedisRepository.getRank(showId, userId);
 		if (rank.isPresent()) {
-			return QueueResponse.Status.wait(rank.get(), waitingUserCount);
+			long pollAfterMs = queuePollingPolicy.forWaiting(rank.get());
+			return QueueResponse.Status.wait(rank.get(), waitingUserCount, pollAfterMs);
 		}
 
 		throw new CustomException(ErrorCode.QUEUE_ENTRY_NOT_FOUND);
 	}
-
 
 	public int promoteWaitingUsers(String showId) {
 
