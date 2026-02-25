@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 public class MusicalResponse {
 
 	@Getter
 	@AllArgsConstructor
+	@Builder
 	public static class Detail {
 		private Long musicalId;
 		private String title;
@@ -34,6 +36,7 @@ public class MusicalResponse {
 
 	@Getter
 	@AllArgsConstructor
+	@Builder
 	public static class Schedule {
 		private Long scheduleId;
 		private LocalDateTime dateTime;
@@ -43,6 +46,7 @@ public class MusicalResponse {
 
 	@Getter
 	@AllArgsConstructor
+	@Builder
 	public static class Actor {
 		private Long actorId;
 		private String role;
@@ -52,6 +56,7 @@ public class MusicalResponse {
 
 	@Getter
 	@AllArgsConstructor
+	@Builder
 	public static class SeatPrice {
 		private String seatGrade;
 		private Integer price;
