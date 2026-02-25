@@ -48,6 +48,7 @@ services:
       - QUEUE_SERVER_URI=http://queue:8083
       - USER_REDIS_HOST=user-redis
       - USER_REDIS_PORT=6379
+      - TICKETING_SERVER_URI=http://ticketing:8084
     networks:
       - truve-network
 
@@ -124,6 +125,29 @@ services:
       - USER_REDIS_PORT=6379
 
     depends_on:
+      user-redis:
+        condition: service_started
+    networks:
+      - truve-network
+
+  # 7. ticketing Server
+  ticketing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: ticketing
+    image: truve/ticketing:1.0.0
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - USER_REDIS_HOST=user-redis
+      - USER_REDIS_PORT=6379
+
+    depends_on:
+      db:
+        condition: service_healthy
       user-redis:
         condition: service_started
     networks:
