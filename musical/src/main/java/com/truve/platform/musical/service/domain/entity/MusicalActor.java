@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "musical_schedule_actors")
+@Table(name = "musical_actors")
 public class MusicalActor extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)

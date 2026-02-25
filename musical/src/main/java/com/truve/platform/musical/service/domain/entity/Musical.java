@@ -2,11 +2,14 @@ package com.truve.platform.musical.service.domain.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.truve.platform.common.support.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -63,6 +66,12 @@ public class Musical extends BaseEntity {
 
 	@Column(nullable = false)
 	private String detailsUrl;
+
+	@OneToMany(mappedBy = "musical")
+	private List<MusicalSchedule> schedules = new ArrayList<>();
+
+	@OneToMany(mappedBy = "musical")
+	private List<MusicalSeatPrice> seatPrices = new ArrayList<>();
 
 	@Builder
 	private Musical(
