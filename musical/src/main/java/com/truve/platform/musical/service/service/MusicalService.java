@@ -2,6 +2,8 @@ package com.truve.platform.musical.service.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +13,10 @@ import com.truve.platform.musical.service.domain.entity.MusicalActor;
 import com.truve.platform.musical.service.domain.entity.MusicalSchedule;
 import com.truve.platform.musical.service.domain.entity.MusicalSeatPrice;
 import com.truve.platform.musical.service.dto.MusicalResponse;
+import com.truve.platform.musical.service.repository.MusicalActorRepository;
 import com.truve.platform.musical.service.repository.MusicalRepository;
+import com.truve.platform.musical.service.repository.MusicalScheduleRepository;
+import com.truve.platform.musical.service.repository.MusicalSeatPriceRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,17 +25,33 @@ import lombok.RequiredArgsConstructor;
 public class MusicalService {
 
 	private final MusicalRepository musicalRepository;
+	private final MusicalScheduleRepository musicalScheduleRepository;
+	private final MusicalActorRepository musicalActorRepository;
+	private final MusicalSeatPriceRepository musicalSeatPriceRepository;
 
 	@Transactional(readOnly = true)
 	public MusicalResponse.Detail getDetail(Long musicalId) {
 		Musical musical = musicalRepository.findByIdOrThrow(musicalId);
 
-		List<MusicalResponse.Schedule> schedules = musical.getSchedules().stream()
-			.sorted(Comparator.comparing(MusicalSchedule::getDateTime))
-			.map(this::toScheduleResponse)
+		List<MusicalSchedule> schedules = musicalScheduleRepository.findSchedules(musicalId);
+		List<Long> scheduleIds = schedules.stream()
+			.map(MusicalSchedule::getId)
 			.toList();
 
-		List<MusicalResponse.SeatPrice> seatPrices = musical.getSeatPrices().stream()
+		Map<Long, List<MusicalResponse.Actor>> actorsByScheduleId = scheduleIds.isEmpty()
+			? Map.of()
+			: musicalActorRepository.findActorsByScheduleIds(scheduleIds).stream()
+				.sorted(Comparator.comparing(actor -> actor.getRole().getOrder()))
+				.collect(Collectors.groupingBy(
+					actor -> actor.getSchedule().getId(),
+					Collectors.mapping(this::toActorResponse, Collectors.toList())
+				));
+
+		List<MusicalResponse.Schedule> scheduleResponses = schedules.stream()
+			.map(schedule -> toScheduleResponse(schedule, actorsByScheduleId))
+			.toList();
+
+		List<MusicalResponse.SeatPrice> seatPrices = musicalSeatPriceRepository.findSeatPrices(musicalId).stream()
 			.sorted(Comparator.comparing(seatPrice -> seatPrice.getSeatGrade().getOrder()))
 			.map(this::toSeatPriceResponse)
 			.toList();
@@ -52,17 +73,17 @@ public class MusicalService {
 			.timeInfo(musical.getTimeInfo())
 			.noticeUrl(musical.getNoticeUrl())
 			.detailsUrl(musical.getDetailsUrl())
-			.schedules(schedules)
+			.schedules(scheduleResponses)
 			.seatPrices(seatPrices)
 			.build();
 	}
 
-    // 회차별 배우 목록을 정렬해 응답 순서를 고정한다.
-	private MusicalResponse.Schedule toScheduleResponse(MusicalSchedule schedule) {
-		List<MusicalResponse.Actor> actors = schedule.getActors().stream()
-			.sorted(Comparator.comparing(actor -> actor.getRole().getOrder()))
-			.map(this::toActorResponse)
-			.toList();
+    // 회차별 배우 목록은 스케줄 기준으로 조합해 응답 순서를 고정한다.
+	private MusicalResponse.Schedule toScheduleResponse(
+		MusicalSchedule schedule,
+		Map<Long, List<MusicalResponse.Actor>> actorsByScheduleId
+	) {
+		List<MusicalResponse.Actor> actors = actorsByScheduleId.getOrDefault(schedule.getId(), List.of());
 
 		return MusicalResponse.Schedule.builder()
 			.scheduleId(schedule.getId())
