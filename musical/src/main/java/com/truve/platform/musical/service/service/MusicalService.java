@@ -25,15 +25,13 @@ public class MusicalService {
 	public MusicalResponse.Detail getDetail(Long musicalId) {
 		Musical musical = musicalRepository.findByIdOrThrow(musicalId);
 
-		// 컬렉션은 LAZY 로딩이므로 조회 후 DTO 매핑 단계에서 정렬해 안정적인 응답을 만든다.
 		List<MusicalResponse.Schedule> schedules = musical.getSchedules().stream()
 			.sorted(Comparator.comparing(MusicalSchedule::getDateTime))
 			.map(this::toScheduleResponse)
 			.toList();
 
-		// 좌석 등급은 응답 정렬을 고정하기 위해 정렬한다.
 		List<MusicalResponse.SeatPrice> seatPrices = musical.getSeatPrices().stream()
-			.sorted(Comparator.comparing(MusicalSeatPrice::getSeatGrade))
+			.sorted(Comparator.comparing(seatPrice -> seatPrice.getSeatGrade().getOrder()))
 			.map(this::toSeatPriceResponse)
 			.toList();
 
@@ -59,10 +57,10 @@ public class MusicalService {
 			.build();
 	}
 
+    // 회차별 배우 목록을 정렬해 응답 순서를 고정한다.
 	private MusicalResponse.Schedule toScheduleResponse(MusicalSchedule schedule) {
-		// 회차별 배우 목록을 정렬해 응답 순서를 고정한다.
 		List<MusicalResponse.Actor> actors = schedule.getActors().stream()
-			.sorted(Comparator.comparing(MusicalActor::getId))
+			.sorted(Comparator.comparing(actor -> actor.getRole().getOrder()))
 			.map(this::toActorResponse)
 			.toList();
 
@@ -74,20 +72,20 @@ public class MusicalService {
 			.build();
 	}
 
+    // 엔티티를 API 응답용 배우 DTO로 변환한다.
 	private MusicalResponse.Actor toActorResponse(MusicalActor actor) {
-		// 엔티티를 API 응답용 배우 DTO로 변환한다.
 		return MusicalResponse.Actor.builder()
 			.actorId(actor.getActorId())
-			.role(actor.getRole())
+			.role(actor.getRole().getLabel())
 			.name(actor.getName())
 			.isLiked(actor.getIsLiked())
 			.build();
 	}
 
+    // 좌석 등급/가격을 응답 DTO로 변환한다.
 	private MusicalResponse.SeatPrice toSeatPriceResponse(MusicalSeatPrice seatPrice) {
-		// 좌석 등급/가격을 응답 DTO로 변환한다.
 		return MusicalResponse.SeatPrice.builder()
-			.seatGrade(seatPrice.getSeatGrade())
+			.seatGrade(seatPrice.getSeatGrade().getLabel())
 			.price(seatPrice.getPrice())
 			.build();
 	}
