@@ -1,0 +1,29 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${TICKETING_MYSQL_URL:jdbc:mysql://localhost:3306/ticketing_db}
+    username: ${TICKETING_MYSQL_USERNAME:root}
+    password: ${TICKETING_MYSQL_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${USER_REDIS_HOST:localhost}
+      port: ${USER_REDIS_PORT:6379}
+
+springdoc:
+  api-docs:
+    path: /api/auth/v3/api-docs
+
+jwt:
+  secret: ${JWT_SECRET:kt-cloud-tech-up-final-queue-2026020201010101}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:300000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:43200000}
+
+ticketing:
+  active-window-ms: ${TICKETING_ACTIVE_WINDOW_MS:30000}
+  session-ttl-sec: ${TICKETING_SESSION_TTL_SEC:300}
