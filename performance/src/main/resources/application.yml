@@ -1,5 +1,5 @@
 spring:
   application:
-    name: musical
+    name: performance
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
