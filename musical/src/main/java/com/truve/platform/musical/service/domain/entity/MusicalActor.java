@@ -1,9 +1,12 @@
 package com.truve.platform.musical.service.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
+import com.truve.platform.musical.service.domain.constant.ActorRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -27,7 +30,8 @@ public class MusicalActor extends BaseEntity {
 	private Long actorId;
 
 	@Column(nullable = false)
-	private String role;
+	@Enumerated(EnumType.STRING)
+	private ActorRole role;
 
 	@Column(nullable = false)
 	private String name;
@@ -36,7 +40,7 @@ public class MusicalActor extends BaseEntity {
 	private Boolean isLiked;
 
 	@Builder
-	private MusicalActor(MusicalSchedule schedule, Long actorId, String role, String name, Boolean isLiked) {
+	private MusicalActor(MusicalSchedule schedule, Long actorId, ActorRole role, String name, Boolean isLiked) {
 		this.schedule = schedule;
 		this.actorId = actorId;
 		this.role = role;

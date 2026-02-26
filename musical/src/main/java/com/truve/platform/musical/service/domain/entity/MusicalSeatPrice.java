@@ -1,9 +1,12 @@
 package com.truve.platform.musical.service.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
+import com.truve.platform.musical.service.domain.constant.SeatGrade;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -24,13 +27,14 @@ public class MusicalSeatPrice extends BaseEntity {
 	private Musical musical;
 
 	@Column(nullable = false)
-	private String seatGrade;
+	@Enumerated(EnumType.STRING)
+	private SeatGrade seatGrade;
 
 	@Column(nullable = false)
 	private Integer price;
 
 	@Builder
-	private MusicalSeatPrice(Musical musical, String seatGrade, Integer price) {
+	private MusicalSeatPrice(Musical musical, SeatGrade seatGrade, Integer price) {
 		this.musical = musical;
 		this.seatGrade = seatGrade;
 		this.price = price;
