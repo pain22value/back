@@ -9,7 +9,9 @@ import org.springframework.util.StringUtils;
 
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
+import com.truve.platform.payment.service.domain.constant.PaymentMethod;
 import com.truve.platform.payment.service.domain.entity.Payment;
+import com.truve.platform.payment.service.domain.entity.VirtualAccount;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 import com.truve.platform.payment.service.service.external.TossClient;
@@ -46,14 +48,19 @@ public class PaymentService {
 
 		TossResponse.Payment response = tossClient.confirm(new TossRequest.Confirm(orderId, amount, paymentKey));
 
-		payment.processConfirm(response.getPaymentKey(), parseLocalDateTime(response.getApprovedAt()));
+		if (payment.getMethod().equals(PaymentMethod.VIRTUAL_ACCOUNT)) {
+			VirtualAccount vEntity = response.getVirtualAccount().toEntity();
+			payment.waitDeposit(paymentKey, vEntity);
+		} else {
+			payment.complete(paymentKey, parseLocalDateTime(response.getApprovedAt()));
+		}
 	}
 
 	@Transactional
 	public void completeDeposit(String orderId, String time) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		payment.complete(payment.getPaymentKey(), parseLocalDateTime(time));
+		payment.completeDeposit(parseLocalDateTime(time));
 	}
 
 	private LocalDateTime parseLocalDateTime(String time) {

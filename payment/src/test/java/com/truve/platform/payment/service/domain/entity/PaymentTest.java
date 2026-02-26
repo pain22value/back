@@ -24,6 +24,12 @@ class PaymentTest {
 	private static final PaymentMethod DEFAULT_PAYMENT_METHOD = PaymentMethod.CARD;
 	private static final String DEFAULT_PAYMENT_KEY = "테스트 결제 키";
 	private static final String DEFAULT_CANCEL_REASON = "테스트 결제 취소 사유";
+	private static final VirtualAccount DEFAULT_VIRTUAL_ACCOUNT = VirtualAccount.builder()
+		.accountNumber("Test Account Number")
+		.customerName("Test Customer Name")
+		.dueDate(LocalDateTime.now())
+		.bankCode("06")
+		.build();
 
 	private Payment createDefaultPayment() {
 		return new Payment(DEFAULT_ORDER_ID, DEFAULT_AMOUNT, DEFAULT_PAYMENT_METHOD);
@@ -37,7 +43,7 @@ class PaymentTest {
 
 	private Payment createWaitPayment() {
 		Payment payment = createDefaultPayment();
-		payment.waitDeposit(DEFAULT_PAYMENT_KEY);
+		payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT);
 		return payment;
 	}
 
@@ -71,12 +77,13 @@ class PaymentTest {
 			Payment payment = createDefaultPayment();
 
 			// when
-			payment.waitDeposit(DEFAULT_PAYMENT_KEY);
+			payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT);
 
 			// then
 			assertAll(
 				() -> assertThat(payment.getPaymentKey()).isEqualTo(DEFAULT_PAYMENT_KEY),
-				() -> assertThat(payment.getStatus()).isEqualTo(PaymentStatus.WAITING_FOR_DEPOSIT)
+				() -> assertThat(payment.getStatus()).isEqualTo(PaymentStatus.WAITING_FOR_DEPOSIT),
+				() -> assertThat(payment.getVirtualAccount()).isEqualTo(DEFAULT_VIRTUAL_ACCOUNT)
 			);
 		}
 
@@ -91,7 +98,7 @@ class PaymentTest {
 			Payment payment = createPaymentWithStatus(status);
 
 			// when & then
-			assertThatThrownBy(() -> payment.waitDeposit(DEFAULT_PAYMENT_KEY))
+			assertThatThrownBy(() -> payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT))
 				.isInstanceOf(CustomException.class)
 				.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_STATUS);
 		}
@@ -159,22 +166,17 @@ class PaymentTest {
 			}
 
 			@Test
-			@DisplayName("입금대기 상태일 때 결제가 완료되면 결제 키를 검증하고 완료 상태로 전환한다.")
-			void 완료_전환_성공_입금대기상태() {
+			@DisplayName("가상계좌 입금이 확인되면 완료 상태로 전환한다.")
+			void 완료_전환_성공_가상계좌() {
 				// given
-				Payment payment = createDefaultPayment();
-				payment.waitDeposit(DEFAULT_PAYMENT_KEY);
+				Payment payment = createWaitPayment();
 
 				// when
-				payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now());
+				payment.completeDeposit(LocalDateTime.now());
 
 				// then
-				assertAll(
-					() -> assertThat(payment.getPaymentKey()).isEqualTo(DEFAULT_PAYMENT_KEY),
-					() -> assertThat(payment.getStatus()).isEqualTo(PaymentStatus.DONE)
-				);
+				assertThat(payment.getStatus()).isEqualTo(PaymentStatus.DONE);
 			}
-
 		}
 
 		@Nested
@@ -196,19 +198,6 @@ class PaymentTest {
 					.isInstanceOf(CustomException.class)
 					.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_STATUS);
 			}
-
-			@Test
-			@DisplayName("이미 결제 키가 저장되어 있을 경우, 입력받은 결제 키와 일치하지 않으면 완료 상태로 전환할 수 없다.")
-			void 완료_전환_실패_유효하지_않은_결제키() {
-				// given
-				Payment payment = createDefaultPayment();
-				payment.waitDeposit(DEFAULT_PAYMENT_KEY);
-
-				// when & then
-				assertThatThrownBy(() -> payment.complete("임의의 결제 키", LocalDateTime.now()))
-					.isInstanceOf(CustomException.class)
-					.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_KEY);
-			}
 		}
 	}
 
@@ -225,7 +214,7 @@ class PaymentTest {
 			void 결제취소_성공_입금대기상태() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.waitDeposit("테스트 결제 키");
+				payment.waitDeposit("테스트 결제 키", DEFAULT_VIRTUAL_ACCOUNT);
 				Long cancelAmount = DEFAULT_AMOUNT;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.FULL;

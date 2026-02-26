@@ -15,6 +15,7 @@ import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -51,6 +52,9 @@ public class Payment extends BaseEntity {
 	@Column(nullable = false)
 	private Long cancelableAmount;
 
+	@Embedded
+	private VirtualAccount virtualAccount;
+
 	private String failReason;
 
 	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
@@ -78,26 +82,26 @@ public class Payment extends BaseEntity {
 		Preconditions.validate(this.amount.equals(amount), ErrorCode.INVALID_PAYMENT_AMOUNT);
 	}
 
-	public void processConfirm(String paymentKey, LocalDateTime approvedAt) {
-		if (this.method == PaymentMethod.VIRTUAL_ACCOUNT) {
-			waitDeposit(paymentKey);
-		} else {
-			complete(paymentKey, approvedAt);
-		}
-	}
-
-	public void waitDeposit(String paymentKey) {
+	public void waitDeposit(String paymentKey, VirtualAccount virtualAccount) {
 		validateWaitDepositStatus();
 
+		this.virtualAccount = virtualAccount;
 		this.paymentKey = paymentKey;
 		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
 	}
 
 	public void complete(String paymentKey, LocalDateTime approvedAt) {
-		validateCompleteStatus();
+		Preconditions.validate(status == PaymentStatus.READY, ErrorCode.INVALID_PAYMENT_STATUS);
 		verifyPaymentKey(paymentKey);
 
 		this.paymentKey = paymentKey;
+		this.status = PaymentStatus.DONE;
+		this.approvedAt = approvedAt;
+	}
+
+	public void completeDeposit(LocalDateTime approvedAt) {
+		Preconditions.validate(status == PaymentStatus.WAITING_FOR_DEPOSIT, ErrorCode.INVALID_PAYMENT_STATUS);
+
 		this.status = PaymentStatus.DONE;
 		this.approvedAt = approvedAt;
 	}
@@ -132,11 +136,6 @@ public class Payment extends BaseEntity {
 
 	private void validateExpireStatus() {
 		Preconditions.validate(status == PaymentStatus.WAITING_FOR_DEPOSIT, ErrorCode.INVALID_PAYMENT_STATUS);
-	}
-
-	private void validateCompleteStatus() {
-		Preconditions.validate(status == PaymentStatus.READY || status == PaymentStatus.WAITING_FOR_DEPOSIT,
-			ErrorCode.INVALID_PAYMENT_STATUS);
 	}
 
 	private void verifyPaymentKey(String paymentKey) {
