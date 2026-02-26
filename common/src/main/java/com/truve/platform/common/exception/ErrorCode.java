@@ -37,7 +37,7 @@ public enum ErrorCode {
 	INVALID_SESSION_TOKEN(HttpStatus.BAD_REQUEST, "세션 토큰이 유효하지 않습니다."),
 	SESSION_TOKEN_MISMATCH(HttpStatus.BAD_REQUEST, "세션 토큰 정보가 요청과 일치하지 않습니다."),
   
-  NOT_FOUND_MUSICAL(HttpStatus.NOT_FOUND, "존재하지 않는 뮤지컬입니다.");
+	NOT_FOUND_PERFORMANCE(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.");
 	;
 
 
