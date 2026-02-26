@@ -50,20 +50,20 @@ public class PaymentService {
 
 		if (payment.getMethod().equals(PaymentMethod.VIRTUAL_ACCOUNT)) {
 			VirtualAccount vEntity = response.getVirtualAccount().toEntity();
-			payment.waitDeposit(paymentKey, vEntity);
+			payment.waitDeposit(paymentKey, parseTime(response.getRequestedAt()), vEntity);
 		} else {
-			payment.complete(paymentKey, parseLocalDateTime(response.getApprovedAt()));
+			payment.complete(paymentKey, parseTime(response.getRequestedAt()), parseTime(response.getApprovedAt()));
 		}
 	}
 
 	@Transactional
-	public void completeDeposit(String orderId, String time) {
+	public void completeDeposit(String orderId, String approvedAt) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		payment.completeDeposit(parseLocalDateTime(time));
+		payment.completeDeposit(parseTime(approvedAt));
 	}
 
-	private LocalDateTime parseLocalDateTime(String time) {
+	private LocalDateTime parseTime(String time) {
 		return !StringUtils.hasText(time) ? null : LocalDateTime.parse(time, DateTimeFormatter.ISO_DATE_TIME);
 	}
 }

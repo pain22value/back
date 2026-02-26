@@ -20,6 +20,7 @@ public class TossResponse {
 		private Long totalAmount;
 		private String status;
 		private String approvedAt;
+		private String requestedAt;
 
 		private Receipt receipt;
 		private Card card;

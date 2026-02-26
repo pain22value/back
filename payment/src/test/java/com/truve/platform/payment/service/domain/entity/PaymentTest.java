@@ -43,13 +43,13 @@ class PaymentTest {
 
 	private Payment createWaitPayment() {
 		Payment payment = createDefaultPayment();
-		payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT);
+		payment.waitDeposit(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), DEFAULT_VIRTUAL_ACCOUNT);
 		return payment;
 	}
 
 	private Payment createCompletePayment() {
 		Payment payment = createDefaultPayment();
-		payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now());
+		payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now());
 		return payment;
 	}
 
@@ -77,7 +77,7 @@ class PaymentTest {
 			Payment payment = createDefaultPayment();
 
 			// when
-			payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT);
+			payment.waitDeposit(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), DEFAULT_VIRTUAL_ACCOUNT);
 
 			// then
 			assertAll(
@@ -98,7 +98,7 @@ class PaymentTest {
 			Payment payment = createPaymentWithStatus(status);
 
 			// when & then
-			assertThatThrownBy(() -> payment.waitDeposit(DEFAULT_PAYMENT_KEY, DEFAULT_VIRTUAL_ACCOUNT))
+			assertThatThrownBy(() -> payment.waitDeposit(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), DEFAULT_VIRTUAL_ACCOUNT))
 				.isInstanceOf(CustomException.class)
 				.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_STATUS);
 		}
@@ -156,7 +156,7 @@ class PaymentTest {
 				Payment payment = createDefaultPayment();
 
 				// when
-				payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now());
+				payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now());
 
 				// then
 				assertAll(
@@ -194,7 +194,7 @@ class PaymentTest {
 				Payment payment = createPaymentWithStatus(status);
 
 				// when & then
-				assertThatThrownBy(() -> payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now()))
+				assertThatThrownBy(() -> payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now()))
 					.isInstanceOf(CustomException.class)
 					.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_STATUS);
 			}
@@ -214,7 +214,7 @@ class PaymentTest {
 			void 결제취소_성공_입금대기상태() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.waitDeposit("테스트 결제 키", DEFAULT_VIRTUAL_ACCOUNT);
+				payment.waitDeposit("테스트 결제 키", LocalDateTime.now(), DEFAULT_VIRTUAL_ACCOUNT);
 				Long cancelAmount = DEFAULT_AMOUNT;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.FULL;
@@ -239,7 +239,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_전액환불() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now());
+				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
 				Long cancelAmount = DEFAULT_AMOUNT;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.FULL;
@@ -264,7 +264,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_부분환불() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now());
+				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
 				Long cancelAmount = 6000L;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.PARTIAL;
@@ -289,7 +289,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_부분환불_여러_번() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now());
+				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
 				Long firstCancelAmount = 6000L;
 				Long secondCancelAmount = 3000L;
 				Long thirdCancelAmount = 1000L;

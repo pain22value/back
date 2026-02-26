@@ -60,6 +60,8 @@ public class Payment extends BaseEntity {
 	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
 	private List<PaymentCancel> cancels = new ArrayList<>();
 
+	private LocalDateTime requestedAt;
+
 	private LocalDateTime approvedAt;
 
 	@Builder
@@ -82,20 +84,22 @@ public class Payment extends BaseEntity {
 		Preconditions.validate(this.amount.equals(amount), ErrorCode.INVALID_PAYMENT_AMOUNT);
 	}
 
-	public void waitDeposit(String paymentKey, VirtualAccount virtualAccount) {
+	public void waitDeposit(String paymentKey, LocalDateTime requestedAt, VirtualAccount virtualAccount) {
 		validateWaitDepositStatus();
 
 		this.virtualAccount = virtualAccount;
 		this.paymentKey = paymentKey;
 		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
+		this.requestedAt = requestedAt;
 	}
 
-	public void complete(String paymentKey, LocalDateTime approvedAt) {
+	public void complete(String paymentKey, LocalDateTime requestedAt, LocalDateTime approvedAt) {
 		Preconditions.validate(status == PaymentStatus.READY, ErrorCode.INVALID_PAYMENT_STATUS);
 		verifyPaymentKey(paymentKey);
 
 		this.paymentKey = paymentKey;
 		this.status = PaymentStatus.DONE;
+		this.requestedAt = requestedAt;
 		this.approvedAt = approvedAt;
 	}
 
