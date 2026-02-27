@@ -43,7 +43,7 @@ public class TicketingController {
 		return ApiResult.ok();
 	}
 
-	@PostMapping("{musicalScheduleId}/hold/seat/{seatId}")
+	@PostMapping("/{musicalScheduleId}/hold/seat/{seatId}")
 	public ApiResult<Void> holdSeat(
 		@PathVariable Long seatId,
 		@PathVariable Long musicalScheduleId,
