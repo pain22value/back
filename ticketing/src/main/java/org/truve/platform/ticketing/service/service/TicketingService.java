@@ -4,13 +4,16 @@ import java.time.Duration;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.truve.platform.ticketing.service.domain.entity.MusicalScheduleSeat;
 import org.truve.platform.ticketing.service.dto.AdmissionTokenClaimsDTO;
 import org.truve.platform.ticketing.service.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.config.TicketingProperties;
 import org.truve.platform.ticketing.service.jwt.AdmissionTokenService;
+import org.truve.platform.ticketing.service.repository.MusicalScheduleSeatRepository;
 import org.truve.platform.ticketing.service.repository.TicketingRedisRepository;
 
+import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
 
@@ -23,6 +26,7 @@ public class TicketingService {
 	private final TicketingRedisRepository ticketingRedisRepository;
 	private final AdmissionTokenService admissionTokenService;
 	private final TicketingProperties ticketingProperties;
+	private final MusicalScheduleSeatRepository musicalScheduleSeatRepository;
 
 	public TicketingResponse.Enter enter(String showId, String userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showId, userId);
@@ -41,13 +45,8 @@ public class TicketingService {
 	}
 
 	public void heartbeat(String showId, String userId, String sessionToken) {
-		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
 
-		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);
-
-		Preconditions.validate(sessionValue != null, ErrorCode.INVALID_SESSION_TOKEN);
-		Preconditions.validate(userId.equals(sessionValue.getUserId()), ErrorCode.SESSION_TOKEN_MISMATCH);
-		Preconditions.validate(showId.equals(sessionValue.getShowId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+		isCorrectSessionToken(showId, userId, sessionToken);
 
 		ticketingRedisRepository.addActiveTicketingUser(showId, sessionToken);
 		long nowMs = System.currentTimeMillis();
@@ -56,6 +55,36 @@ public class TicketingService {
 
 		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
-
 	}
+
+	public void holdSeat(Long musicalScheduleId, String userId, String sessionToken, Long musicalScheduleSeatId) {
+		heartbeat(String.valueOf(musicalScheduleId), userId, sessionToken);
+
+		MusicalScheduleSeat seat = musicalScheduleSeatRepository.findById(musicalScheduleSeatId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_CORRECT_SEAT));
+
+		Preconditions.validate(
+			seat.isAvailable(),
+			ErrorCode.ALREADY_SOLD_SEAT
+		);
+
+		Preconditions.validate(
+			seat.getMusicalScheduleId().equals(musicalScheduleId),
+			ErrorCode.NOT_CORRECT_SEAT
+		);
+
+		boolean tryHoldSeatResult = ticketingRedisRepository.tryHoldSeat(musicalScheduleId, seat.getSeatId(), sessionToken);
+		Preconditions.validate(tryHoldSeatResult, ErrorCode.ALREADY_HOLD_SEAT);
+	}
+
+	private void isCorrectSessionToken(String showId, String userId, String sessionToken) {
+		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
+
+		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);
+
+		Preconditions.validate(sessionValue != null, ErrorCode.INVALID_SESSION_TOKEN);
+		Preconditions.validate(userId.equals(sessionValue.getUserId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+		Preconditions.validate(showId.equals(sessionValue.getShowId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+	}
+
 }
