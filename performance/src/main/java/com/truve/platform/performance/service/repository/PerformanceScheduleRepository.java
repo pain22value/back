@@ -14,7 +14,7 @@ public interface PerformanceScheduleRepository extends JpaRepository<Performance
 		select s
 		from PerformanceSchedule s
 		where s.performance.id = :performanceId
-		order by s.dateTime asc
+		order by s.performanceTime asc
 		""")
 	List<PerformanceSchedule> findSchedules(@Param("performanceId") Long performanceId);
 }

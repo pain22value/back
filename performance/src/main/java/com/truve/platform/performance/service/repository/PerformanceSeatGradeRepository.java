@@ -14,7 +14,7 @@ public interface PerformanceSeatGradeRepository extends JpaRepository<Performanc
 		select p
 		from PerformanceSeatGrade p
 		where p.performance.id = :performanceId
-		order by p.seatGrade asc
+		order by p.basePrice desc
 		""")
 	List<PerformanceSeatGrade> findSeatPrices(@Param("performanceId") Long performanceId);
 }
