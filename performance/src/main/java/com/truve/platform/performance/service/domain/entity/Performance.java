@@ -40,7 +40,7 @@ public class Performance extends BaseEntity {
 
 	private Integer ageLimit;
 
-	@Column(length = 500)
+	@Column(nullable = false, length = 500)
 	private String posterUrl;
 
 	@Column(length = 500)
