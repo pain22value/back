@@ -20,11 +20,13 @@ public class ErrorResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class ErrorData {
-		private String code;
+
+		private String errorType;
 		private String message;
-		private String errorCode;
-		public static ErrorData of(String code, String message, String errorCode) {
-			return new ErrorData(code, message, errorCode);
+		private String code;
+
+		public static ErrorData of(String errorType, String message, String code) {
+			return new ErrorData(errorType, message, code);
 		}
 	}
 }
