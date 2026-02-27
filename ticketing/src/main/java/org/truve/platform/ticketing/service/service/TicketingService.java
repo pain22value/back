@@ -28,7 +28,7 @@ public class TicketingService {
 	private final TicketingProperties ticketingProperties;
 	private final MusicalScheduleSeatRepository musicalScheduleSeatRepository;
 
-	public TicketingResponse.Enter enter(String musicalScheduleId, String userId, String admissionToken) {
+	public TicketingResponse.Enter enter(Long musicalScheduleId, Long userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, musicalScheduleId, userId);
 
 		boolean consumedAdmissionToken = ticketingRedisRepository.consumeAdmissionToken(claims.getShowId(), claims.getUserId(), admissionToken);
@@ -44,7 +44,7 @@ public class TicketingService {
 		return new TicketingResponse.Enter(sessionToken, sessionTokenTtl);
 	}
 
-	public void heartbeat(String musicalScheduleId, String userId, String sessionToken) {
+	public void heartbeat(Long musicalScheduleId, Long userId, String sessionToken) {
 
 		isCorrectSessionToken(musicalScheduleId, userId, sessionToken);
 
@@ -57,8 +57,8 @@ public class TicketingService {
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
 	}
 
-	public void holdSeat(Long musicalScheduleId, String userId, String sessionToken, Long musicalScheduleSeatId) {
-		heartbeat(String.valueOf(musicalScheduleId), userId, sessionToken);
+	public void holdSeat(Long musicalScheduleId, Long userId, String sessionToken, Long musicalScheduleSeatId) {
+		heartbeat(musicalScheduleId, userId, sessionToken);
 
 		MusicalScheduleSeat seat = musicalScheduleSeatRepository.findById(musicalScheduleSeatId)
 			.orElseThrow(() -> new CustomException(ErrorCode.NOT_CORRECT_SEAT));
@@ -77,7 +77,7 @@ public class TicketingService {
 		Preconditions.validate(tryHoldSeatResult, ErrorCode.ALREADY_HOLD_SEAT);
 	}
 
-	private void isCorrectSessionToken(String musicalScheduleId, String userId, String sessionToken) {
+	private void isCorrectSessionToken(Long musicalScheduleId, Long userId, String sessionToken) {
 		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
 
 		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);

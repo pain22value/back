@@ -19,18 +19,18 @@ public class TicketingRedisRepository {
 
 	private final RedisSupport redisSupport;
 
-	public boolean consumeAdmissionToken(String showId, String userId, String admissionToken) {
+	public boolean consumeAdmissionToken(Long showId, Long userId, String admissionToken) {
 		String key = READY_KEY_PREFIX + showId + ":" + userId;
 		return redisSupport.consumeIfEquals(key, admissionToken);
 	}
 
-	public void saveSessionToken(String sessionToken, String userId, String showId, Duration ttl) {
+	public void saveSessionToken(String sessionToken, Long userId, Long showId, Duration ttl) {
 		String key =  SESSION_TOKEN_PREFIX + sessionToken;
 		SessionTicketValueDTO value = SessionTicketValueDTO.of(userId, showId);
 		redisSupport.setJsonValueWithTtl(key, value, ttl);
 	}
 
-	public void addActiveTicketingUser(String showId, String sessionToken) {
+	public void addActiveTicketingUser(Long showId, String sessionToken) {
 		String key = TICKET_ACTIVE_PERFORMANCE_USER_PREFIX + showId;
 		long nowMs =  System.currentTimeMillis();
 		redisSupport.zAdd(key, sessionToken, nowMs);
@@ -46,7 +46,7 @@ public class TicketingRedisRepository {
 		return redisSupport.getJsonValue(key, SessionTicketValueDTO.class);
 	}
 
-	public long removeInactiveTicketingUsers(String showId, long beforeMs) {
+	public long removeInactiveTicketingUsers(Long showId, long beforeMs) {
 		String key = TICKET_ACTIVE_PERFORMANCE_USER_PREFIX + showId;
 		return redisSupport.zRemRangeByScore(key, 0, beforeMs - 1);
 	}
