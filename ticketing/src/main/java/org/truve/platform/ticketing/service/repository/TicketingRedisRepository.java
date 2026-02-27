@@ -15,6 +15,7 @@ public class TicketingRedisRepository {
 	private static final String SESSION_TOKEN_PREFIX = "ticket:session:";
 	private static final String TICKET_ACTIVE_PERFORMANCE_USER_PREFIX = "ticket:active:";
 	private static final String READY_KEY_PREFIX = "queue:ready:";
+	private static final String SEAT_HOLD_KEY_PREFIX = "seat:hold:";
 
 	private final RedisSupport redisSupport;
 
@@ -53,6 +54,12 @@ public class TicketingRedisRepository {
 	public boolean refreshSessionTokenTtl(String sessionToken, long ttlSeconds) {
 		String key = SESSION_TOKEN_PREFIX + sessionToken;
 		return redisSupport.expireSeconds(key, ttlSeconds);
+	}
+
+	public boolean tryHoldSeat(Long musicalScheduleId, Long seatId, String sessionToken) {
+		String key = SEAT_HOLD_KEY_PREFIX + musicalScheduleId + ":" + seatId;
+		// TODO: 좌석 점유 시간 기획측과 논의
+		return redisSupport.setIfAbsent(key, sessionToken, Duration.ofMinutes(10));
 	}
 
 
