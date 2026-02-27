@@ -17,6 +17,7 @@ public class TossResponse {
 	public static class Payment {
 		private String paymentKey;
 		private String orderId;
+		private String method;
 		private Long totalAmount;
 		private String status;
 		private String approvedAt;

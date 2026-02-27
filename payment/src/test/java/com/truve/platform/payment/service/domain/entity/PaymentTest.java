@@ -32,7 +32,7 @@ class PaymentTest {
 		.build();
 
 	private Payment createDefaultPayment() {
-		return new Payment(DEFAULT_ORDER_ID, DEFAULT_AMOUNT, DEFAULT_PAYMENT_METHOD);
+		return new Payment(DEFAULT_ORDER_ID, DEFAULT_AMOUNT);
 	}
 
 	private Payment createPaymentWithStatus(PaymentStatus status) {
@@ -49,7 +49,7 @@ class PaymentTest {
 
 	private Payment createCompletePayment() {
 		Payment payment = createDefaultPayment();
-		payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now());
+		payment.complete(DEFAULT_PAYMENT_KEY, PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now());
 		return payment;
 	}
 
@@ -57,7 +57,7 @@ class PaymentTest {
 	@DisplayName("결제 생성")
 	void 결제_생성() {
 		// given & when
-		Payment payment = new Payment(DEFAULT_ORDER_ID, DEFAULT_AMOUNT, DEFAULT_PAYMENT_METHOD);
+		Payment payment = new Payment(DEFAULT_ORDER_ID, DEFAULT_AMOUNT);
 
 		// then
 		assertAll(
@@ -156,7 +156,7 @@ class PaymentTest {
 				Payment payment = createDefaultPayment();
 
 				// when
-				payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now());
+				payment.complete(DEFAULT_PAYMENT_KEY, PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now());
 
 				// then
 				assertAll(
@@ -194,7 +194,8 @@ class PaymentTest {
 				Payment payment = createPaymentWithStatus(status);
 
 				// when & then
-				assertThatThrownBy(() -> payment.complete(DEFAULT_PAYMENT_KEY, LocalDateTime.now(), LocalDateTime.now()))
+				assertThatThrownBy(
+					() -> payment.complete(DEFAULT_PAYMENT_KEY, PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now()))
 					.isInstanceOf(CustomException.class)
 					.hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PAYMENT_STATUS);
 			}
@@ -239,7 +240,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_전액환불() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
+				payment.complete("테스트 결제 키", PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now());
 				Long cancelAmount = DEFAULT_AMOUNT;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.FULL;
@@ -264,7 +265,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_부분환불() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
+				payment.complete("테스트 결제 키", PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now());
 				Long cancelAmount = 6000L;
 				String reason = "테스트 결제 사유";
 				CancelType type = CancelType.PARTIAL;
@@ -289,7 +290,7 @@ class PaymentTest {
 			void 결제취소_성공_완료상태_부분환불_여러_번() {
 				// given
 				Payment payment = createDefaultPayment();
-				payment.complete("테스트 결제 키", LocalDateTime.now(), LocalDateTime.now());
+				payment.complete("테스트 결제 키", PaymentMethod.CARD, LocalDateTime.now(), LocalDateTime.now());
 				Long firstCancelAmount = 6000L;
 				Long secondCancelAmount = 3000L;
 				Long thirdCancelAmount = 1000L;

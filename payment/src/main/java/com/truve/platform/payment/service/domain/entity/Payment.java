@@ -71,11 +71,11 @@ public class Payment extends BaseEntity {
 	private LocalDateTime approvedAt;
 
 	@Builder
-	public Payment(String orderId, Long amount, PaymentMethod method) {
+	public Payment(String orderId, Long amount) {
 		this.orderId = orderId;
 		this.amount = amount;
 		this.cancelableAmount = amount;
-		this.method = method;
+		this.method = PaymentMethod.UNKNOWN;
 		this.status = PaymentStatus.READY;
 	}
 
@@ -93,6 +93,7 @@ public class Payment extends BaseEntity {
 	public void waitDeposit(String paymentKey, LocalDateTime requestedAt, VirtualAccount virtualAccount) {
 		validateWaitDepositStatus();
 
+		this.method = PaymentMethod.VIRTUAL_ACCOUNT;
 		this.virtualAccount = virtualAccount;
 		this.paymentKey = paymentKey;
 		this.status = PaymentStatus.WAITING_FOR_DEPOSIT;
@@ -103,11 +104,12 @@ public class Payment extends BaseEntity {
 		return status.equals(PaymentStatus.DONE);
 	}
 
-	public void complete(String paymentKey, LocalDateTime requestedAt, LocalDateTime approvedAt) {
+	public void complete(String paymentKey, PaymentMethod method, LocalDateTime requestedAt, LocalDateTime approvedAt) {
 		Preconditions.validate(status == PaymentStatus.READY, ErrorCode.INVALID_PAYMENT_STATUS);
 		verifyPaymentKey(paymentKey);
 
 		this.paymentKey = paymentKey;
+		this.method = method;
 		this.status = PaymentStatus.DONE;
 		this.requestedAt = requestedAt;
 		this.approvedAt = approvedAt;

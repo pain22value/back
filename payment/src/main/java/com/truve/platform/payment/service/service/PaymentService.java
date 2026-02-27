@@ -35,7 +35,6 @@ public class PaymentService {
 		Payment payment = Payment.builder()
 			.orderId(request.getOrderId())
 			.amount(request.getAmount())
-			.method(request.getMethod())
 			.build();
 
 		return paymentRepository.save(payment).getId();
@@ -50,11 +49,15 @@ public class PaymentService {
 
 		TossResponse.Payment response = tossClient.confirm(new TossRequest.Confirm(orderId, amount, paymentKey));
 
-		if (payment.getMethod().equals(PaymentMethod.VIRTUAL_ACCOUNT)) {
+		PaymentMethod method = PaymentMethod.of(response.getMethod());
+		LocalDateTime requestedAt = parseTime(response.getRequestedAt());
+		LocalDateTime approvedAt = parseTime(response.getApprovedAt());
+
+		if (method == PaymentMethod.VIRTUAL_ACCOUNT) {
 			VirtualAccount vEntity = response.getVirtualAccount().toEntity();
-			payment.waitDeposit(paymentKey, parseTime(response.getRequestedAt()), vEntity);
+			payment.waitDeposit(paymentKey, requestedAt, vEntity);
 		} else {
-			payment.complete(paymentKey, parseTime(response.getRequestedAt()), parseTime(response.getApprovedAt()));
+			payment.complete(paymentKey, method, requestedAt, approvedAt);
 		}
 	}
 
