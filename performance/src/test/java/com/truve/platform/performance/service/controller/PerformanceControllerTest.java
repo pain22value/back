@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ApiAdvice;
 import com.truve.platform.common.exception.ErrorCode;
+import com.truve.platform.performance.service.domain.constant.PerformanceScheduleStatus;
 import com.truve.platform.performance.service.dto.PerformanceResponse;
 import com.truve.platform.performance.service.service.PerformanceService;
 
@@ -43,39 +43,43 @@ class PerformanceControllerTest {
 		PerformanceResponse.Detail response = PerformanceResponse.Detail.builder()
 			.performanceId(1L)
 			.title("뮤지컬A")
+			.description("설명")
+			.runtimeMin(120)
+			.ageLimit(8)
 			.posterUrl("https://img/1.jpg")
-			.stage("예술의전당")
-			.runningTime("120분")
-			.ageLimit("8세 이상")
-			.priceInfo("VIP 150000")
-			.startDate(LocalDate.of(2026, 3, 1))
-			.endDate(LocalDate.of(2026, 4, 1))
-			.openAt(LocalDateTime.of(2026, 2, 20, 10, 0))
-			.ratingAverage(4.6)
-			.weeklyRank(3)
-			.reviewCount(120)
-			.timeInfo("수/금 19:30")
 			.noticeUrl("https://img/notice.jpg")
-			.detailsUrl("https://img/detail.jpg")
+			.startTime(LocalDateTime.of(2026, 3, 1, 0, 0))
+			.endTime(LocalDateTime.of(2026, 4, 1, 0, 0))
+			.venue(
+				PerformanceResponse.Venue.builder()
+					.venueId(10L)
+					.name("예술의전당")
+					.address("서울")
+					.build()
+			)
 			.schedules(List.of(
 				PerformanceResponse.Schedule.builder()
 					.scheduleId(1L)
-					.dateTime(LocalDateTime.of(2026, 3, 2, 19, 30))
-					.isAvailable(true)
-					.actors(List.of(
-						PerformanceResponse.Actor.builder()
-							.actorId(101L)
-							.role("주연")
-							.name("배우A")
-							.isLiked(true)
+					.performanceTime(LocalDateTime.of(2026, 3, 2, 19, 30))
+					.status(PerformanceScheduleStatus.OPEN.name())
+					.castings(List.of(
+						PerformanceResponse.Casting.builder()
+							.performanceCastId(101L)
+							.artistId(501L)
+							.artistName("배우A")
+							.roleName("찰리")
+							.order(1)
+							.isLiked(false)
 							.build()
 					))
 					.build()
 			))
-			.seatPrices(List.of(
-				PerformanceResponse.SeatPrice.builder()
-					.seatGrade("VIP")
-					.price(150000)
+			.seatGrades(List.of(
+				PerformanceResponse.SeatGrade.builder()
+					.performanceSeatGradeId(1001L)
+					.gradeName("VIP")
+					.basePrice(150000)
+					.colorCode("#FFD700")
 					.build()
 			))
 			.build();
@@ -87,7 +91,9 @@ class PerformanceControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.performanceId").value(1))
-			.andExpect(jsonPath("$.data.schedules[0].actors[0].name").value("배우A"));
+			.andExpect(jsonPath("$.data.noticeUrl").value("https://img/notice.jpg"))
+			.andExpect(jsonPath("$.data.schedules[0].castings[0].artistName").value("배우A"))
+			.andExpect(jsonPath("$.data.schedules[0].castings[0].isLiked").value(false));
 	}
 
 	@Test
