@@ -1,12 +1,16 @@
 package com.truve.platform.performance.service.domain.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.truve.platform.common.support.BaseEntity;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,85 +21,57 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "performance")
+@AttributeOverrides({
+	@AttributeOverride(name = "id", column = @Column(name = "performance_id"))
+})
 public class Performance extends BaseEntity {
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "venue_id", nullable = false)
+	private Venue venue;
 
 	@Column(nullable = false)
 	private String title;
 
-	@Column(nullable = false)
+	@Column(columnDefinition = "TEXT")
+	private String description;
+
+	private Integer runtimeMin;
+
+	private Integer ageLimit;
+
+	@Column(length = 500)
 	private String posterUrl;
 
-	@Column(nullable = false)
-	private String stage;
-
-	@Column(nullable = false)
-	private String runningTime;
-
-	@Column(nullable = false)
-	private String ageLimit;
-
-	@Column(nullable = false)
-	private String priceInfo;
-
-	@Column(nullable = false)
-	private LocalDate startDate;
-
-	@Column(nullable = false)
-	private LocalDate endDate;
-
-	@Column(nullable = false)
-	private LocalDateTime openAt;
-
-	@Column(nullable = false)
-	private Double ratingAverage;
-
-	@Column(nullable = false)
-	private Integer weeklyRank;
-
-	@Column(nullable = false)
-	private Integer reviewCount;
-
-	@Column(nullable = false)
-	private String timeInfo;
-
-	@Column(nullable = false)
+	@Column(length = 500)
 	private String noticeUrl;
 
-	@Column(nullable = false)
-	private String detailsUrl;
+	@Column(name = "start_time")
+	private LocalDateTime startTime;
+
+	@Column(name = "end_time")
+	private LocalDateTime endTime;
 
 	@Builder
 	private Performance(
+		Venue venue,
 		String title,
+		String description,
+		Integer runtimeMin,
+		Integer ageLimit,
 		String posterUrl,
-		String stage,
-		String runningTime,
-		String ageLimit,
-		String priceInfo,
-		LocalDate startDate,
-		LocalDate endDate,
-		LocalDateTime openAt,
-		Double ratingAverage,
-		Integer weeklyRank,
-		Integer reviewCount,
-		String timeInfo,
 		String noticeUrl,
-		String detailsUrl
+		LocalDateTime startTime,
+		LocalDateTime endTime
 	) {
+		this.venue = venue;
 		this.title = title;
-		this.posterUrl = posterUrl;
-		this.stage = stage;
-		this.runningTime = runningTime;
+		this.description = description;
+		this.runtimeMin = runtimeMin;
 		this.ageLimit = ageLimit;
-		this.priceInfo = priceInfo;
-		this.startDate = startDate;
-		this.endDate = endDate;
-		this.openAt = openAt;
-		this.ratingAverage = ratingAverage;
-		this.weeklyRank = weeklyRank;
-		this.reviewCount = reviewCount;
-		this.timeInfo = timeInfo;
+		this.posterUrl = posterUrl;
 		this.noticeUrl = noticeUrl;
-		this.detailsUrl = detailsUrl;
+		this.startTime = startTime;
+		this.endTime = endTime;
 	}
 }

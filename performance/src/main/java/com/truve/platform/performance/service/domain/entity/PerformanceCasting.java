@@ -1,12 +1,9 @@
 package com.truve.platform.performance.service.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
-import com.truve.platform.performance.service.domain.constant.ActorRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -23,29 +20,24 @@ import lombok.NoArgsConstructor;
 public class PerformanceCasting extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "performance_schedule_id", nullable = false)
-	private PerformanceSchedule performanceSchedule;
+	@JoinColumn(name = "performance_id", nullable = false)
+	private Performance performance;
 
-	@Column(nullable = false)
-	private Long actorId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "artist_id", nullable = false)
+	private Artist artist;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private ActorRole role;
+	@Column(name = "role_name")
+	private String roleName;
 
-	@Column(nullable = false)
-	private String name;
-
-	@Column(nullable = false)
-	private Boolean isLiked;
+	@Column(name = "`order`")
+	private Integer castingOrder;
 
 	@Builder
-	private PerformanceCasting(PerformanceSchedule performanceSchedule, Long actorId, ActorRole role, String name,
-		Boolean isLiked) {
-		this.performanceSchedule = performanceSchedule;
-		this.actorId = actorId;
-		this.role = role;
-		this.name = name;
-		this.isLiked = isLiked;
+	private PerformanceCasting(Performance performance, Artist artist, String roleName, Integer castingOrder) {
+		this.performance = performance;
+		this.artist = artist;
+		this.roleName = roleName;
+		this.castingOrder = castingOrder;
 	}
 }

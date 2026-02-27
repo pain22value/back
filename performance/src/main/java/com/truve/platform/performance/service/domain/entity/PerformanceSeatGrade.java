@@ -1,12 +1,10 @@
 package com.truve.platform.performance.service.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
-import com.truve.platform.performance.service.domain.constant.SeatGrade;
 
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -20,23 +18,27 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "performance_seat_grade")
+@AttributeOverride(name = "id", column = @Column(name = "performance_seat_grade_id"))
 public class PerformanceSeatGrade extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "performance_id", nullable = false)
 	private Performance performance;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private SeatGrade seatGrade;
+	@Column(nullable = false, length = 50)
+	private String gradeName;
 
 	@Column(nullable = false)
-	private Integer price;
+	private Integer basePrice;
+
+	@Column(length = 20)
+	private String colorCode;
 
 	@Builder
-	private PerformanceSeatGrade(Performance performance, SeatGrade seatGrade, Integer price) {
+	private PerformanceSeatGrade(Performance performance, String gradeName, Integer basePrice, String colorCode) {
 		this.performance = performance;
-		this.seatGrade = seatGrade;
-		this.price = price;
+		this.gradeName = gradeName;
+		this.basePrice = basePrice;
+		this.colorCode = colorCode;
 	}
 }
