@@ -28,8 +28,8 @@ public class TicketingService {
 	private final TicketingProperties ticketingProperties;
 	private final MusicalScheduleSeatRepository musicalScheduleSeatRepository;
 
-	public TicketingResponse.Enter enter(String showId, String userId, String admissionToken) {
-		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showId, userId);
+	public TicketingResponse.Enter enter(String musicalScheduleId, String userId, String admissionToken) {
+		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, musicalScheduleId, userId);
 
 		boolean consumedAdmissionToken = ticketingRedisRepository.consumeAdmissionToken(claims.getShowId(), claims.getUserId(), admissionToken);
 		Preconditions.validate(consumedAdmissionToken, ErrorCode.INVALID_ADMISSION_TOKEN);
@@ -37,21 +37,21 @@ public class TicketingService {
 		String sessionToken = UUID.randomUUID().toString();
 
 		// TODO: 만료시간 기획측과 논의
-		ticketingRedisRepository.saveSessionToken(sessionToken, userId, showId, Duration.ofMinutes(5));
-		ticketingRedisRepository.addActiveTicketingUser(showId, sessionToken);
+		ticketingRedisRepository.saveSessionToken(sessionToken, userId, musicalScheduleId, Duration.ofMinutes(5));
+		ticketingRedisRepository.addActiveTicketingUser(musicalScheduleId, sessionToken);
 		long sessionTokenTtl = ticketingRedisRepository.getSessionTokenTtl(sessionToken);
 
 		return new TicketingResponse.Enter(sessionToken, sessionTokenTtl);
 	}
 
-	public void heartbeat(String showId, String userId, String sessionToken) {
+	public void heartbeat(String musicalScheduleId, String userId, String sessionToken) {
 
-		isCorrectSessionToken(showId, userId, sessionToken);
+		isCorrectSessionToken(musicalScheduleId, userId, sessionToken);
 
-		ticketingRedisRepository.addActiveTicketingUser(showId, sessionToken);
+		ticketingRedisRepository.addActiveTicketingUser(musicalScheduleId, sessionToken);
 		long nowMs = System.currentTimeMillis();
 		long activeWindowMs = ticketingProperties.getActiveWindowMs();
-		ticketingRedisRepository.removeInactiveTicketingUsers(showId, nowMs - activeWindowMs);
+		ticketingRedisRepository.removeInactiveTicketingUsers(musicalScheduleId, nowMs - activeWindowMs);
 
 		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
@@ -77,14 +77,14 @@ public class TicketingService {
 		Preconditions.validate(tryHoldSeatResult, ErrorCode.ALREADY_HOLD_SEAT);
 	}
 
-	private void isCorrectSessionToken(String showId, String userId, String sessionToken) {
+	private void isCorrectSessionToken(String musicalScheduleId, String userId, String sessionToken) {
 		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
 
 		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);
 
 		Preconditions.validate(sessionValue != null, ErrorCode.INVALID_SESSION_TOKEN);
 		Preconditions.validate(userId.equals(sessionValue.getUserId()), ErrorCode.SESSION_TOKEN_MISMATCH);
-		Preconditions.validate(showId.equals(sessionValue.getShowId()), ErrorCode.SESSION_TOKEN_MISMATCH);
+		Preconditions.validate(musicalScheduleId.equals(sessionValue.getShowId()), ErrorCode.SESSION_TOKEN_MISMATCH);
 	}
 
 }
