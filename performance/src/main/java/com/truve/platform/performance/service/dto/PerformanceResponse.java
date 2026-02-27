@@ -1,6 +1,5 @@
 package com.truve.platform.performance.service.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,22 +15,25 @@ public class PerformanceResponse {
 	public static class Detail {
 		private Long performanceId;
 		private String title;
+		private String description;
+		private Integer runtimeMin;
+		private Integer ageLimit;
 		private String posterUrl;
-		private String stage;
-		private String runningTime;
-		private String ageLimit;
-		private String priceInfo;
-		private LocalDate startDate;
-		private LocalDate endDate;
-		private LocalDateTime openAt;
-		private Double ratingAverage;
-		private Integer weeklyRank;
-		private Integer reviewCount;
-		private String timeInfo;
 		private String noticeUrl;
-		private String detailsUrl;
+		private LocalDateTime startTime;
+		private LocalDateTime endTime;
+		private Venue venue;
 		private List<Schedule> schedules;
-		private List<SeatPrice> seatPrices;
+		private List<SeatGrade> seatGrades;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
+	public static class Venue {
+		private Long venueId;
+		private String name;
+		private String address;
 	}
 
 	@Getter
@@ -39,26 +41,30 @@ public class PerformanceResponse {
 	@Builder
 	public static class Schedule {
 		private Long scheduleId;
-		private LocalDateTime dateTime;
-		private Boolean isAvailable;
-		private List<Actor> actors;
+		private LocalDateTime performanceTime;
+		private String status;
+		private List<Casting> castings;
 	}
 
 	@Getter
 	@AllArgsConstructor
 	@Builder
-	public static class Actor {
-		private Long actorId;
-		private String role;
-		private String name;
+	public static class Casting {
+		private Long performanceCastId;
+		private Long artistId;
+		private String artistName;
+		private String roleName;
+		private Integer order;
 		private Boolean isLiked;
 	}
 
 	@Getter
 	@AllArgsConstructor
 	@Builder
-	public static class SeatPrice {
-		private String seatGrade;
-		private Integer price;
+	public static class SeatGrade {
+		private Long performanceSeatGradeId;
+		private String gradeName;
+		private Integer basePrice;
+		private String colorCode;
 	}
 }
