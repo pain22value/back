@@ -23,23 +23,23 @@ public class TicketingController {
 
 	private final TicketingService ticketingService;
 
-	@PostMapping("/{showId}/enter")
+	@PostMapping("/{musicalScheduleId}/enter")
 	public ApiResult<TicketingResponse.Enter> enter(
-		@PathVariable String showId,
+		@PathVariable String musicalScheduleId,
 		@RequestHeader(value = USER_ID_HEADER) String userId,
 		@RequestHeader(value = ADMISSION_HEADER, required = false) String admissionToken
 	) {
-		var response = ticketingService.enter(showId, userId, admissionToken);
+		var response = ticketingService.enter(musicalScheduleId, userId, admissionToken);
 		return ApiResult.ok(response);
 	}
 
-	@PostMapping("/{showId}/heartbeat")
+	@PostMapping("/{musicalScheduleId}/heartbeat")
 	public ApiResult<Void> heartbeat(
-		@PathVariable String showId,
+		@PathVariable String musicalScheduleId,
 		@RequestHeader(value = USER_ID_HEADER) String userId,
 		@RequestHeader(value = SESSION_HEADER) String sessionToken
 	) {
-		ticketingService.heartbeat(showId, userId, sessionToken);
+		ticketingService.heartbeat(musicalScheduleId, userId, sessionToken);
 		return ApiResult.ok();
 	}
 
