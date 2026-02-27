@@ -30,6 +30,9 @@ public enum ErrorCode {
 	ALREADY_EXIST_PAYMENT(HttpStatus.BAD_REQUEST, "이미 존재하는 결제입니다."),
 	EXTERNAL_PAYMENT_ERROR(HttpStatus.BAD_REQUEST, "결제 대행사 오류가 발생했습니다."),
   
+	INVALID_BANK_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 은행 코드입니다."),
+	ALREADY_DONE_PAYMENT(HttpStatus.BAD_REQUEST, "이미 처리된 결제입니다."),
+
 	JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON 파싱 중 오류가 발생했습니다."),
 	INVALID_ADMISSION_TOKEN(HttpStatus.BAD_REQUEST, "입장 토큰이 유효하지 않습니다."),
 	EXPIRED_ADMISSION_TOKEN(HttpStatus.BAD_REQUEST, "입장 토큰이 만료되었습니다."),
@@ -39,7 +42,6 @@ public enum ErrorCode {
   
 	NOT_FOUND_PERFORMANCE(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.");
 	;
-
 
 	private final HttpStatus status;
 	private final String message;
