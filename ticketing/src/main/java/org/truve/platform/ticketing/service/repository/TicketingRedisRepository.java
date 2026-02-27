@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public class TicketingRedisRepository {
 
 	private static final String SESSION_TOKEN_PREFIX = "ticket:session:";
-	private static final String TICKET_ACTIVE_PERFORMANCE_USER_PREFIX = "ticket:active:";
+	private static final String TICKET_ACTIVE_MUSICAL_USER_PREFIX = "ticket:active:";
 	private static final String READY_KEY_PREFIX = "queue:ready:";
 	private static final String SEAT_HOLD_KEY_PREFIX = "seat:hold:";
 
@@ -31,7 +31,7 @@ public class TicketingRedisRepository {
 	}
 
 	public void addActiveTicketingUser(Long showId, String sessionToken) {
-		String key = TICKET_ACTIVE_PERFORMANCE_USER_PREFIX + showId;
+		String key = TICKET_ACTIVE_MUSICAL_USER_PREFIX + showId;
 		long nowMs =  System.currentTimeMillis();
 		redisSupport.zAdd(key, sessionToken, nowMs);
 	}
@@ -47,7 +47,7 @@ public class TicketingRedisRepository {
 	}
 
 	public long removeInactiveTicketingUsers(Long showId, long beforeMs) {
-		String key = TICKET_ACTIVE_PERFORMANCE_USER_PREFIX + showId;
+		String key = TICKET_ACTIVE_MUSICAL_USER_PREFIX + showId;
 		return redisSupport.zRemRangeByScore(key, 0, beforeMs - 1);
 	}
 
