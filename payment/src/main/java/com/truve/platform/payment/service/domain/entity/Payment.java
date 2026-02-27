@@ -55,6 +55,12 @@ public class Payment extends BaseEntity {
 	@Embedded
 	private VirtualAccount virtualAccount;
 
+	@Embedded
+	private Card card;
+
+	@Embedded
+	private EasyPay easyPay;
+
 	private String failReason;
 
 	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
