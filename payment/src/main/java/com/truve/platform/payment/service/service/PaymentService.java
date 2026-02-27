@@ -29,6 +29,7 @@ public class PaymentService {
 
 	@Transactional
 	public Long create(PaymentRequest.Create request) {
+		// TODO: 이미 존재하는 결제여도 READY 상태면 찾아서 ID 반환 (결제창을 닫아서 재요청하는 경우)
 		Preconditions.validate(!paymentRepository.existsByOrderId(request.getOrderId()), ErrorCode.ALREADY_EXIST_PAYMENT);
 
 		Payment payment = Payment.builder()
@@ -44,6 +45,7 @@ public class PaymentService {
 	public void confirm(String orderId, String paymentKey, Long amount) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
+		Preconditions.validate(!payment.isDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 		payment.validateAmount(amount);
 
 		TossResponse.Payment response = tossClient.confirm(new TossRequest.Confirm(orderId, amount, paymentKey));
@@ -59,6 +61,8 @@ public class PaymentService {
 	@Transactional
 	public void completeDeposit(String orderId, String approvedAt) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+
+		Preconditions.validate(!payment.isDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 
 		payment.completeDeposit(parseTime(approvedAt));
 	}

@@ -93,6 +93,10 @@ public class Payment extends BaseEntity {
 		this.requestedAt = requestedAt;
 	}
 
+	public boolean isDone() {
+		return status.equals(PaymentStatus.DONE);
+	}
+
 	public void complete(String paymentKey, LocalDateTime requestedAt, LocalDateTime approvedAt) {
 		Preconditions.validate(status == PaymentStatus.READY, ErrorCode.INVALID_PAYMENT_STATUS);
 		verifyPaymentKey(paymentKey);
