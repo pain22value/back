@@ -25,8 +25,8 @@ public class TicketingController {
 
 	@PostMapping("/{musicalScheduleId}/enter")
 	public ApiResult<TicketingResponse.Enter> enter(
-		@PathVariable String musicalScheduleId,
-		@RequestHeader(value = USER_ID_HEADER) String userId,
+		@PathVariable Long musicalScheduleId,
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
 		@RequestHeader(value = ADMISSION_HEADER, required = false) String admissionToken
 	) {
 		var response = ticketingService.enter(musicalScheduleId, userId, admissionToken);
@@ -35,8 +35,8 @@ public class TicketingController {
 
 	@PostMapping("/{musicalScheduleId}/heartbeat")
 	public ApiResult<Void> heartbeat(
-		@PathVariable String musicalScheduleId,
-		@RequestHeader(value = USER_ID_HEADER) String userId,
+		@PathVariable Long musicalScheduleId,
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
 		@RequestHeader(value = SESSION_HEADER) String sessionToken
 	) {
 		ticketingService.heartbeat(musicalScheduleId, userId, sessionToken);
