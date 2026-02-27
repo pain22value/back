@@ -11,11 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.truve.platform.performance.service.domain.entity.Performance;
 import com.truve.platform.performance.service.domain.entity.PerformanceCasting;
 import com.truve.platform.performance.service.domain.entity.PerformanceSchedule;
+import com.truve.platform.performance.service.domain.entity.PerformanceScheduleCasting;
 import com.truve.platform.performance.service.domain.entity.PerformanceSeatGrade;
 import com.truve.platform.performance.service.dto.PerformanceResponse;
-import com.truve.platform.performance.service.repository.PerformanceCastingRepository;
 import com.truve.platform.performance.service.repository.PerformanceRepository;
 import com.truve.platform.performance.service.repository.PerformanceScheduleRepository;
+import com.truve.platform.performance.service.repository.PerformanceScheduleCastingRepository;
 import com.truve.platform.performance.service.repository.PerformanceSeatGradeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class PerformanceService {
 
 	private final PerformanceRepository performanceRepository;
 	private final PerformanceScheduleRepository performanceScheduleRepository;
-	private final PerformanceCastingRepository performanceCastingRepository;
+	private final PerformanceScheduleCastingRepository performanceScheduleCastingRepository;
 	private final PerformanceSeatGradeRepository performanceSeatGradeRepository;
 
 	@Transactional(readOnly = true)
@@ -38,77 +39,90 @@ public class PerformanceService {
 			.map(PerformanceSchedule::getId)
 			.toList();
 
-		Map<Long, List<PerformanceResponse.Actor>> actorsByScheduleId = scheduleIds.isEmpty()
+		// 회차별 캐스팅 매핑을 한 번에 조회해 쿼리 수를 최소화한다.
+		List<PerformanceScheduleCasting> scheduleCastings = scheduleIds.isEmpty()
+			? List.of()
+			: performanceScheduleCastingRepository.findAllByScheduleIds(scheduleIds);
+
+		// 회차 ID를 key로 캐스팅을 묶어 schedules[].castings[] 형태로 조립한다.
+		Map<Long, List<PerformanceResponse.Casting>> castingsByScheduleId = scheduleIds.isEmpty()
 			? Map.of()
-			: performanceCastingRepository.findCastingsByScheduleIds(scheduleIds).stream()
-				.sorted(Comparator.comparing(actor -> actor.getRole().getOrder()))
+			: scheduleCastings.stream()
+				.sorted(Comparator.comparing(
+					sc -> sc.getPerformanceCasting().getCastingOrder(),
+					Comparator.nullsLast(Comparator.naturalOrder())
+				))
 				.collect(Collectors.groupingBy(
-					actor -> actor.getPerformanceSchedule().getId(),
-					Collectors.mapping(this::toActorResponse, Collectors.toList())
+					sc -> sc.getPerformanceSchedule().getId(),
+					Collectors.mapping(sc -> toCastingResponse(sc.getPerformanceCasting()),
+						Collectors.toList())
 				));
 
 		List<PerformanceResponse.Schedule> scheduleResponses = schedules.stream()
-			.map(schedule -> toScheduleResponse(schedule, actorsByScheduleId))
+			.map(schedule -> toScheduleResponse(schedule, castingsByScheduleId))
 			.toList();
 
-		List<PerformanceResponse.SeatPrice> seatPrices = performanceSeatGradeRepository
+		List<PerformanceResponse.SeatGrade> seatGrades = performanceSeatGradeRepository
 			.findSeatPrices(performanceId).stream()
-			.sorted(Comparator.comparing(seatPrice -> seatPrice.getSeatGrade().getOrder()))
-			.map(this::toSeatPriceResponse)
+			.map(this::toSeatGradeResponse)
 			.toList();
 
 		return PerformanceResponse.Detail.builder()
 			.performanceId(performance.getId())
 			.title(performance.getTitle())
-			.posterUrl(performance.getPosterUrl())
-			.stage(performance.getStage())
-			.runningTime(performance.getRunningTime())
+			.description(performance.getDescription())
+			.runtimeMin(performance.getRuntimeMin())
 			.ageLimit(performance.getAgeLimit())
-			.priceInfo(performance.getPriceInfo())
-			.startDate(performance.getStartDate())
-			.endDate(performance.getEndDate())
-			.openAt(performance.getOpenAt())
-			.ratingAverage(performance.getRatingAverage())
-			.weeklyRank(performance.getWeeklyRank())
-			.reviewCount(performance.getReviewCount())
-			.timeInfo(performance.getTimeInfo())
+			.posterUrl(performance.getPosterUrl())
 			.noticeUrl(performance.getNoticeUrl())
-			.detailsUrl(performance.getDetailsUrl())
+			.startTime(performance.getStartTime())
+			.endTime(performance.getEndTime())
+			.venue(toVenueResponse(performance))
 			.schedules(scheduleResponses)
-			.seatPrices(seatPrices)
+			.seatGrades(seatGrades)
 			.build();
 	}
 
-    // 회차별 배우 목록은 스케줄 기준으로 조합해 응답 순서를 고정한다.
+	private PerformanceResponse.Venue toVenueResponse(Performance performance) {
+		return PerformanceResponse.Venue.builder()
+			.venueId(performance.getVenue().getId())
+			.name(performance.getVenue().getName())
+			.address(performance.getVenue().getAddress())
+			.build();
+	}
+
 	private PerformanceResponse.Schedule toScheduleResponse(
 		PerformanceSchedule schedule,
-		Map<Long, List<PerformanceResponse.Actor>> actorsByScheduleId
+		Map<Long, List<PerformanceResponse.Casting>> castingsByScheduleId
 	) {
-		List<PerformanceResponse.Actor> actors = actorsByScheduleId.getOrDefault(schedule.getId(), List.of());
+		List<PerformanceResponse.Casting> castings = castingsByScheduleId.getOrDefault(schedule.getId(), List.of());
 
 		return PerformanceResponse.Schedule.builder()
 			.scheduleId(schedule.getId())
-			.dateTime(schedule.getDateTime())
-			.isAvailable(schedule.getIsAvailable())
-			.actors(actors)
+			.performanceTime(schedule.getPerformanceTime())
+			.status(schedule.getStatus().name())
+			.castings(castings)
 			.build();
 	}
 
-    // 엔티티를 API 응답용 배우 DTO로 변환한다.
-	private PerformanceResponse.Actor toActorResponse(PerformanceCasting actor) {
-		return PerformanceResponse.Actor.builder()
-			.actorId(actor.getActorId())
-			.role(actor.getRole().getLabel())
-			.name(actor.getName())
-			.isLiked(actor.getIsLiked())
+	private PerformanceResponse.Casting toCastingResponse(PerformanceCasting casting) {
+		return PerformanceResponse.Casting.builder()
+			.performanceCastId(casting.getId())
+			.artistId(casting.getArtist().getId())
+			.artistName(casting.getArtist().getName())
+			.roleName(casting.getRoleName())
+			.order(casting.getCastingOrder())
+			// TODO: artist_likes 연동 후 로그인 사용자 기준 값으로 교체
+			.isLiked(false)
 			.build();
 	}
 
-    // 좌석 등급/가격을 응답 DTO로 변환한다.
-	private PerformanceResponse.SeatPrice toSeatPriceResponse(PerformanceSeatGrade seatPrice) {
-		return PerformanceResponse.SeatPrice.builder()
-			.seatGrade(seatPrice.getSeatGrade().getLabel())
-			.price(seatPrice.getPrice())
+	private PerformanceResponse.SeatGrade toSeatGradeResponse(PerformanceSeatGrade seatGrade) {
+		return PerformanceResponse.SeatGrade.builder()
+			.performanceSeatGradeId(seatGrade.getId())
+			.gradeName(seatGrade.getGradeName())
+			.basePrice(seatGrade.getBasePrice())
+			.colorCode(seatGrade.getColorCode())
 			.build();
 	}
 }
