@@ -43,4 +43,15 @@ public class TicketingController {
 		return ApiResult.ok();
 	}
 
+	@PostMapping("{musicalScheduleId}/hold/seat/{seatId}")
+	public ApiResult<Void> holdSeat(
+		@PathVariable Long seatId,
+		@PathVariable Long musicalScheduleId,
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
+		@RequestHeader(value = SESSION_HEADER) String sessionToken
+	) {
+		ticketingService.holdSeat(musicalScheduleId, userId, sessionToken, seatId);
+		return ApiResult.ok();
+	}
+
 }
