@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import com.truve.platform.payment.service.domain.constant.PaymentMethod;
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 import com.truve.platform.payment.service.domain.entity.Payment;
 
@@ -28,7 +27,7 @@ public class PaymentResponse {
 		private final String orderId;
 		private final String paymentKey;
 		private final Long amount;
-		private final PaymentMethod method;
+		private final String method;
 		private final PaymentStatus status;
 		private final Long cancelableAmount;
 		private final VirtualAccountDetails virtualAccount;
@@ -43,7 +42,7 @@ public class PaymentResponse {
 				.orderId(payment.getOrderId())
 				.paymentKey(payment.getPaymentKey())
 				.amount(payment.getAmount())
-				.method(payment.getMethod())
+				.method(payment.getMethod().getDisplayName())
 				.status(payment.getStatus())
 				.cancelableAmount(payment.getCancelableAmount())
 				.virtualAccount(
