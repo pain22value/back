@@ -94,4 +94,15 @@ public class PaymentController {
 			.location(URI.create(redirectUrl))
 			.build();
 	}
+
+	@Operation(summary = "결제 취소",
+		description = "주문 ID로 결제를 취소합니다. 무통장입금 결제 취소시 RefundReceiveAccount를 필수로 입력해 주시고, 다른 방식일 땐 null로 보내주세요.")
+	@PostMapping("/{orderId}/cancel")
+	public ApiResult<PaymentResponse.Cancel> cancel(
+		@PathVariable String orderId,
+		@RequestBody @Valid PaymentRequest.Cancel request
+	) {
+		return ApiResult.ok(paymentService.cancel(orderId, request));
+	}
+
 }

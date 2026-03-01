@@ -37,12 +37,18 @@ public class PaymentResponse {
 	@Getter
 	@Builder
 	public static class Cancel {
-		private final String orderId;
 		private final String cancelDate;
 		private final String cancelStatus;
 		private final Long cancelAmount;
 		private final Long cancelFee;
 		private final Long refundAmount;
+	}
+
+	public static String formatCancelDate(LocalDateTime dateTime) {
+		if (dateTime == null)
+			return "";
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd(E) a h:mm", Locale.KOREAN);
+		return dateTime.format(formatter);
 	}
 
 	@Getter

@@ -141,7 +141,9 @@ public class Payment extends BaseEntity {
 		this.approvedAt = approvedAt;
 	}
 
-	public void applyCancel(Long cancelAmount, String reason, CancelType type) {
+	public void applyCancel(Long cancelAmount, String reason) {
+		CancelType type = cancelAmount.equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
+
 		validateCancelStatus();
 		validateCancelPolicy(type);
 		validateCancelAmount(cancelAmount, type);

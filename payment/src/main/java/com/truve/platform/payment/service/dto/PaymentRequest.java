@@ -23,8 +23,6 @@ public class PaymentRequest {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class Cancel {
-		@NotBlank
-		private String orderId;
 		private String cancelReason;
 		private Long cancelAmount;
 		private RefundReceiveAccount refundReceiveAccount;
@@ -33,7 +31,7 @@ public class PaymentRequest {
 	@Getter
 	@AllArgsConstructor
 	@NoArgsConstructor
-	private static class RefundReceiveAccount {
+	public static class RefundReceiveAccount {
 		private String bankCode;
 		private String accountNumber;
 		private String holderName;
