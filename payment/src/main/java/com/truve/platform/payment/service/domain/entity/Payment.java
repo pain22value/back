@@ -165,10 +165,6 @@ public class Payment extends BaseEntity {
 		this.status = (this.cancelableAmount == 0) ? PaymentStatus.REFUNDED : PaymentStatus.PARTIAL_REFUNDED;
 	}
 
-	private void validateWaitDepositStatus() {
-		Preconditions.validate(status == PaymentStatus.READY, ErrorCode.INVALID_PAYMENT_STATUS);
-	}
-
 	private void validateExpireStatus() {
 		Preconditions.validate(status == PaymentStatus.WAITING_FOR_DEPOSIT, ErrorCode.INVALID_PAYMENT_STATUS);
 	}

@@ -11,6 +11,7 @@ import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.dto.PaymentRequest;
+import com.truve.platform.payment.service.dto.PaymentResponse;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 import com.truve.platform.payment.service.service.external.TossClient;
 import com.truve.platform.payment.service.service.external.dto.TossRequest;
@@ -24,6 +25,12 @@ public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
 	private final TossClient tossClient;
+
+	@Transactional(readOnly = true)
+	public PaymentResponse.Details details(String orderId) {
+		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		return PaymentResponse.Details.from(payment);
+	}
 
 	@Transactional
 	public Long create(PaymentRequest.Create request) {
