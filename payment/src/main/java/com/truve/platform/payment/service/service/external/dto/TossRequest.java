@@ -15,4 +15,22 @@ public class TossRequest {
 		private String paymentKey;
 	}
 
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class Cancel {
+		private String cancelReason;
+		private Long cancelAmount;
+		private RefundReceiveAccount refundReceiveAccount;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class RefundReceiveAccount {
+		private String bank;
+		private String accountNumber;
+		private String holderName;
+	}
+
 }

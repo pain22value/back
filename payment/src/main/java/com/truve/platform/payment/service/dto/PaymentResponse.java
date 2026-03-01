@@ -36,6 +36,17 @@ public class PaymentResponse {
 
 	@Getter
 	@Builder
+	public static class Cancel {
+		private final String orderId;
+		private final String cancelDate;
+		private final String cancelStatus;
+		private final Long cancelAmount;
+		private final Long cancelFee;
+		private final Long refundAmount;
+	}
+
+	@Getter
+	@Builder
 	public static class Details {
 		// TODO: 피그마 확인 후 전달 정보 검토 필요
 		private final String orderId;
