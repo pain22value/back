@@ -1,6 +1,7 @@
 package com.truve.platform.payment.service.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,12 @@ public class PaymentController {
 	@GetMapping("/{orderId}")
 	public ApiResult<PaymentResponse.Details> details(@PathVariable String orderId) {
 		return ApiResult.ok(paymentService.details(orderId));
+	}
+
+	@Operation(summary = "은행 리스트 조회", description = "은행 이름, 코드 리스트를 조회합니다.")
+	@GetMapping("/banks")
+	public ApiResult<List<PaymentResponse.Bank>> getBankList() {
+		return ApiResult.ok(paymentService.getBankList());
 	}
 
 	@Operation(summary = "결제 생성", description = "Toss Payments에 결제를 요청하기 전에 호출해 주세요")

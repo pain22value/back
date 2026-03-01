@@ -2,6 +2,8 @@ package com.truve.platform.payment.service.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
+import com.truve.platform.payment.service.domain.constant.Bank;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
@@ -22,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
+	private static final List<PaymentResponse.Bank> CACHED_BANKS = Stream.of(Bank.values())
+		.map(PaymentResponse.Bank::from)
+		.toList();
 
 	private final PaymentRepository paymentRepository;
 	private final TossClient tossClient;
@@ -43,6 +49,10 @@ public class PaymentService {
 			.build();
 
 		return paymentRepository.save(payment).getId();
+	}
+
+	public List<PaymentResponse.Bank> getBankList() {
+		return CACHED_BANKS;
 	}
 
 	@Transactional

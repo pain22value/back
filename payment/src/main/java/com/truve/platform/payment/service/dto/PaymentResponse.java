@@ -17,7 +17,21 @@ public class PaymentResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class Create {
-		Long paymentId;
+		private final Long paymentId;
+	}
+
+	@Getter
+	@Builder
+	public static class Bank {
+		private final String bankCode;
+		private final String bankName;
+
+		public static Bank from(com.truve.platform.payment.service.domain.constant.Bank bank) {
+			return Bank.builder()
+				.bankCode(bank.getBankCode())
+				.bankName(bank.getBankName())
+				.build();
+		}
 	}
 
 	@Getter
