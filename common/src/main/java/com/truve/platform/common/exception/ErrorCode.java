@@ -32,6 +32,7 @@ public enum ErrorCode {
 	INVALID_BANK_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 은행 코드입니다."),
 	INVALID_CARD_COMPANY_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 카드사 코드입니다."),
 	ALREADY_DONE_PAYMENT(HttpStatus.BAD_REQUEST, "이미 처리된 결제입니다."),
+	INVALID_PAYMENT_METHOD_DETAILS(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 수단 정보입니다."),
 
 	JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON 파싱 중 오류가 발생했습니다."),
 	INVALID_ADMISSION_TOKEN(HttpStatus.BAD_REQUEST, "입장 토큰이 유효하지 않습니다."),
