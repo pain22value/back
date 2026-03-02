@@ -19,17 +19,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "musical_schedule_seat_mapping")
-public class MusicalScheduleSeat extends BaseEntity {
+@Table(name = "show_schedule_seat_mapping")
+public class ShowScheduleSeat extends BaseEntity {
 
 	@Column(nullable = false)
-	private Long musicalScheduleId;
+	private Long showScheduleId;
 
 	@Column(nullable = false)
 	private Long seatId;
 
 	@Column(nullable = false)
-	private Long musicalSeatGradeId;
+	private Long showSeatGradeId;
 
 	@Column(nullable = false)
 	private Long priceSnapshot;
@@ -39,15 +39,15 @@ public class MusicalScheduleSeat extends BaseEntity {
 	private SeatStatus status;
 
 	@Builder
-	public MusicalScheduleSeat(
-		Long musicalScheduleId,
+	public ShowScheduleSeat(
+		Long showScheduleId,
 		Long seatId,
-		Long musicalSeatGradeId,
+		Long showSeatGradeId,
 		Long priceSnapshot
 	) {
-		this.musicalScheduleId = musicalScheduleId;
+		this.showScheduleId = showScheduleId;
 		this.seatId = seatId;
-		this.musicalSeatGradeId = musicalSeatGradeId;
+		this.showSeatGradeId = showSeatGradeId;
 		this.priceSnapshot = priceSnapshot;
 		this.status = SeatStatus.AVAILABLE;
 	}
