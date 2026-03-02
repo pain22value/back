@@ -81,36 +81,17 @@ public class PaymentService {
 		payment.completeDeposit(parseTime(approvedAt));
 	}
 
-	/*
-	TODO: 환불 수수료 고민.. 일단 0으로 박아놓고 고려하지 않았는데 필드 하나를 추가해야 할 거 같음;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-		코드 개밤티; 정적 팩토리 메서드 고려하기 (외부 DTO 안정성 확인)
-	 */
-
 	@Transactional
 	public PaymentResponse.Cancel cancel(String orderId, PaymentRequest.Cancel request) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		TossRequest.Cancel tossRequest = new TossRequest.Cancel(
-			request.getCancelReason(),
-			request.getCancelAmount(),
-			request.getRefundReceiveAccount() == null ? null : new TossRequest.RefundReceiveAccount(
-				request.getRefundReceiveAccount().getBankCode(),
-				request.getRefundReceiveAccount().getAccountNumber(),
-				request.getRefundReceiveAccount().getHolderName()));
-
+		TossRequest.Cancel tossRequest = TossRequest.Cancel.from(request);
 		TossResponse.Payment response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
-
 		TossResponse.Cancel latestCancel = response.getCancels().getLast();
 
 		payment.applyCancel(request.getCancelAmount(), request.getCancelReason());
 
-		return PaymentResponse.Cancel.builder()
-			.cancelDate(PaymentResponse.formatCancelDate(parseTime(latestCancel.getCanceledAt())))
-			.cancelStatus(latestCancel.getCancelStatus())
-			.cancelAmount(latestCancel.getCancelAmount())
-			.cancelFee(0L)
-			.refundAmount(latestCancel.getCancelAmount())
-			.build();
+		return PaymentResponse.Cancel.from(latestCancel, 0L);
 	}
 
 	private LocalDateTime parseTime(String time) {

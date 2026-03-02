@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 import com.truve.platform.payment.service.domain.entity.Payment;
+import com.truve.platform.payment.service.service.external.dto.TossResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,11 +43,22 @@ public class PaymentResponse {
 		private final Long cancelAmount;
 		private final Long cancelFee;
 		private final Long refundAmount;
+
+		public static Cancel from(TossResponse.Cancel lastestCancel, Long cancelFee) {
+			return Cancel.builder()
+				.cancelDate(formatCancelDate(lastestCancel.getCanceledAt()))
+				.cancelStatus(lastestCancel.getCancelStatus())
+				.cancelAmount(lastestCancel.getCancelAmount())
+				.cancelFee(cancelFee)
+				.refundAmount(lastestCancel.getCancelAmount() - cancelFee)
+				.build();
+		}
 	}
 
-	public static String formatCancelDate(LocalDateTime dateTime) {
-		if (dateTime == null)
+	public static String formatCancelDate(String dateTimeStr) {
+		if (dateTimeStr == null)
 			return "";
+		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME);
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd(E) a h:mm", Locale.KOREAN);
 		return dateTime.format(formatter);
 	}
