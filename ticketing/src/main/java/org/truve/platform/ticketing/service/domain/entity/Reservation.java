@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public class Reservation extends BaseEntity {
 
 	@Column(nullable = false)
-	private Long musicalScheduleId;
+	private Long showScheduleId;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -39,8 +39,8 @@ public class Reservation extends BaseEntity {
 	private Long userId;
 
 	@Builder
-	public Reservation(Long musicalScheduleId, Long totalAmount, Long userId) {
-		this.musicalScheduleId = musicalScheduleId;
+	public Reservation(Long showScheduleId, Long totalAmount, Long userId) {
+		this.showScheduleId = showScheduleId;
 		this.status = ReservationStatus.CREATED;
 		this.totalAmount = totalAmount;
 		this.userId = userId;
