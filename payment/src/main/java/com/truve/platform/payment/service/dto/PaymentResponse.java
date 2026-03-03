@@ -3,14 +3,15 @@ package com.truve.platform.payment.service.dto;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 import com.truve.platform.payment.service.domain.entity.Card;
 import com.truve.platform.payment.service.domain.entity.EasyPay;
 import com.truve.platform.payment.service.domain.entity.Payment;
+import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.domain.entity.VirtualAccount;
-import com.truve.platform.payment.service.service.external.dto.TossResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,22 +42,31 @@ public class PaymentResponse {
 	@Getter
 	@Builder
 	public static class Cancel {
-		private final String cancelDate;
-		private final String cancelStatus;
-		private final String displayStatus;
-		private final Long cancelAmount;
-		private final Long cancelFee;
+		private final Long requestAmount;
+		private final Long refundFee;
 		private final Long refundAmount;
+		private final String cancelReason;
+		private final String canceledAt;
+		private final String transactionKey;
+		private final String cancelStatus;
 
-		public static Cancel from(TossResponse.Cancel lastestCancel, Long cancelFee) {
+		public static Cancel from(PaymentCancel cancel) {
 			return Cancel.builder()
-				.cancelDate(formatCancelDate(lastestCancel.getCanceledAt()))
-				.cancelStatus(lastestCancel.getCancelStatus())
-				.displayStatus(getDisplayStatus(lastestCancel.getCancelStatus()))
-				.cancelAmount(lastestCancel.getCancelAmount())
-				.cancelFee(cancelFee)
-				.refundAmount(lastestCancel.getCancelAmount() - cancelFee)
+				.requestAmount(cancel.getRequestAmount())
+				.refundFee(cancel.getRefundFee())
+				.refundAmount(cancel.getRefundAmount())
+				.cancelReason(cancel.getCancelReason())
+				.canceledAt(formatCancelDate(cancel.getCanceledAt()))
+				.transactionKey(cancel.getTransactionKey())
+				.cancelStatus(getDisplayStatus(cancel.getCancelStatus()))
 				.build();
+		}
+
+		private static String formatCancelDate(LocalDateTime dateTime) {
+			if (dateTime == null)
+				return "";
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd(E) a h:mm", Locale.KOREAN);
+			return dateTime.format(formatter);
 		}
 
 		private static String getDisplayStatus(String cancelStatus) {
@@ -66,14 +76,6 @@ public class PaymentResponse {
 				default -> "환불 진행 중";
 			};
 		}
-	}
-
-	public static String formatCancelDate(String dateTimeStr) {
-		if (dateTimeStr == null)
-			return "";
-		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd(E) a h:mm", Locale.KOREAN);
-		return dateTime.format(formatter);
 	}
 
 	@Getter
@@ -92,6 +94,7 @@ public class PaymentResponse {
 		private final String failReason;
 		private final LocalDateTime requestedAt;
 		private final LocalDateTime approvedAt;
+		private final List<Cancel> cancels;
 
 		public static Details from(Payment payment) {
 			return Details.builder()

@@ -13,6 +13,7 @@ import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.payment.service.domain.constant.Bank;
 import com.truve.platform.payment.service.domain.entity.Payment;
+import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
 import com.truve.platform.payment.service.repository.PaymentRepository;
@@ -89,7 +90,7 @@ public class PaymentService {
 		TossResponse.Payment response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
 		TossResponse.Cancel latestCancel = response.getCancels().getLast();
 
-		payment.applyCancel(
+		PaymentCancel cancel = payment.applyCancel(
 			latestCancel.getCancelAmount(),
 			0L, // TODO: 환불 수수료 계산식
 			latestCancel.getCancelReason(),
@@ -98,7 +99,7 @@ public class PaymentService {
 			latestCancel.getCancelStatus()
 		);
 
-		return PaymentResponse.Cancel.from(latestCancel, 0L);
+		return PaymentResponse.Cancel.from(cancel);
 	}
 
 	private LocalDateTime parseTime(String time) {

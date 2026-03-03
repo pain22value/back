@@ -141,7 +141,7 @@ public class Payment extends BaseEntity {
 		this.approvedAt = approvedAt;
 	}
 
-	public void applyCancel(Long cancelAmount, Long refundFee, String cancelReason, LocalDateTime canceledAt,
+	public PaymentCancel applyCancel(Long cancelAmount, Long refundFee, String cancelReason, LocalDateTime canceledAt,
 		String transactionKey,
 		String cancelStatus) {
 		CancelType type = cancelAmount.equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
@@ -168,6 +168,8 @@ public class Payment extends BaseEntity {
 			.build();
 
 		this.cancels.add(cancel);
+
+		return cancel;
 	}
 
 	private void processCancel() {
