@@ -4,12 +4,9 @@ import java.time.LocalDateTime;
 
 import com.truve.platform.common.support.BaseEntity;
 import com.truve.platform.payment.service.domain.command.CancelCommand;
-import com.truve.platform.payment.service.domain.constant.CancelType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -44,17 +41,14 @@ public class PaymentCancel extends BaseEntity {
 	@Column(nullable = false)
 	private LocalDateTime canceledAt;
 
-	@Column(nullable = false)
+	@Column(unique = true, nullable = false)
 	private String transactionKey;
 
 	@Column(nullable = false)
 	private String cancelStatus;
 
-	@Enumerated(EnumType.STRING)
-	private CancelType type;
-
 	@Builder
-	public PaymentCancel(Payment payment, CancelCommand cancelCommand, CancelType type) {
+	public PaymentCancel(Payment payment, CancelCommand cancelCommand) {
 		this.payment = payment;
 		this.requestAmount = cancelCommand.getAmount();
 		this.refundFee = cancelCommand.getFee();
@@ -63,7 +57,6 @@ public class PaymentCancel extends BaseEntity {
 		this.canceledAt = cancelCommand.getCanceledAt();
 		this.transactionKey = cancelCommand.getTransactionKey();
 		this.cancelStatus = cancelCommand.getStatus();
-		this.type = type;
 	}
 
 }

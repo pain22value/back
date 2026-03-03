@@ -25,10 +25,10 @@ public class TossRequest {
 		private Long cancelAmount;
 		private RefundReceiveAccount refundReceiveAccount;
 
-		public static Cancel from(PaymentRequest.Cancel request) {
+		public static Cancel from(PaymentRequest.Cancel request, Long refundFee) {
 			return Cancel.builder()
 				.cancelReason(request.getCancelReason())
-				.cancelAmount(request.getCancelAmount())
+				.cancelAmount(request.getCancelAmount() - refundFee)
 				.refundReceiveAccount(request.getRefundReceiveAccount() == null ? null :
 					RefundReceiveAccount.from(request.getRefundReceiveAccount()))
 				.build();

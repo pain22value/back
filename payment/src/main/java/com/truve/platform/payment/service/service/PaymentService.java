@@ -17,6 +17,7 @@ import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
+import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 import com.truve.platform.payment.service.service.external.TossClient;
 import com.truve.platform.payment.service.service.external.dto.TossRequest;
@@ -32,6 +33,7 @@ public class PaymentService {
 		.toList();
 
 	private final PaymentRepository paymentRepository;
+	private final PaymentCancelRepository paymentCancelRepository;
 	private final TossClient tossClient;
 
 	@Transactional(readOnly = true)
@@ -84,17 +86,23 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public PaymentResponse.Cancel cancel(String orderId, PaymentRequest.Cancel request) {
+	public PaymentResponse.Cancel cancel(String orderId, String idempotencyKey, PaymentRequest.Cancel request) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		payment.validateCancel(request.getCancelAmount());
 
 		Long refundFee = 0L; // TODO: 환불 수수료 계산 구현 후 추가
 
-		TossResponse.Cancel response = tossClient.cancel(payment.getPaymentKey(), TossRequest.Cancel.from(request));
+		TossResponse.Cancel response = tossClient.cancel(
+			payment.getPaymentKey(),
+			idempotencyKey,
+			TossRequest.Cancel.from(request, refundFee));
 
-		CancelCommand command = toCancelCommand(response, refundFee);
-		PaymentCancel cancel = payment.applyCancel(command);
-
-		return PaymentResponse.Cancel.from(cancel);
+		return paymentCancelRepository.findByTransactionKey(response.getTransactionKey())
+			.map(PaymentResponse.Cancel::from)
+			.orElseGet(() -> {
+				PaymentCancel cancel = payment.applyCancel(toCancelCommand(response, 0L));
+				return PaymentResponse.Cancel.from(cancel);
+			});
 	}
 
 	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel, Long refundFee) {

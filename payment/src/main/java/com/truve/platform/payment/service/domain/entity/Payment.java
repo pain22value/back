@@ -142,23 +142,20 @@ public class Payment extends BaseEntity {
 		this.approvedAt = approvedAt;
 	}
 
-	public PaymentCancel applyCancel(CancelCommand cancelCommand) {
-		CancelType type = cancelCommand.getAmount().equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
+	public void validateCancel(Long cancelAmount) {
+		CancelType type = cancelAmount.equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
 
 		validateCancelStatus();
 		validateCancelPolicy(type);
-		validateCancelAmount(cancelCommand.getAmount(), type);
+		validateCancelAmount(cancelAmount, type);
+	}
 
-		if (status.isCancelable()) {
-			processCancel();
-		} else if (status.isRefundable()) {
-			processRefund(cancelCommand.getAmount());
-		}
+	public PaymentCancel applyCancel(CancelCommand cancelCommand) {
+		updateCancelableAndStatus(cancelCommand.getAmount());
 
 		PaymentCancel cancel = PaymentCancel.builder()
 			.payment(this)
 			.cancelCommand(cancelCommand)
-			.type(type)
 			.build();
 
 		this.cancels.add(cancel);
@@ -166,14 +163,14 @@ public class Payment extends BaseEntity {
 		return cancel;
 	}
 
-	private void processCancel() {
-		this.cancelableAmount = 0L;
-		this.status = PaymentStatus.CANCELED;
-	}
-
-	private void processRefund(Long cancelAmount) {
+	private void updateCancelableAndStatus(Long cancelAmount) {
 		this.cancelableAmount -= cancelAmount;
-		this.status = (this.cancelableAmount == 0) ? PaymentStatus.REFUNDED : PaymentStatus.PARTIAL_REFUNDED;
+
+		if (this.cancelableAmount == 0) {
+			this.status = status.isCancelable() ? PaymentStatus.CANCELED : PaymentStatus.REFUNDED;
+		} else {
+			this.status = PaymentStatus.PARTIAL_REFUNDED;
+		}
 	}
 
 	private void validateExpireStatus() {

@@ -47,11 +47,12 @@ public class TossClient {
 		return "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 	}
 
-	public TossResponse.Cancel cancel(String paymentKey, TossRequest.Cancel request) {
+	public TossResponse.Cancel cancel(String paymentKey, String idempotencyKey, TossRequest.Cancel request) {
 		try {
 			TossResponse.Payment response = restClient.post()
 				.uri(URI.create(baseUrl + paymentKey + "/cancel"))
 				.header("Authorization", getAuthorizations())
+				.header("Idempotency-Key", idempotencyKey)
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(request)
 				.retrieve()
