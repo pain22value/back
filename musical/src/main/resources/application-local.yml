@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: 8085
 
 spring:
   web:
@@ -9,7 +9,7 @@ spring:
       force: true
 
   datasource:
-    url: ${SHOW_MYSQL_URL:jdbc:mysql://localhost:3306/show_db}
+    url: ${SHOW_MYSQL_URL:jdbc:mysql://localhost:3306/musical_db}
     username: ${SHOW_MYSQL_USERNAME:root}
     password: ${SHOW_MYSQL_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
