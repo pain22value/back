@@ -23,7 +23,10 @@ public class PaymentRequest {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class Cancel {
+		@NotNull
 		private String cancelReason;
+		@NotNull
+		@Positive
 		private Long cancelAmount;
 		private RefundReceiveAccount refundReceiveAccount;
 	}
