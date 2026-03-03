@@ -89,7 +89,14 @@ public class PaymentService {
 		TossResponse.Payment response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
 		TossResponse.Cancel latestCancel = response.getCancels().getLast();
 
-		payment.applyCancel(request.getCancelAmount(), request.getCancelReason());
+		payment.applyCancel(
+			latestCancel.getCancelAmount(),
+			0L, // TODO: 환불 수수료 계산식
+			latestCancel.getCancelReason(),
+			parseTime(latestCancel.getCanceledAt()),
+			latestCancel.getTransactionKey(),
+			latestCancel.getCancelStatus()
+		);
 
 		return PaymentResponse.Cancel.from(latestCancel, 0L);
 	}

@@ -6,7 +6,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
+import com.truve.platform.payment.service.domain.entity.Card;
+import com.truve.platform.payment.service.domain.entity.EasyPay;
 import com.truve.platform.payment.service.domain.entity.Payment;
+import com.truve.platform.payment.service.domain.entity.VirtualAccount;
 import com.truve.platform.payment.service.service.external.dto.TossResponse;
 
 import lombok.AllArgsConstructor;
@@ -40,6 +43,7 @@ public class PaymentResponse {
 	public static class Cancel {
 		private final String cancelDate;
 		private final String cancelStatus;
+		private final String displayStatus;
 		private final Long cancelAmount;
 		private final Long cancelFee;
 		private final Long refundAmount;
@@ -48,10 +52,19 @@ public class PaymentResponse {
 			return Cancel.builder()
 				.cancelDate(formatCancelDate(lastestCancel.getCanceledAt()))
 				.cancelStatus(lastestCancel.getCancelStatus())
+				.displayStatus(getDisplayStatus(lastestCancel.getCancelStatus()))
 				.cancelAmount(lastestCancel.getCancelAmount())
 				.cancelFee(cancelFee)
 				.refundAmount(lastestCancel.getCancelAmount() - cancelFee)
 				.build();
+		}
+
+		private static String getDisplayStatus(String cancelStatus) {
+			// PG사 전자결제 신청 전에는 "DONE" 상태만 존재함.
+			return switch (cancelStatus) {
+				case "DONE" -> "환불 완료";
+				default -> "환불 진행 중";
+			};
 		}
 	}
 
@@ -106,7 +119,7 @@ public class PaymentResponse {
 		private final String number;
 		private final Integer installmentPlanMonths;
 
-		public static CardDetails from(com.truve.platform.payment.service.domain.entity.Card card) {
+		public static CardDetails from(Card card) {
 			return CardDetails.builder()
 				.cardCompanyName(card.getIssuer().getCardCompanyName())
 				.number(card.getNumber())
@@ -121,7 +134,7 @@ public class PaymentResponse {
 		private final String provider;
 		private final Long discountAmount;
 
-		public static EasyPayDetails from(com.truve.platform.payment.service.domain.entity.EasyPay easyPay) {
+		public static EasyPayDetails from(EasyPay easyPay) {
 			return EasyPayDetails.builder()
 				.provider(easyPay.getProvider())
 				.discountAmount(easyPay.getDiscountAmount())
@@ -140,7 +153,7 @@ public class PaymentResponse {
 		private final String remainingTime;
 
 		public static VirtualAccountDetails from(
-			com.truve.platform.payment.service.domain.entity.VirtualAccount virtualAccount) {
+			VirtualAccount virtualAccount) {
 			return VirtualAccountDetails.builder()
 				.accountNumber(virtualAccount.getAccountNumber())
 				.bankName(virtualAccount.getBank().getBankName())

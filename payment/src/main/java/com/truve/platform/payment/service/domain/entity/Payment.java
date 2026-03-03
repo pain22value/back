@@ -141,7 +141,9 @@ public class Payment extends BaseEntity {
 		this.approvedAt = approvedAt;
 	}
 
-	public void applyCancel(Long cancelAmount, String reason) {
+	public void applyCancel(Long cancelAmount, Long refundFee, String cancelReason, LocalDateTime canceledAt,
+		String transactionKey,
+		String cancelStatus) {
 		CancelType type = cancelAmount.equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
 
 		validateCancelStatus();
@@ -154,7 +156,18 @@ public class Payment extends BaseEntity {
 			processRefund(cancelAmount);
 		}
 
-		this.cancels.add(new PaymentCancel(this, cancelAmount, reason, type));
+		PaymentCancel cancel = PaymentCancel.builder()
+			.payment(this)
+			.requestAmount(cancelAmount)
+			.refundFee(refundFee)
+			.cancelReason(cancelReason)
+			.canceledAt(canceledAt)
+			.transactionKey(transactionKey)
+			.cancelStatus(cancelStatus)
+			.type(type)
+			.build();
+
+		this.cancels.add(cancel);
 	}
 
 	private void processCancel() {

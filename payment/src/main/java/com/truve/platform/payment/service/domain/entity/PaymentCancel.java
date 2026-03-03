@@ -1,5 +1,7 @@
 package com.truve.platform.payment.service.domain.entity;
 
+import java.time.LocalDateTime;
+
 import com.truve.platform.common.support.BaseEntity;
 import com.truve.platform.payment.service.domain.constant.CancelType;
 
@@ -27,19 +29,48 @@ public class PaymentCancel extends BaseEntity {
 	private Payment payment;
 
 	@Column(nullable = false)
-	private Long cancelAmount;
+	private Long requestAmount;
+
+	@Column(nullable = false)
+	private Long refundFee;
+
+	@Column(nullable = false)
+	private Long refundAmount;
 
 	@Column(nullable = false)
 	private String cancelReason;
+
+	@Column(nullable = false)
+	private LocalDateTime canceledAt;
+
+	@Column(nullable = false)
+	private String transactionKey;
+
+	@Column(nullable = false)
+	private String cancelStatus;
 
 	@Enumerated(EnumType.STRING)
 	private CancelType type;
 
 	@Builder
-	public PaymentCancel(Payment payment, Long cancelAmount, String cancelReason, CancelType type) {
+	public PaymentCancel(
+		Payment payment,
+		Long requestAmount,
+		Long refundFee,
+		String cancelReason,
+		LocalDateTime canceledAt,
+		String transactionKey,
+		String cancelStatus,
+		CancelType type) {
 		this.payment = payment;
-		this.cancelAmount = cancelAmount;
+		this.requestAmount = requestAmount;
+		this.refundFee = refundFee;
+		this.refundAmount = requestAmount - refundFee;
 		this.cancelReason = cancelReason;
+		this.canceledAt = canceledAt;
+		this.transactionKey = transactionKey;
+		this.cancelStatus = cancelStatus;
 		this.type = type;
 	}
+
 }
