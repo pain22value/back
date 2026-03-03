@@ -87,13 +87,11 @@ public class PaymentService {
 	public PaymentResponse.Cancel cancel(String orderId, PaymentRequest.Cancel request) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		TossRequest.Cancel tossRequest = TossRequest.Cancel.from(request);
-		TossResponse.Cancel response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
-
 		Long refundFee = 0L; // TODO: 환불 수수료 계산 구현 후 추가
 
-		CancelCommand command = toCancelCommand(response, refundFee);
+		TossResponse.Cancel response = tossClient.cancel(payment.getPaymentKey(), TossRequest.Cancel.from(request));
 
+		CancelCommand command = toCancelCommand(response, refundFee);
 		PaymentCancel cancel = payment.applyCancel(command);
 
 		return PaymentResponse.Cancel.from(cancel);
