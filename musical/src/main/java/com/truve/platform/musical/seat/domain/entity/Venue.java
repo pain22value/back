@@ -1,4 +1,4 @@
-package com.truve.platform.musical.show.domain.entity;
+package com.truve.platform.musical.seat.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
 

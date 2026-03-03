@@ -21,7 +21,7 @@ import com.truve.platform.musical.show.domain.entity.ShowCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSchedule;
 import com.truve.platform.musical.show.domain.entity.ShowScheduleCasting;
 import com.truve.platform.musical.pricing.domain.entity.ShowSeatGrade;
-import com.truve.platform.musical.show.domain.entity.Venue;
+import com.truve.platform.musical.seat.domain.entity.Venue;
 import com.truve.platform.musical.show.dto.ShowResponse;
 import com.truve.platform.musical.show.repository.ShowRepository;
 import com.truve.platform.musical.show.repository.ShowScheduleCastingRepository;
