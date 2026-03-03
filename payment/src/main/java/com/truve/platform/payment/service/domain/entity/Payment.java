@@ -76,7 +76,7 @@ public class Payment extends BaseEntity {
 		this.orderId = orderId;
 		this.amount = amount;
 		this.cancelableAmount = amount;
-		this.method = PaymentMethod.UNKNOWN;
+		this.method = PaymentMethod.UNCONFIRMED;
 		this.status = PaymentStatus.READY;
 	}
 
@@ -124,7 +124,7 @@ public class Payment extends BaseEntity {
 
 	private void commonConfirm(String paymentKey, PaymentMethod method, LocalDateTime requestedAt,
 		LocalDateTime approvedAt) {
-		Preconditions.validate(this.status == PaymentStatus.READY && this.method == PaymentMethod.UNKNOWN,
+		Preconditions.validate(this.status == PaymentStatus.READY && this.method == PaymentMethod.UNCONFIRMED,
 			ErrorCode.INVALID_PAYMENT_STATUS);
 		verifyPaymentKey(paymentKey);
 

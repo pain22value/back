@@ -12,7 +12,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum PaymentMethod {
-	UNKNOWN("결제수단 미지정", "결제수단 미지정"),
+	UNCONFIRMED("결제수단 미지정", "결제수단 미지정"),
 	CARD("카드", "카드"),
 	EASY_PAY("간편결제", "간편결제"),
 	VIRTUAL_ACCOUNT("가상계좌", "무통장입금");
