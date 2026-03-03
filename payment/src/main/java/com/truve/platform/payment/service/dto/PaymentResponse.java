@@ -111,6 +111,10 @@ public class PaymentResponse {
 				.failReason(payment.getFailReason())
 				.requestedAt(payment.getRequestedAt())
 				.approvedAt(payment.getApprovedAt())
+				.cancels(payment.getCancels() == null ? List.of() :
+					payment.getCancels().stream()
+						.map(Cancel::from)
+						.toList())
 				.build();
 		}
 	}
