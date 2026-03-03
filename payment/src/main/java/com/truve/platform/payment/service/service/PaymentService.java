@@ -61,7 +61,7 @@ public class PaymentService {
 	public void confirm(String orderId, String paymentKey, Long amount) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		Preconditions.validate(!payment.isDone(), ErrorCode.ALREADY_DONE_PAYMENT);
+		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 		payment.validateAmount(amount);
 
 		TossResponse.Payment response = tossClient.confirm(new TossRequest.Confirm(orderId, amount, paymentKey));
@@ -78,7 +78,7 @@ public class PaymentService {
 	public void completeDeposit(String orderId, String approvedAt) {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
-		Preconditions.validate(!payment.isDone(), ErrorCode.ALREADY_DONE_PAYMENT);
+		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 
 		payment.completeDeposit(parseTime(approvedAt));
 	}

@@ -92,8 +92,8 @@ public class Payment extends BaseEntity {
 		Preconditions.validate(this.amount.equals(amount), ErrorCode.INVALID_PAYMENT_AMOUNT);
 	}
 
-	public boolean isDone() {
-		return status.equals(PaymentStatus.DONE);
+	public boolean isNotDone() {
+		return !status.equals(PaymentStatus.DONE);
 	}
 
 	public void confirm(String paymentKey, Object methodDetails, LocalDateTime requestedAt, LocalDateTime approvedAt) {
