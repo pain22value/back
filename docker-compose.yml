@@ -130,7 +130,7 @@ services:
     networks:
       - truve-network
 
-  # 7. ticketing Server
+  # 7. Ticketing Server
   ticketing:
     build:
       context: .
@@ -141,6 +141,9 @@ services:
     ports:
       - "8084:8084"
     environment:
+      - TICKETING_MYSQL_URL=jdbc:mysql://db:3306/ticketing_db
+      - TICKETING_MYSQL_USERNAME=root
+      - TICKETING_MYSQL_PASSWORD=1234
       - SPRING_PROFILES_ACTIVE=local
       - USER_REDIS_HOST=user-redis
       - USER_REDIS_PORT=6379
@@ -150,6 +153,27 @@ services:
         condition: service_healthy
       user-redis:
         condition: service_started
+    networks:
+      - truve-network
+
+  # 8. Musical Server
+  musical:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: musical
+    image: truve/musical:1.0.0
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - MUSICAL_MYSQL_URL=jdbc:mysql://db:3306/musical_db
+      - MUSICAL_MYSQL_USERNAME=root
+      - MUSICAL_MYSQL_PASSWORD=1234
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - truve-network
 

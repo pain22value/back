@@ -15,7 +15,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
-import com.truve.platform.payment.service.domain.constant.PaymentMethod;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.repository.PaymentRepository;
@@ -32,13 +31,13 @@ class PaymentServiceTest {
 	@DisplayName("결제 생성 테스트")
 	class createPaymentTest {
 
-		private final PaymentRequest.Create request = new PaymentRequest.Create("orderId", 100L, PaymentMethod.CARD);
+		private final PaymentRequest.Create request = new PaymentRequest.Create("orderId", 100L);
 
 		@Test
 		@DisplayName("새로운 결제를 요청하면 전달받은 결제 정보를 저장한다.")
 		void 결제_생성_성공() {
 			// given
-			var savedPayment = new Payment(request.getOrderId(), request.getAmount(), request.getMethod());
+			var savedPayment = new Payment(request.getOrderId(), request.getAmount());
 			ReflectionTestUtils.setField(savedPayment, "id", 1L);
 
 			given(paymentRepository.save(any(Payment.class))).willReturn(savedPayment);
