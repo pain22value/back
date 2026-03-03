@@ -10,6 +10,7 @@ import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.BaseEntity;
 import com.truve.platform.common.support.Preconditions;
+import com.truve.platform.payment.service.domain.command.CancelCommand;
 import com.truve.platform.payment.service.domain.constant.CancelType;
 import com.truve.platform.payment.service.domain.constant.PaymentMethod;
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
@@ -141,29 +142,22 @@ public class Payment extends BaseEntity {
 		this.approvedAt = approvedAt;
 	}
 
-	public PaymentCancel applyCancel(Long cancelAmount, Long refundFee, String cancelReason, LocalDateTime canceledAt,
-		String transactionKey,
-		String cancelStatus) {
-		CancelType type = cancelAmount.equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
+	public PaymentCancel applyCancel(CancelCommand cancelCommand) {
+		CancelType type = cancelCommand.getAmount().equals(this.amount) ? CancelType.FULL : CancelType.PARTIAL;
 
 		validateCancelStatus();
 		validateCancelPolicy(type);
-		validateCancelAmount(cancelAmount, type);
+		validateCancelAmount(cancelCommand.getAmount(), type);
 
 		if (status.isCancelable()) {
 			processCancel();
 		} else if (status.isRefundable()) {
-			processRefund(cancelAmount);
+			processRefund(cancelCommand.getAmount());
 		}
 
 		PaymentCancel cancel = PaymentCancel.builder()
 			.payment(this)
-			.requestAmount(cancelAmount)
-			.refundFee(refundFee)
-			.cancelReason(cancelReason)
-			.canceledAt(canceledAt)
-			.transactionKey(transactionKey)
-			.cancelStatus(cancelStatus)
+			.cancelCommand(cancelCommand)
 			.type(type)
 			.build();
 

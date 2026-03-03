@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
+import com.truve.platform.payment.service.domain.command.CancelCommand;
 import com.truve.platform.payment.service.domain.constant.Bank;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
@@ -87,19 +88,26 @@ public class PaymentService {
 		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
 
 		TossRequest.Cancel tossRequest = TossRequest.Cancel.from(request);
-		TossResponse.Payment response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
-		TossResponse.Cancel latestCancel = response.getCancels().getLast();
+		TossResponse.Cancel response = tossClient.cancel(payment.getPaymentKey(), tossRequest);
 
-		PaymentCancel cancel = payment.applyCancel(
-			latestCancel.getCancelAmount(),
-			0L, // TODO: 환불 수수료 계산식
-			latestCancel.getCancelReason(),
-			parseTime(latestCancel.getCanceledAt()),
-			latestCancel.getTransactionKey(),
-			latestCancel.getCancelStatus()
-		);
+		Long refundFee = 0L; // TODO: 환불 수수료 계산 구현 후 추가
+
+		CancelCommand command = toCancelCommand(response, refundFee);
+
+		PaymentCancel cancel = payment.applyCancel(command);
 
 		return PaymentResponse.Cancel.from(cancel);
+	}
+
+	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel, Long refundFee) {
+		return CancelCommand.builder()
+			.amount(latestCancel.getCancelAmount())
+			.fee(refundFee)
+			.reason(latestCancel.getCancelReason())
+			.canceledAt(parseTime(latestCancel.getCanceledAt()))
+			.transactionKey(latestCancel.getTransactionKey())
+			.status(latestCancel.getCancelStatus())
+			.build();
 	}
 
 	private LocalDateTime parseTime(String time) {

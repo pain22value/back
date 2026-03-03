@@ -47,15 +47,16 @@ public class TossClient {
 		return "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 	}
 
-	public TossResponse.Payment cancel(String paymentKey, TossRequest.Cancel request) {
+	public TossResponse.Cancel cancel(String paymentKey, TossRequest.Cancel request) {
 		try {
-			return restClient.post()
+			TossResponse.Payment response = restClient.post()
 				.uri(URI.create(baseUrl + paymentKey + "/cancel"))
 				.header("Authorization", getAuthorizations())
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(request)
 				.retrieve()
 				.body(TossResponse.Payment.class);
+			return response != null ? response.getCancels().getLast() : null;
 		} catch (RestClientResponseException e) {
 			throw handleTossError(e);
 		}
