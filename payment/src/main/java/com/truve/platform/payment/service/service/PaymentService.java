@@ -38,7 +38,7 @@ public class PaymentService {
 
 	@Transactional(readOnly = true)
 	public PaymentResponse.Details details(String orderId) {
-		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		Payment payment = paymentRepository.getByOrderId(orderId);
 		return PaymentResponse.Details.from(payment);
 	}
 
@@ -61,7 +61,7 @@ public class PaymentService {
 
 	@Transactional
 	public void confirm(String orderId, String paymentKey, Long amount) {
-		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
 
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 		payment.validateAmount(amount);
@@ -78,7 +78,7 @@ public class PaymentService {
 
 	@Transactional
 	public void completeDeposit(String orderId, String approvedAt) {
-		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
 
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 
@@ -87,7 +87,7 @@ public class PaymentService {
 
 	@Transactional
 	public PaymentResponse.Cancel cancel(String orderId, String idempotencyKey, PaymentRequest.Cancel request) {
-		Payment payment = paymentRepository.findByOrderIdOrThrow(orderId);
+		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
 		payment.validateCancel(request.getCancelAmount());
 
 		Long refundFee = 0L; // TODO: 환불 수수료 계산 구현 후 추가
