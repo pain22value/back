@@ -82,6 +82,7 @@ public class ShowService {
 			.showCastId(casting.getId())
 			.artistId(casting.getArtist().getId())
 			.artistName(casting.getArtist().getName())
+			.profileImageUrl(casting.getArtist().getProfileImageUrl())
 			.roleName(casting.getRoleName())
 			.order(casting.getCastingOrder())
 			// TODO: artist_likes 연동 후 로그인 사용자 기준 값으로 교체
