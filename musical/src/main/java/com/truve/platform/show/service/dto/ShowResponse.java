@@ -63,6 +63,7 @@ public class ShowResponse {
 		private Long showCastId;
 		private Long artistId;
 		private String artistName;
+		private String profileImageUrl;
 		private String roleName;
 		private Integer order;
 		private Boolean isLiked;
