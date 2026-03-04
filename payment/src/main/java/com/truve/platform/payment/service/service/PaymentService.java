@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.payment.service.domain.command.CancelCommand;
 import com.truve.platform.payment.service.domain.constant.Bank;
+import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
@@ -44,14 +46,23 @@ public class PaymentService {
 
 	@Transactional
 	public Long create(PaymentRequest.Create request) {
-		// TODO: 이미 존재하는 결제여도 READY 상태면 찾아서 ID 반환 (결제창을 닫아서 재요청하는 경우)
-		Preconditions.validate(!paymentRepository.existsByOrderId(request.getOrderId()), ErrorCode.ALREADY_EXIST_PAYMENT);
+		return paymentRepository.findByOrderId(request.getOrderId())
+			.map(this::handleExistingPayment)
+			.orElseGet(() -> saveNewPayment(request));
+	}
 
+	private Long handleExistingPayment(Payment p) {
+		if (p.getStatus() == PaymentStatus.READY) {
+			return p.getId();
+		}
+		throw new CustomException(ErrorCode.ALREADY_EXIST_PAYMENT);
+	}
+
+	private Long saveNewPayment(PaymentRequest.Create request) {
 		Payment payment = Payment.builder()
 			.orderId(request.getOrderId())
 			.amount(request.getAmount())
 			.build();
-
 		return paymentRepository.save(payment).getId();
 	}
 
