@@ -1,4 +1,4 @@
-package com.truve.platform.show.service.controller;
+package com.truve.platform.musical.show.controller;
 
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.given;

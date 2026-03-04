@@ -75,7 +75,6 @@ public class ShowResponse {
 	public static class SeatGrade {
 		private Long showSeatGradeId;
 		private String gradeName;
-		private Integer basePrice;
 		private String colorCode;
 	}
 }

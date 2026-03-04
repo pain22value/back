@@ -31,7 +31,7 @@ public class ShowSectionGrade extends BaseEntity {
 	private String colorCode;
 
 	@Builder
-	public ShowSectionGrade(Show show, String gradeName, Long price, String colorCode) {
+	public ShowSectionGrade(Show show, String gradeName, String colorCode) {
 		this.show = show;
 		this.gradeName = gradeName;
 		this.colorCode = colorCode;
