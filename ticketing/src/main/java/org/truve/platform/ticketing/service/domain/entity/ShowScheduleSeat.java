@@ -39,17 +39,38 @@ public class ShowScheduleSeat extends BaseEntity {
 	@JoinColumn(name = "show_section_price_id")
 	private ShowSectionPrice showSectionPrice;
 
+	@Column(nullable = false)
+	private String seatRow;
+
+	@Column(nullable = false)
+	private Long seatNumber;
+
+	@Column(nullable = false)
+	private String sectionName;
+
+	@Column(nullable = false)
+	private Long sectionFloor;
+
+
 	@Builder
 	public ShowScheduleSeat(
 		Long showScheduleId,
 		Long seatId,
-		ShowSectionPrice showSectionPrice
+		ShowSectionPrice showSectionPrice,
+		String seatRow,
+		Long seatNumber,
+		String sectionName,
+		Long sectionFloor
 		) {
 
 		this.showScheduleId = showScheduleId;
 		this.seatId = seatId;
 		this.showSectionPrice = showSectionPrice;
 		this.status = SeatStatus.AVAILABLE;
+		this.seatRow = seatRow;
+		this.seatNumber = seatNumber;
+		this.sectionName = sectionName;
+		this.sectionFloor = sectionFloor;
 	}
 
 	public boolean  isAvailable() {
