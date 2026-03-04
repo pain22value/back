@@ -10,6 +10,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,26 +32,23 @@ public class ShowScheduleSeat extends BaseEntity {
 	private Long seatId;
 
 	@Column(nullable = false)
-	private Long showSeatGradeId;
-
-	@Column(nullable = false)
-	private Long priceSnapshot;
-
-	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private SeatStatus status;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "show_section_price_id")
+	private ShowSectionPrice showSectionPrice;
 
 	@Builder
 	public ShowScheduleSeat(
 		Long showScheduleId,
 		Long seatId,
-		Long showSeatGradeId,
-		Long priceSnapshot
-	) {
+		ShowSectionPrice showSectionPrice
+		) {
+
 		this.showScheduleId = showScheduleId;
 		this.seatId = seatId;
-		this.showSeatGradeId = showSeatGradeId;
-		this.priceSnapshot = priceSnapshot;
+		this.showSectionPrice = showSectionPrice;
 		this.status = SeatStatus.AVAILABLE;
 	}
 
