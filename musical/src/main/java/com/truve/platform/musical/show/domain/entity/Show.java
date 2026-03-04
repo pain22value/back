@@ -23,9 +23,8 @@ import lombok.NoArgsConstructor;
 
 public class Show extends BaseEntity {
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "venue_id", nullable = false)
-	private Venue venue;
+	@Column(nullable = false)
+	private Long venueId;
 
 	@Column(nullable = false)
 	private String title;
@@ -51,7 +50,7 @@ public class Show extends BaseEntity {
 
 	@Builder
 	private Show(
-		Venue venue,
+		Long venueId,
 		String title,
 		String description,
 		Integer runtimeMin,
@@ -61,7 +60,7 @@ public class Show extends BaseEntity {
 		LocalDateTime startTime,
 		LocalDateTime endTime
 	) {
-		this.venue = venue;
+		this.venueId = venueId;
 		this.title = title;
 		this.description = description;
 		this.runtimeMin = runtimeMin;
