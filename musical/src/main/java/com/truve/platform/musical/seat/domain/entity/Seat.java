@@ -27,11 +27,11 @@ public class Seat extends BaseEntity {
 	private String seatRow;
 
 	@Column(nullable = false)
-	private String seatNumber;
+	private Long seatNumber;
 
 
 	@Builder
-	public Seat(SeatSection seatSection, String seatRow, String seatNumber) {
+	public Seat(SeatSection seatSection, String seatRow, Long seatNumber) {
 		this.seatSection = seatSection;
 		this.seatRow = seatRow;
 		this.seatNumber = seatNumber;
