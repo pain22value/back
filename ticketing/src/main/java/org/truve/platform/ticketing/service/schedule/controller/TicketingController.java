@@ -1,5 +1,6 @@
 package org.truve.platform.ticketing.service.schedule.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/tickets")
+@RequestMapping("/ticketing")
 public class TicketingController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
@@ -54,4 +55,14 @@ public class TicketingController {
 		return ApiResult.ok();
 	}
 
+	@GetMapping("/shows/{showScheduleId}/seats")
+	public ApiResult<TicketingResponse.Show> getShow(
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
+		@RequestHeader(value = SESSION_HEADER) String sessionToken,
+		@PathVariable Long showScheduleId
+	) {
+		var response = ticketingService.getShow(userId, showScheduleId, sessionToken);
+
+		return ApiResult.ok(response);
+	}
 }
