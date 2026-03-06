@@ -30,10 +30,14 @@ public class ShowSectionGrade extends BaseEntity {
 	@Column(length = 20)
 	private String colorCode;
 
+	@Column(nullable = false)
+	private Long price;
+
 	@Builder
-	public ShowSectionGrade(Show show, String gradeName, String colorCode) {
+	public ShowSectionGrade(Show show, String gradeName, String colorCode, Long price) {
 		this.show = show;
 		this.gradeName = gradeName;
 		this.colorCode = colorCode;
+		this.price = price;
 	}
 }
