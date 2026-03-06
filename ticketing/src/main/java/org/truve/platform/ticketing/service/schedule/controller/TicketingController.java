@@ -47,6 +47,18 @@ public class TicketingController {
 		return ApiResult.ok();
 	}
 
+	@GetMapping("/{showScheduleId}")
+	public ApiResult<TicketingResponse.Seats> getSeats(
+		@PathVariable Long showScheduleId,
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
+		@RequestHeader(value = SESSION_HEADER) String sessionToken
+	) {
+		var response = ticketingService.getSeats(showScheduleId, userId, sessionToken);
+
+		return ApiResult.ok(response);
+	}
+
+
 	@PostMapping("/{showScheduleId}/hold/seat")
 	public ApiResult<Void> holdSeat(
 		@PathVariable Long showScheduleId,

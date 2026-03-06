@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.truve.platform.ticketing.service.schedule.domain.entity.ScheduledSeat;
 import org.truve.platform.ticketing.service.schedule.domain.entity.ShowScheduled;
 import org.truve.platform.ticketing.service.schedule.dto.AdmissionTokenClaimsDTO;
+import org.truve.platform.ticketing.service.schedule.dto.SeatSectionsDto;
 import org.truve.platform.ticketing.service.schedule.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.schedule.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.schedule.config.TicketingProperties;
@@ -110,9 +111,22 @@ public class TicketingService {
 		return TicketingResponse.Show.from(schedule.getTitle(), schedule.getTitle(), schedule.getStartAt());
 	}
 
+	public TicketingResponse.Seats getSeats(Long showScheduleId, Long userId, String sessionToken) {
+		heartbeat(showScheduleId, userId, sessionToken);
+
+		showScheduledRepository.findById(showScheduleId).orElseThrow(
+			() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE)
+		);
+
+		List<SeatSectionsDto> flatSeats = scheduledSeatRepository.findSeatSectionByScheduledSeatId(showScheduleId);
+
+		return TicketingResponse.Seats.from(flatSeats);
+	}
+
 
 	private void isCorrectSessionToken(Long showScheduleId, Long userId, String sessionToken) {
 		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
+
 
 		SessionTicketValueDTO sessionValue = ticketingRedisRepository.getSessionTokenValue(sessionToken);
 
