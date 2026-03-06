@@ -21,7 +21,7 @@ public class ShowSectionPrice extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "show_schedule_id")
-	private ShowSchedule showSchedule;
+	private ShowScheduled showScheduled;
 
 	@Column(nullable = false)
 	private Long seatSectionId;
@@ -39,8 +39,8 @@ public class ShowSectionPrice extends BaseEntity {
 	private Long price;
 
 	@Builder
-	public ShowSectionPrice(ShowSchedule showSchedule, Long seatSectionId, Long showSectionGradeId, Boolean isActive, String grade,  Long price) {
-		this.showSchedule = showSchedule;
+	public ShowSectionPrice(ShowScheduled showScheduled, Long seatSectionId, Long showSectionGradeId, Boolean isActive, String grade,  Long price) {
+		this.showScheduled = showScheduled;
 		this.seatSectionId = seatSectionId;
 		this.showSectionGradeId = showSectionGradeId;
 		this.isActive = isActive;
