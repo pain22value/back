@@ -32,7 +32,7 @@ public class TicketingResponse {
 		String title;
 		String venueName;
 		LocalDateTime startAt;
-		public static TicketingResponse.Show from (String title,  String venueName, LocalDateTime startAt) {
+		public static TicketingResponse.Show of(String title,  String venueName, LocalDateTime startAt) {
 			return new TicketingResponse.Show(title, title, startAt);
 		}
 	}

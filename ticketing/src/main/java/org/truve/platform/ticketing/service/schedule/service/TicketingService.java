@@ -108,7 +108,7 @@ public class TicketingService {
 		ShowScheduled schedule = showScheduledRepository.findById(showScheduleId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE));
 
-		return TicketingResponse.Show.from(schedule.getTitle(), schedule.getTitle(), schedule.getStartAt());
+		return TicketingResponse.Show.of(schedule.getTitle(), schedule.getTitle(), schedule.getStartAt());
 	}
 
 	public TicketingResponse.Seats getSeats(Long showScheduleId, Long userId, String sessionToken) {
