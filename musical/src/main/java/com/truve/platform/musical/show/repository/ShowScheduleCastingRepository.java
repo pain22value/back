@@ -13,7 +13,7 @@ public interface ShowScheduleCastingRepository extends JpaRepository<ShowSchedul
 	@Query("""
 		select sc
 		from ShowScheduleCasting sc
-		join fetch sc.showSchedule s
+		join fetch sc.showScheduled s
 		join fetch sc.showCasting c
 		join fetch c.artist
 		where s.id in :scheduleIds
