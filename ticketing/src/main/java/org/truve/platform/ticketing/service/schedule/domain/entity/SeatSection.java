@@ -19,21 +19,27 @@ import lombok.NoArgsConstructor;
 @Getter
 public class SeatSection extends BaseEntity {
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "venue_id")
-	private Venue venue;
+	@Column(nullable = false)
+	private Long venueId;
 
 	@Column(nullable = false)
-	private String section;
+	private String name;
 
 	@Column(nullable = false)
 	private Long floor;
 
+	@Column(nullable = false)
+	private String gradeName;
+
+	@Column(nullable = false)
+	private Long price;
 
 	@Builder
-	public SeatSection(Venue venue, String section, Long floor) {
-		this.venue = venue;
-		this.section = section;
+	public SeatSection(Long venueId, String name, Long floor,  String gradeName, Long price) {
+		this.venueId = venueId;
+		this.name = name;
 		this.floor = floor;
+		this.gradeName = gradeName;
+		this.price = price;
 	}
 }
