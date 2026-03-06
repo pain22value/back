@@ -1,16 +1,19 @@
 package org.truve.platform.ticketing.service.schedule.service;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.truve.platform.ticketing.service.schedule.domain.entity.ScheduledSeat;
+import org.truve.platform.ticketing.service.schedule.domain.entity.ShowScheduled;
 import org.truve.platform.ticketing.service.schedule.dto.AdmissionTokenClaimsDTO;
 import org.truve.platform.ticketing.service.schedule.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.schedule.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.schedule.config.TicketingProperties;
 import org.truve.platform.ticketing.service.global.jwt.AdmissionTokenService;
-import org.truve.platform.ticketing.service.schedule.repository.ShowScheduleSeatRepository;
+import org.truve.platform.ticketing.service.schedule.repository.ScheduledSeatRepository;
+import org.truve.platform.ticketing.service.schedule.repository.ShowScheduledRepository;
 import org.truve.platform.ticketing.service.schedule.repository.TicketingRedisRepository;
 
 import com.truve.platform.common.exception.CustomException;
@@ -26,7 +29,8 @@ public class TicketingService {
 	private final TicketingRedisRepository ticketingRedisRepository;
 	private final AdmissionTokenService admissionTokenService;
 	private final TicketingProperties ticketingProperties;
-	private final ShowScheduleSeatRepository showScheduleSeatRepository;
+	private final ScheduledSeatRepository scheduledSeatRepository;
+	private final ShowScheduledRepository showScheduledRepository;
 
 	public TicketingResponse.Enter enter(Long showScheduleId, Long userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showScheduleId, userId);
@@ -57,30 +61,55 @@ public class TicketingService {
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
 	}
 
-	public void holdSeat(Long showScheduleId, Long userId, String sessionToken, Long showScheduleSeatId) {
+	public void holdSeat(Long showScheduleId, Long userId, String sessionToken, List<Long> seatIds) {
 		heartbeat(showScheduleId, userId, sessionToken);
 
-		ScheduledSeat seat = showScheduleSeatRepository.findById(showScheduleSeatId)
-			.orElseThrow(() -> new CustomException(ErrorCode.NOT_CORRECT_SEAT));
+		Preconditions.validate(seatIds.size() <= 4, ErrorCode.EXCEEDED_MAX_TICKET_COUNT);
 
-		Preconditions.validate(
-			seat.isAvailable(),
-			ErrorCode.ALREADY_SOLD_SEAT
-		);
+		ShowScheduled showScheduled = showScheduledRepository.findById(showScheduleId)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE));
 
-		Preconditions.validate(
-			seat.getShowScheduleId().equals(showScheduleId),
-			ErrorCode.NOT_CORRECT_SEAT
-		);
+		List<ScheduledSeat> seats = scheduledSeatRepository.findAllById(seatIds);
 
-		Long seatId = seat.getSeat().getId();
-		boolean tryHoldSeatResult = ticketingRedisRepository.tryHoldSeat(showScheduleId, seatId, sessionToken);
+		Preconditions.validate(seatIds.size() == seats.size(), ErrorCode.NOT_CORRECT_SEAT);
 
-		if (!tryHoldSeatResult) {
-			String savesSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seatId);
-			Preconditions.validate(sessionToken.equals(savesSessionToken), ErrorCode.ALREADY_HOLD_SEAT);
+		for(ScheduledSeat seat: seats) {
+
+			Preconditions.validate(
+				showScheduled.getId().equals(seat.getShowScheduleId()),
+				ErrorCode.NOT_CORRECT_SEAT
+			);
+
+			Preconditions.validate(
+				seat.isAvailable(),
+				ErrorCode.ALREADY_SOLD_SEAT
+			);
+
+			Preconditions.validate(
+				seat.getShowScheduleId().equals(showScheduleId),
+				ErrorCode.NOT_CORRECT_SEAT
+			);
+
+			Long seatId = seat.getSeat().getId();
+			boolean tryHoldSeatResult = ticketingRedisRepository.tryHoldSeat(showScheduleId, seatId, sessionToken);
+
+			if (!tryHoldSeatResult) {
+				String savesSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seatId);
+				Preconditions.validate(sessionToken.equals(savesSessionToken), ErrorCode.ALREADY_HOLD_SEAT);
+			}
 		}
+
 	}
+
+	public TicketingResponse.Show getShow(Long userId, Long showScheduleId, String sessionToken) {
+		heartbeat(showScheduleId, userId, sessionToken);
+
+		ShowScheduled schedule = showScheduledRepository.findById(showScheduleId)
+			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE));
+
+		return TicketingResponse.Show.from(schedule.getTitle(), schedule.getTitle(), schedule.getStartAt());
+	}
+
 
 	private void isCorrectSessionToken(Long showScheduleId, Long userId, String sessionToken) {
 		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);

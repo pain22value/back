@@ -3,14 +3,17 @@ package org.truve.platform.ticketing.service.schedule.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.truve.platform.ticketing.service.schedule.dto.TicketingRequest;
 import org.truve.platform.ticketing.service.schedule.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.schedule.service.TicketingService;
 
 import com.truve.platform.common.response.ApiResult;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -44,14 +47,15 @@ public class TicketingController {
 		return ApiResult.ok();
 	}
 
-	@PostMapping("/{showScheduleId}/hold/seat/{seatId}")
+	@PostMapping("/{showScheduleId}/hold/seat")
 	public ApiResult<Void> holdSeat(
-		@PathVariable Long seatId,
 		@PathVariable Long showScheduleId,
 		@RequestHeader(value = USER_ID_HEADER) Long userId,
-		@RequestHeader(value = SESSION_HEADER) String sessionToken
+		@RequestHeader(value = SESSION_HEADER) String sessionToken,
+		@RequestBody @Valid TicketingRequest.HoldSeat request
+
 	) {
-		ticketingService.holdSeat(showScheduleId, userId, sessionToken, seatId);
+		ticketingService.holdSeat(showScheduleId, userId, sessionToken, request.getSeatIds());
 		return ApiResult.ok();
 	}
 

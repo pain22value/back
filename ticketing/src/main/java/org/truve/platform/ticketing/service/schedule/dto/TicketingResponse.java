@@ -23,12 +23,11 @@ public class TicketingResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class Show {
-		Long showId;
 		String title;
-		LocalDateTime startTime;
-
-		public static TicketingResponse.Show from (Long showId, String title, LocalDateTime startTime) {
-			return new TicketingResponse.Show(showId, title, startTime);
+		String venueName;
+		LocalDateTime startAt;
+		public static TicketingResponse.Show from (String title,  String venueName, LocalDateTime startAt) {
+			return new TicketingResponse.Show(title, title, startAt);
 		}
 	}
 }

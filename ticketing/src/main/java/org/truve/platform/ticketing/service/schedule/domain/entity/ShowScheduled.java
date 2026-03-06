@@ -23,16 +23,16 @@ public class ShowScheduled extends BaseEntity {
 	private String title;
 
 	@Column(nullable = false)
-	private String venue_name;
+	private String venueName;
 
 	@Column(nullable = false)
 	LocalDateTime startAt;
 
 	@Builder
-	public ShowScheduled(String title, String venue_name, LocalDateTime startAt) {
+	public ShowScheduled(String title, String venueName, LocalDateTime startAt) {
 
 		this.title = title;
-		this.venue_name = venue_name;
+		this.venueName = venueName;
 		this.startAt = startAt;
 	}
 }
