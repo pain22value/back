@@ -76,6 +76,7 @@ public class ShowResponse {
 		private Long showSeatGradeId;
 		private String gradeName;
 		private String colorCode;
+		private Long price;
 	}
 }
 

@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ApiAdvice;
 import com.truve.platform.common.exception.ErrorCode;
-import com.truve.platform.musical.show.controller.ShowController;
 import com.truve.platform.musical.show.domain.constant.ShowScheduleStatus;
 import com.truve.platform.musical.show.dto.ShowResponse;
 import com.truve.platform.musical.show.service.ShowService;
@@ -93,7 +92,7 @@ class ShowControllerTest {
 				ShowResponse.SeatGrade.builder()
 					.showSeatGradeId(1001L)
 					.gradeName("VIP")
-					.basePrice(150000)
+					.price(15000L)
 					.colorCode("#FFD700")
 					.build()
 			))

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,15 +16,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.truve.platform.musical.seat.domain.entity.Venue;
+import com.truve.platform.musical.seat.domain.repository.VenueRepository;
 import com.truve.platform.musical.show.domain.constant.ShowScheduleStatus;
 import com.truve.platform.musical.show.domain.entity.Artist;
 import com.truve.platform.musical.show.domain.entity.Show;
 import com.truve.platform.musical.show.domain.entity.ShowCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSchedule;
-import com.truve.platform.musical.show.domain.entity.ShowScheduleCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSectionGrade;
-import com.truve.platform.musical.seat.domain.entity.Venue;
-import com.truve.platform.musical.seat.domain.repository.VenueRepository;
 import com.truve.platform.musical.show.dto.ShowResponse;
 import com.truve.platform.musical.show.repository.ShowCastingRepository;
 import com.truve.platform.musical.show.repository.ShowRepository;
@@ -37,10 +37,9 @@ class ShowServiceTest {
 	@Mock
 	private ShowRepository showRepository;
 	@Mock
-	private VenueRepository venueRepository;
-	@Mock
-	private ShowScheduleRepository showScheduleRepository;
 	private ShowCastingRepository showCastingRepository;
+	@Mock
+	private VenueRepository venueRepository;
 	@Mock
 	private ShowScheduleRepository showScheduleRepository;
 	@Mock
@@ -65,9 +64,9 @@ class ShowServiceTest {
 		when(show.getNoticeUrl()).thenReturn(null);
 		when(show.getStartTime()).thenReturn(LocalDateTime.of(2026, 3, 1, 0, 0));
 		when(show.getEndTime()).thenReturn(LocalDateTime.of(2026, 4, 1, 0, 0));
-			when(show.getVenueId()).thenReturn(10L);
-			when(venue.getName()).thenReturn("예술의전당");
-			when(venue.getAddress()).thenReturn("서울");
+		when(show.getVenueId()).thenReturn(10L);
+		when(venue.getName()).thenReturn("예술의전당");
+		when(venue.getAddress()).thenReturn("서울");
 
 		ShowSchedule schedule1 = org.mockito.Mockito.mock(ShowSchedule.class);
 		ShowSchedule schedule2 = org.mockito.Mockito.mock(ShowSchedule.class);
@@ -91,17 +90,17 @@ class ShowServiceTest {
 		when(artistC.getName()).thenReturn("배우C");
 		when(artistC.getProfileImageUrl()).thenReturn("https://img.example/artistC.jpg");
 
-		ShowCasting castOrder2 = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrder1 = org.mockito.Mockito.mock(ShowCasting.class);
+		ShowCasting castOrder2 = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrderNull = org.mockito.Mockito.mock(ShowCasting.class);
-		when(castOrder2.getId()).thenReturn(5002L);
-		when(castOrder2.getArtist()).thenReturn(artistB);
-		when(castOrder2.getRoleName()).thenReturn("조연");
-		when(castOrder2.getCastingOrder()).thenReturn(2);
 		when(castOrder1.getId()).thenReturn(5001L);
 		when(castOrder1.getArtist()).thenReturn(artistA);
 		when(castOrder1.getRoleName()).thenReturn("주연");
 		when(castOrder1.getCastingOrder()).thenReturn(1);
+		when(castOrder2.getId()).thenReturn(5002L);
+		when(castOrder2.getArtist()).thenReturn(artistB);
+		when(castOrder2.getRoleName()).thenReturn("조연");
+		when(castOrder2.getCastingOrder()).thenReturn(2);
 		when(castOrderNull.getId()).thenReturn(5003L);
 		when(castOrderNull.getArtist()).thenReturn(artistC);
 		when(castOrderNull.getRoleName()).thenReturn("특별출연");
@@ -113,14 +112,10 @@ class ShowServiceTest {
 		when(seat.getColorCode()).thenReturn("#FFD700");
 
 		when(showRepository.findByIdOrThrow(showId)).thenReturn(show);
+		when(venueRepository.findById(10L)).thenReturn(Optional.of(venue));
 		when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1, schedule2));
 		when(showCastingRepository.findAllByShowId(showId))
 			.thenReturn(List.of(castOrder1, castOrder2, castOrderNull));
-			when(showRepository.findByIdOrThrow(showId)).thenReturn(show);
-			when(venueRepository.findById(10L)).thenReturn(java.util.Optional.of(venue));
-			when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1, schedule2));
-		when(showScheduleCastingRepository.findAllByScheduleIds(List.of(2001L, 2002L)))
-			.thenReturn(List.of(sc1, sc2, sc3));
 		when(showSeatGradeRepository.findSeatPrices(showId)).thenReturn(List.of(seat));
 
 		ShowResponse.Detail result = showService.getDetail(showId);
