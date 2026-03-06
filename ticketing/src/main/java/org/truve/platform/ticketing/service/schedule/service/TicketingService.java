@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.truve.platform.ticketing.service.schedule.domain.entity.ShowScheduleSeat;
+import org.truve.platform.ticketing.service.schedule.domain.entity.ScheduledSeat;
 import org.truve.platform.ticketing.service.schedule.dto.AdmissionTokenClaimsDTO;
 import org.truve.platform.ticketing.service.schedule.dto.SessionTicketValueDTO;
 import org.truve.platform.ticketing.service.schedule.dto.TicketingResponse;
@@ -60,7 +60,7 @@ public class TicketingService {
 	public void holdSeat(Long showScheduleId, Long userId, String sessionToken, Long showScheduleSeatId) {
 		heartbeat(showScheduleId, userId, sessionToken);
 
-		ShowScheduleSeat seat = showScheduleSeatRepository.findById(showScheduleSeatId)
+		ScheduledSeat seat = showScheduleSeatRepository.findById(showScheduleSeatId)
 			.orElseThrow(() -> new CustomException(ErrorCode.NOT_CORRECT_SEAT));
 
 		Preconditions.validate(
@@ -73,10 +73,11 @@ public class TicketingService {
 			ErrorCode.NOT_CORRECT_SEAT
 		);
 
-		boolean tryHoldSeatResult = ticketingRedisRepository.tryHoldSeat(showScheduleId, seat.getSeatId(), sessionToken);
+		Long seatId = seat.getSeat().getId();
+		boolean tryHoldSeatResult = ticketingRedisRepository.tryHoldSeat(showScheduleId, seatId, sessionToken);
 
 		if (!tryHoldSeatResult) {
-			String savesSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seat.getSeatId());
+			String savesSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seatId);
 			Preconditions.validate(sessionToken.equals(savesSessionToken), ErrorCode.ALREADY_HOLD_SEAT);
 		}
 	}
