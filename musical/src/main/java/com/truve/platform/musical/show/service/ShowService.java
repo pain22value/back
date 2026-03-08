@@ -1,6 +1,7 @@
 package com.truve.platform.musical.show.service;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import com.truve.platform.musical.show.domain.entity.ShowSchedule;
 import com.truve.platform.musical.show.domain.entity.ShowSectionGrade;
 import com.truve.platform.musical.show.dto.ShowResponse;
 import com.truve.platform.musical.show.repository.ShowCastingRepository;
+import com.truve.platform.musical.show.repository.ArtistLikeRepository;
 import com.truve.platform.musical.show.repository.ShowRepository;
 import com.truve.platform.musical.show.repository.ShowScheduleRepository;
 import com.truve.platform.musical.show.repository.ShowSeatGradeRepository;
@@ -27,10 +29,16 @@ public class ShowService {
 	private final ShowCastingRepository showCastingRepository;
 	private final VenueRepository venueRepository;
 	private final ShowScheduleRepository showScheduleRepository;
+	private final ArtistLikeRepository artistLikeRepository;
 	private final ShowSeatGradeRepository showSeatGradeRepository;
 
 	@Transactional(readOnly = true)
 	public ShowResponse.Detail getDetail(Long showId) {
+		return getDetail(showId, null);
+	}
+
+	@Transactional(readOnly = true)
+	public ShowResponse.Detail getDetail(Long showId, Long userId) {
 		Show show = showRepository.findByIdOrThrow(showId);
 
 		List<ShowSchedule> schedules = showScheduleRepository.findSchedules(showId);
@@ -38,8 +46,14 @@ public class ShowService {
 			.map(this::toSimpleScheduleResponse)
 			.toList();
 
-		List<ShowResponse.Casting> castings = showCastingRepository.findAllByShowId(showId).stream()
-			.map(this::toCastingResponse)
+		List<ShowCasting> showCastings = showCastingRepository.findAllByShowId(showId);
+		Set<Long> likedArtistIds = findLikedArtistIds(userId, showCastings);
+
+		List<ShowResponse.Casting> castings = showCastings.stream()
+			.map(casting -> toCastingResponse(
+				casting,
+				likedArtistIds.contains(casting.getArtist().getId())
+			))
 			.toList();
 
 		List<ShowResponse.SeatGrade> seatGrades = showSeatGradeRepository
@@ -64,6 +78,23 @@ public class ShowService {
 			.build();
 	}
 
+	private Set<Long> findLikedArtistIds(Long userId, List<ShowCasting> showCastings) {
+		if (userId == null || showCastings.isEmpty()) {
+			return Set.of();
+		}
+
+		List<Long> artistIds = showCastings.stream()
+			.map(casting -> casting.getArtist().getId())
+			.distinct()
+			.toList();
+
+		if (artistIds.isEmpty()) {
+			return Set.of();
+		}
+
+		return Set.copyOf(artistLikeRepository.findLikedArtistIds(userId, artistIds));
+	}
+
 	private ShowResponse.Venue toVenueResponse(Show show) {
 		Venue venue = venueRepository.findById(show.getVenueId()).orElse(null);
 		return ShowResponse.Venue.builder()
@@ -81,7 +112,7 @@ public class ShowService {
 			.build();
 	}
 
-	private ShowResponse.Casting toCastingResponse(ShowCasting casting) {
+	private ShowResponse.Casting toCastingResponse(ShowCasting casting, boolean isLiked) {
 		return ShowResponse.Casting.builder()
 			.showCastId(casting.getId())
 			.artistId(casting.getArtist().getId())
@@ -89,8 +120,7 @@ public class ShowService {
 			.profileImageUrl(casting.getArtist().getProfileImageUrl())
 			.roleName(casting.getRoleName())
 			.order(casting.getCastingOrder())
-			// TODO: artist_likes 연동 후 로그인 사용자 기준 값으로 교체
-			.isLiked(false)
+			.isLiked(isLiked)
 			.build();
 	}
 
