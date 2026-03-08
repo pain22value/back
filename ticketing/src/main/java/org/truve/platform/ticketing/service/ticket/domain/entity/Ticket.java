@@ -10,6 +10,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,14 +25,12 @@ import lombok.NoArgsConstructor;
 @Table(name = "tickets")
 public class Ticket extends BaseEntity {
 
-	@Column(nullable = false)
-	private Long reservationId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "reservation_id")
+	private Reservation reservation;
 
-	@Column(nullable = false)
-	private Long scheduleSeatMappingId;
-
-	@Column(nullable = false)
-	private String ticketNumber;
+	@Column(name = "ticket_number", unique = true, nullable = false)
+	private String number;
 
 	@Column(nullable = false)
 	private Long priceSnapshot;
@@ -38,20 +39,17 @@ public class Ticket extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private TicketStatus status;
 
-	@Column(nullable = false)
-	private LocalDateTime issuedAt;
-
 	@Column
 	private LocalDateTime usedAt;
 
-	@Builder
-	public Ticket(Long reservationId, Long scheduleSeatMappingId, String ticketNumber, Long priceSnapshot) {
-		this.reservationId = reservationId;
-		this.scheduleSeatMappingId = scheduleSeatMappingId;
-		this.ticketNumber = ticketNumber;
-		this.priceSnapshot = priceSnapshot;
-		this.status = TicketStatus.ISSUED;
-		this.issuedAt = LocalDateTime.now();
-	}
+	@Column(nullable = false)
+	private String seatInfo;
 
+	@Builder
+	public Ticket(Reservation reservation, String number, Long priceSnapshot, String seatInfo) {
+		this.reservation = reservation;
+		this.number = number;
+		this.priceSnapshot = priceSnapshot;
+		this.seatInfo = seatInfo;
+	}
 }
