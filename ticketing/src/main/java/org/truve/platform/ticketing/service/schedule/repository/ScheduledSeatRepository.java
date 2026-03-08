@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.truve.platform.ticketing.service.schedule.domain.entity.ScheduledSeat;
 import org.truve.platform.ticketing.service.schedule.dto.SeatSectionsDto;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 
 public interface ScheduledSeatRepository extends JpaRepository<ScheduledSeat, Long> {
 
