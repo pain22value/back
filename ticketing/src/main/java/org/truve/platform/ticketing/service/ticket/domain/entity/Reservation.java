@@ -36,6 +36,9 @@ public class Reservation extends BaseEntity {
 	private Long totalAmount;
 
 	@Column(nullable = false)
+	private String seatSummary;
+
+	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private ReservationStatus status;
 
@@ -46,10 +49,16 @@ public class Reservation extends BaseEntity {
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	public Reservation(Long userId, String number, Long totalAmount) {
+	public Reservation(Long userId, String number, Long totalAmount, String seatSummary, List<Ticket> tickets) {
 		this.userId = userId;
 		this.number = number;
 		this.totalAmount = totalAmount;
+		this.seatSummary = seatSummary;
 		this.status = ReservationStatus.CREATED;
+		addTickets(tickets);
+	}
+
+	private void addTickets(List<Ticket> tickets) {
+		this.tickets.addAll(tickets);
 	}
 }
