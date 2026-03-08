@@ -3,6 +3,7 @@ package com.truve.platform.show.service.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import com.truve.platform.musical.show.domain.entity.ShowCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSchedule;
 import com.truve.platform.musical.show.domain.entity.ShowSectionGrade;
 import com.truve.platform.musical.show.dto.ShowResponse;
+import com.truve.platform.musical.show.repository.ArtistLikeRepository;
 import com.truve.platform.musical.show.repository.ShowCastingRepository;
 import com.truve.platform.musical.show.repository.ShowRepository;
 import com.truve.platform.musical.show.repository.ShowScheduleRepository;
@@ -42,6 +44,8 @@ class ShowServiceTest {
 	private VenueRepository venueRepository;
 	@Mock
 	private ShowScheduleRepository showScheduleRepository;
+	@Mock
+	private ArtistLikeRepository artistLikeRepository;
 	@Mock
 	private ShowSeatGradeRepository showSeatGradeRepository;
 
@@ -116,9 +120,11 @@ class ShowServiceTest {
 		when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1, schedule2));
 		when(showCastingRepository.findAllByShowId(showId))
 			.thenReturn(List.of(castOrder1, castOrder2, castOrderNull));
+		when(artistLikeRepository.findLikedArtistIds(7L, List.of(101L, 102L, 103L)))
+			.thenReturn(List.of(101L));
 		when(showSeatGradeRepository.findSeatPrices(showId)).thenReturn(List.of(seat));
 
-		ShowResponse.Detail result = showService.getDetail(showId);
+		ShowResponse.Detail result = showService.getDetail(showId, 7L);
 
 		assertEquals(2, result.getSchedules().size());
 		assertEquals("OPEN", result.getSchedules().get(0).getStatus());
@@ -134,7 +140,8 @@ class ShowServiceTest {
 		assertEquals("배우C", castings.get(2).getArtistName());
 		assertNull(castings.get(2).getOrder());
 
-		assertFalse(castings.get(0).getIsLiked());
+		assertTrue(castings.get(0).getIsLiked());
 		assertFalse(castings.get(1).getIsLiked());
+		assertFalse(castings.get(2).getIsLiked());
 	}
 }
