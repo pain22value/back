@@ -1,4 +1,4 @@
-package org.truve.platform.ticketing.service.ticket.service;
+package org.truve.platform.ticketing.service.booking.service;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -6,14 +6,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.truve.platform.ticketing.service.ticket.client.TicketingClient;
-import org.truve.platform.ticketing.service.ticket.client.dto.TicketingResponse;
-import org.truve.platform.ticketing.service.ticket.domain.entity.Reservation;
-import org.truve.platform.ticketing.service.ticket.domain.entity.Ticket;
-import org.truve.platform.ticketing.service.ticket.dto.TicketRequest;
-import org.truve.platform.ticketing.service.ticket.dto.TicketResponse;
-import org.truve.platform.ticketing.service.ticket.repository.ReservationRepository;
-import org.truve.platform.ticketing.service.ticket.service.util.NumberGenerator;
+import org.truve.platform.ticketing.service.booking.client.TicketingClient;
+import org.truve.platform.ticketing.service.booking.client.dto.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.domain.entity.Reservation;
+import org.truve.platform.ticketing.service.booking.domain.entity.Ticket;
+import org.truve.platform.ticketing.service.booking.dto.TicketRequest;
+import org.truve.platform.ticketing.service.booking.dto.TicketResponse;
+import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
+import org.truve.platform.ticketing.service.booking.service.util.NumberGenerator;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,13 +1,13 @@
-package org.truve.platform.ticketing.service.ticket.controller;
+package org.truve.platform.ticketing.service.booking.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.truve.platform.ticketing.service.ticket.dto.TicketRequest;
-import org.truve.platform.ticketing.service.ticket.dto.TicketResponse;
-import org.truve.platform.ticketing.service.ticket.service.TicketService;
+import org.truve.platform.ticketing.service.booking.dto.TicketRequest;
+import org.truve.platform.ticketing.service.booking.dto.TicketResponse;
+import org.truve.platform.ticketing.service.booking.service.TicketService;
 
 import com.truve.platform.common.response.ApiResult;
 

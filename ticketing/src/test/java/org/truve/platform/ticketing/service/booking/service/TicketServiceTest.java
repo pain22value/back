@@ -1,4 +1,4 @@
-package org.truve.platform.ticketing.service.ticket.service;
+package org.truve.platform.ticketing.service.booking.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,14 +13,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.truve.platform.ticketing.service.ticket.client.TicketingClient;
-import org.truve.platform.ticketing.service.ticket.client.dto.TicketingResponse;
-import org.truve.platform.ticketing.service.ticket.domain.constant.TicketStatus;
-import org.truve.platform.ticketing.service.ticket.domain.entity.Reservation;
-import org.truve.platform.ticketing.service.ticket.dto.TicketRequest;
-import org.truve.platform.ticketing.service.ticket.dto.TicketResponse;
-import org.truve.platform.ticketing.service.ticket.repository.ReservationRepository;
-import org.truve.platform.ticketing.service.ticket.service.util.NumberGenerator;
+import org.truve.platform.ticketing.service.booking.client.TicketingClient;
+import org.truve.platform.ticketing.service.booking.client.dto.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.domain.constant.TicketStatus;
+import org.truve.platform.ticketing.service.booking.domain.entity.Reservation;
+import org.truve.platform.ticketing.service.booking.dto.TicketRequest;
+import org.truve.platform.ticketing.service.booking.dto.TicketResponse;
+import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
+import org.truve.platform.ticketing.service.booking.service.util.NumberGenerator;
 
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
