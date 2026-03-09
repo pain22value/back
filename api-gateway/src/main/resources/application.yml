@@ -84,5 +84,5 @@ springdoc:
       - name: "04-Ticketing Service"
         url: /api/ticketing/v3/api-docs
       - name: "05-Musical Service"
-        url: /api/shows/v3/api-docs
+        url: /api/musical/v3/api-docs
 
