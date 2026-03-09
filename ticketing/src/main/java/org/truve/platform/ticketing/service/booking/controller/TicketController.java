@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/tickets")
+@RequestMapping("/api/bookings")
 public class TicketController {
 	private static final String USER_ID_HEADER = "X-User-Id";
 
