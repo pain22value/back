@@ -16,12 +16,14 @@ import com.truve.platform.common.response.ApiResult;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/ticketing")
+@Tag(name = "Ticketing", description = "티켓팅 좌석 조회/점유 API")
 public class TicketingController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
@@ -142,6 +144,17 @@ public class TicketingController {
 	}
 
 
+	@Operation(
+		summary = "점유 좌석 취소",
+		description = "HOLD 했던 좌석을 반납합니다.",
+		parameters = {
+			@Parameter(
+				name = SESSION_HEADER,
+				description = "티켓팅 입장 후 발급된 세션 토큰",
+				required = true
+			)
+		}
+	)
 	@DeleteMapping("/{showScheduleId}/hold/seat")
 	public ApiResult<Void> deleteHoldSeat(
 		@PathVariable Long showScheduleId,
