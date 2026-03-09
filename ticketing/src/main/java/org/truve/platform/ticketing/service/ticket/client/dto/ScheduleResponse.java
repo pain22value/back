@@ -1,6 +1,6 @@
 package org.truve.platform.ticketing.service.ticket.client.dto;
 
-import org.truve.platform.ticketing.service.schedule.domain.entity.Seat;
+import org.truve.platform.ticketing.service.ticketing.domain.entity.Seat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
