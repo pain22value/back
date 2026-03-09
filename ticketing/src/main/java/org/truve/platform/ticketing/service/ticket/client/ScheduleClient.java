@@ -3,9 +3,9 @@ package org.truve.platform.ticketing.service.ticket.client;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-import org.truve.platform.ticketing.service.schedule.domain.entity.Seat;
-import org.truve.platform.ticketing.service.schedule.repository.SeatRepository;
 import org.truve.platform.ticketing.service.ticket.client.dto.ScheduleResponse;
+import org.truve.platform.ticketing.service.ticketing.domain.entity.Seat;
+import org.truve.platform.ticketing.service.ticketing.repository.SeatRepository;
 
 import lombok.RequiredArgsConstructor;
 
