@@ -102,6 +102,17 @@ public class TicketingService {
 
 	}
 
+	public void cancelHoldSeat(Long showScheduleId, Long userId, String sessionToken,List<Long> seatIds) {
+
+		heartbeat(showScheduleId, userId, sessionToken);
+
+		for (Long seatId : seatIds) {
+			String savedSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seatId);
+			Preconditions.validate(sessionToken.equals(savedSessionToken), ErrorCode.INVALID_HOLD_SEAT);
+			ticketingRedisRepository.deleteHoldSeat(showScheduleId, seatId);
+		}
+	}
+
 	public TicketingResponse.Show getShow(Long userId, Long showScheduleId, String sessionToken) {
 		heartbeat(showScheduleId, userId, sessionToken);
 

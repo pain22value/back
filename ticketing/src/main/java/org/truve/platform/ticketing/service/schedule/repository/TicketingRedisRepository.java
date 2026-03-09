@@ -54,7 +54,7 @@ public class TicketingRedisRepository {
 		return redisSupport.setIfAbsent(seatHoldKey(showScheduleId, seatId), sessionToken, Duration.ofMinutes(10));
 	}
 
-	public boolean expireHoldSeat(Long showScheduleId, Long seatId, String sessionToken) {
+	public boolean deleteHoldSeat(Long showScheduleId, Long seatId) {
 		return redisSupport.delete(seatHoldKey(showScheduleId, seatId));
 	}
 

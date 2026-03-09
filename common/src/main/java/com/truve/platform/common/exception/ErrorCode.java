@@ -47,6 +47,7 @@ public enum ErrorCode {
 	NOT_CORRECT_SEAT(HttpStatus.BAD_REQUEST, "잘못된 좌석 정보입니다.", "T08"),
 	INVALID_SHOW_SCHEDULE(HttpStatus.BAD_REQUEST, "잘못된 공연 정보입니다.", "T09"),
 	EXCEEDED_MAX_TICKET_COUNT(HttpStatus.BAD_REQUEST, "인당 최대 4매까지 예매 가능합니다.", "T10"),
+	INVALID_HOLD_SEAT(HttpStatus.BAD_REQUEST, "타인이 점유한 좌석입니다.", "T11"),
 
 
 	NOT_FOUND_SHOW(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.", "M01");

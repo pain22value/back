@@ -1,5 +1,6 @@
 package org.truve.platform.ticketing.service.schedule.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -139,4 +140,18 @@ public class TicketingController {
 		var response = ticketingService.getShow(userId, showScheduleId, sessionToken);
 		return ApiResult.ok(response);
 	}
+
+
+	@DeleteMapping("/{showScheduleId}/hold/seat")
+	public ApiResult<Void> deleteHoldSeat(
+		@PathVariable Long showScheduleId,
+		@Parameter(hidden = true)
+		@RequestHeader(value = USER_ID_HEADER) Long userId,
+		@RequestHeader(value = SESSION_HEADER) String sessionToken,
+		@RequestBody @Valid TicketingRequest.DeleteHoldSeat request
+	) {
+		ticketingService.cancelHoldSeat(showScheduleId, userId, sessionToken, request.getSeatIds());
+		return ApiResult.ok();
+	}
+
 }

@@ -14,4 +14,11 @@ public class TicketingRequest {
 		@NotEmpty
 		List<Long> seatIds;
 	}
+
+	@Getter
+	@AllArgsConstructor
+	public static class DeleteHoldSeat {
+		@NotEmpty
+		List<Long> seatIds;
+	}
 }
