@@ -379,6 +379,56 @@ class TicketingServiceTest {
 	}
 
 	@Nested
+	@DisplayName("좌석 선점 취소 테스트")
+	class CancelHoldSeatTest {
+
+		@BeforeEach
+		void setUpCancelHoldSeat() {
+			given(ticketingProperties.getActiveWindowMs()).willReturn(30_000L);
+			given(ticketingProperties.getSessionTtlSec()).willReturn(300L);
+			given(ticketingRedisRepository.getSessionTokenValue(sessionToken))
+				.willReturn(SessionTicketValueDTO.of(userId, showScheduleId));
+			given(ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, 300L)).willReturn(true);
+		}
+
+		@Test
+		@DisplayName("같은 세션이 점유한 좌석이면 점유를 해제한다.")
+		void 좌석선점취소_성공() {
+			// given
+			given(ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, 10L)).willReturn(sessionToken);
+			given(ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, 11L)).willReturn(sessionToken);
+
+			// when
+			ticketingService.cancelHoldSeat(showScheduleId, userId, sessionToken, List.of(10L, 11L));
+
+			// then
+			assertAll(
+				() -> verify(ticketingRedisRepository).deleteHoldSeat(showScheduleId, 10L),
+				() -> verify(ticketingRedisRepository).deleteHoldSeat(showScheduleId, 11L)
+			);
+		}
+
+		@Test
+		@DisplayName("다른 세션이 점유한 좌석이면 INVALID_HOLD_SEAT 예외가 발생한다.")
+		void 좌석선점취소_타세션점유() {
+			// given
+			given(ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, 10L)).willReturn("other-session");
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> ticketingService.cancelHoldSeat(showScheduleId, userId, sessionToken, List.of(10L))
+			);
+
+			// then
+			assertAll(
+				() -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_HOLD_SEAT),
+				() -> verify(ticketingRedisRepository, never()).deleteHoldSeat(showScheduleId, 10L)
+			);
+		}
+	}
+
+	@Nested
 	@DisplayName("공연 조회 테스트")
 	class GetShowTest {
 

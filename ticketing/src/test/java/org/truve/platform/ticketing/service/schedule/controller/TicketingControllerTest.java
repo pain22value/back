@@ -145,6 +145,25 @@ class TicketingControllerTest {
 	}
 
 	@Test
+	@DisplayName("좌석 선점 취소에 성공")
+	void 좌석_선점취소() throws Exception {
+		// given
+		TicketingRequest.DeleteHoldSeat request = new TicketingRequest.DeleteHoldSeat(List.of(10L, 11L));
+
+		// when
+		ResultActions resultActions = mockMvc.perform(delete("/api/ticketing/{showScheduleId}/hold/seat", 1L)
+			.contentType(MediaType.APPLICATION_JSON)
+			.header(USER_ID_HEADER, 2L)
+			.header(SESSION_HEADER, "session-token")
+			.content(objectMapper.writeValueAsString(request)));
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+		verify(ticketingService).cancelHoldSeat(1L, 2L, "session-token", List.of(10L, 11L));
+	}
+
+	@Test
 	@DisplayName("공연 회차 정보 조회에 성공")
 	void 공연회차_조회() throws Exception {
 		// given
@@ -201,5 +220,24 @@ class TicketingControllerTest {
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("C02"));
 		verify(ticketingService, never()).holdSeat(anyLong(), anyLong(), anyString(), anyList());
+	}
+
+	@Test
+	@DisplayName("좌석 선점 취소 요청 바디 에러")
+	void 좌석선점취소_요청검증실패() throws Exception {
+		// given
+		TicketingRequest.DeleteHoldSeat request = new TicketingRequest.DeleteHoldSeat(null);
+
+		// when
+		ResultActions resultActions = mockMvc.perform(delete("/api/ticketing/{showScheduleId}/hold/seat", 1L)
+			.contentType(MediaType.APPLICATION_JSON)
+			.header(USER_ID_HEADER, 2L)
+			.header(SESSION_HEADER, "session-token")
+			.content(objectMapper.writeValueAsString(request)));
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("C02"));
+		verify(ticketingService, never()).cancelHoldSeat(anyLong(), anyLong(), anyString(), anyList());
 	}
 }
