@@ -5,7 +5,7 @@ import org.truve.platform.ticketing.service.ticketing.domain.entity.Seat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class ScheduleResponse {
+public class TicketingResponse {
 
 	@Getter
 	@AllArgsConstructor

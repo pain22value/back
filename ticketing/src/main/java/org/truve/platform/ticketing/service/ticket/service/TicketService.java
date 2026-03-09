@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.truve.platform.ticketing.service.ticket.client.ScheduleClient;
-import org.truve.platform.ticketing.service.ticket.client.dto.ScheduleResponse;
+import org.truve.platform.ticketing.service.ticket.client.TicketingClient;
+import org.truve.platform.ticketing.service.ticket.client.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.ticket.domain.entity.Reservation;
 import org.truve.platform.ticketing.service.ticket.domain.entity.Ticket;
 import org.truve.platform.ticketing.service.ticket.dto.TicketRequest;
@@ -25,12 +25,12 @@ public class TicketService {
 	private static final String SEAT_DETAIL_FORMAT = "%d층 %s구역 %s열 %d번";
 
 	private final ReservationRepository reservationRepository;
-	private final ScheduleClient scheduleClient;
+	private final TicketingClient ticketingClient;
 	private final NumberGenerator numberGenerator;
 
 	@Transactional
 	public TicketResponse.Create create(Long userId, TicketRequest.Create request) {
-		List<ScheduleResponse.SeatInfo> seatInfos = scheduleClient.getSeatInfos(request.getSeatIds());
+		List<TicketingResponse.SeatInfo> seatInfos = ticketingClient.getSeatInfos(request.getSeatIds());
 
 		Reservation reservation = createReservation(userId, seatInfos);
 		List<Ticket> tickets = createTickets(seatInfos, reservation);
@@ -40,7 +40,7 @@ public class TicketService {
 		return new TicketResponse.Create(reservation.getNumber());
 	}
 
-	private Reservation createReservation(Long userId, List<ScheduleResponse.SeatInfo> seatInfos) {
+	private Reservation createReservation(Long userId, List<TicketingResponse.SeatInfo> seatInfos) {
 		return Reservation.create(
 			userId,
 			numberGenerator.generateReservationNumber(),
@@ -49,7 +49,7 @@ public class TicketService {
 		);
 	}
 
-	private List<Ticket> createTickets(List<ScheduleResponse.SeatInfo> seatInfos, Reservation reservation) {
+	private List<Ticket> createTickets(List<TicketingResponse.SeatInfo> seatInfos, Reservation reservation) {
 		return seatInfos.stream().map(
 			seatInfo -> Ticket.create(
 				reservation,
@@ -60,16 +60,16 @@ public class TicketService {
 		).toList();
 	}
 
-	private Long calculateTotalAmount(List<ScheduleResponse.SeatInfo> seatInfos) {
+	private Long calculateTotalAmount(List<TicketingResponse.SeatInfo> seatInfos) {
 		return seatInfos.stream()
-			.map(ScheduleResponse.SeatInfo::getPrice)
+			.map(TicketingResponse.SeatInfo::getPrice)
 			.reduce(0L, Long::sum);
 	}
 
-	private String createGradeSummary(List<ScheduleResponse.SeatInfo> seatInfos) {
+	private String createGradeSummary(List<TicketingResponse.SeatInfo> seatInfos) {
 		return seatInfos.stream()
 			.collect(Collectors.groupingBy(
-				ScheduleResponse.SeatInfo::getGradeName,
+				TicketingResponse.SeatInfo::getGradeName,
 				LinkedHashMap::new,
 				Collectors.counting()
 			))
@@ -78,7 +78,7 @@ public class TicketService {
 			.collect(Collectors.joining(LINE_BREAK));
 	}
 
-	private String createSeatDetail(ScheduleResponse.SeatInfo seatInfo) {
+	private String createSeatDetail(TicketingResponse.SeatInfo seatInfo) {
 		return SEAT_DETAIL_FORMAT.formatted(
 			seatInfo.getFloor(),
 			seatInfo.getSectionName(),

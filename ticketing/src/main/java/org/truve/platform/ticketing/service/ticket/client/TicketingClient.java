@@ -3,7 +3,7 @@ package org.truve.platform.ticketing.service.ticket.client;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-import org.truve.platform.ticketing.service.ticket.client.dto.ScheduleResponse;
+import org.truve.platform.ticketing.service.ticket.client.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.ticketing.domain.entity.Seat;
 import org.truve.platform.ticketing.service.ticketing.repository.SeatRepository;
 
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ScheduleClient {
+public class TicketingClient {
 
 	private final SeatRepository seatRepository;
 
@@ -23,9 +23,9 @@ public class ScheduleClient {
 	SeatRepository.findAllWithSectionByIds
 	ScheduleResponse.SeatInfo.from
 	 */
-	public List<ScheduleResponse.SeatInfo> getSeatInfos(List<Long> seatIds) {
+	public List<TicketingResponse.SeatInfo> getSeatInfos(List<Long> seatIds) {
 		List<Seat> seats = seatRepository.findAllWithSectionByIds(seatIds);
 
-		return seats.stream().map(ScheduleResponse.SeatInfo::from).toList();
+		return seats.stream().map(TicketingResponse.SeatInfo::from).toList();
 	}
 }

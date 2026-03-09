@@ -13,8 +13,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.truve.platform.ticketing.service.ticket.client.ScheduleClient;
-import org.truve.platform.ticketing.service.ticket.client.dto.ScheduleResponse;
+import org.truve.platform.ticketing.service.ticket.client.TicketingClient;
+import org.truve.platform.ticketing.service.ticket.client.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.ticket.domain.constant.TicketStatus;
 import org.truve.platform.ticketing.service.ticket.domain.entity.Reservation;
 import org.truve.platform.ticketing.service.ticket.dto.TicketRequest;
@@ -28,7 +28,7 @@ class TicketServiceTest {
 	@Mock
 	private ReservationRepository reservationRepository;
 	@Mock
-	private ScheduleClient scheduleClient;
+	private TicketingClient ticketingClient;
 	@Mock
 	private NumberGenerator numberGenerator;
 
@@ -43,17 +43,17 @@ class TicketServiceTest {
 		List<Long> seatIds = List.of(10L, 11L, 12L);
 		TicketRequest.Create request = new TicketRequest.Create(seatIds);
 
-		ScheduleResponse.SeatInfo seat1 = new ScheduleResponse.SeatInfo("A", 1L, "VIP", "A", 13L, 10000L);
-		ScheduleResponse.SeatInfo seat2 = new ScheduleResponse.SeatInfo("B", 2L, "VIP", "B", 14L, 20000L);
-		ScheduleResponse.SeatInfo seat3 = new ScheduleResponse.SeatInfo("C", 3L, "S", "C", 15L, 30000L);
-		List<ScheduleResponse.SeatInfo> seatInfos = List.of(seat1, seat2, seat3);
+		TicketingResponse.SeatInfo seat1 = new TicketingResponse.SeatInfo("A", 1L, "VIP", "A", 13L, 10000L);
+		TicketingResponse.SeatInfo seat2 = new TicketingResponse.SeatInfo("B", 2L, "VIP", "B", 14L, 20000L);
+		TicketingResponse.SeatInfo seat3 = new TicketingResponse.SeatInfo("C", 3L, "S", "C", 15L, 30000L);
+		List<TicketingResponse.SeatInfo> seatInfos = List.of(seat1, seat2, seat3);
 
 		String reservationNumber = "R20260309ABCDEF";
 		String ticketNumber1 = "T-1234567890123";
 		String ticketNumber2 = "T-9876543210987";
 		String ticketNumber3 = "T-1111111111111";
 
-		given(scheduleClient.getSeatInfos(seatIds)).willReturn(seatInfos);
+		given(ticketingClient.getSeatInfos(seatIds)).willReturn(seatInfos);
 		given(numberGenerator.generateReservationNumber()).willReturn(reservationNumber);
 		given(numberGenerator.generateTicketNumber()).willReturn(ticketNumber1, ticketNumber2, ticketNumber3);
 
