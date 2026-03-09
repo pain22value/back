@@ -28,6 +28,7 @@ public class TicketingResponse {
 
 	@Getter
 	@AllArgsConstructor
+	// TODO: 공연 일정 추가 필요
 	public static class Show {
 		String title;
 		String venueName;
