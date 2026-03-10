@@ -7,7 +7,9 @@ import com.truve.platform.auth.service.domain.entity.User;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserSignedUpEvent {
 
