@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
@@ -122,7 +123,7 @@ public class ShowDetailService {
 	}
 
 	private String toImageUrl(String fileName) {
-		if (fileName == null || fileName.isBlank()) {
+		if (!StringUtils.hasText(fileName)) {
 			return null;
 		}
 		return s3Service.getImageUrl(fileName);
