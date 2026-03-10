@@ -52,7 +52,7 @@ public enum ErrorCode {
 
 	NOT_FOUND_SHOW(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.", "M01"),
     NOT_FOUND_ARTIST(HttpStatus.NOT_FOUND, "존재하지 않는 배우입니다.", "M02"),
-    ALREADY_LIKED_ARTIST(HttpStatus.BAD_REQUEST, "이미 좋아요한 배우입니다.", "M03"),;
+    ALREADY_LIKED_ARTIST(HttpStatus.BAD_REQUEST, "이미 좋아요한 배우입니다.", "M03");
 	;
 
 
