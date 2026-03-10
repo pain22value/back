@@ -49,6 +49,7 @@ public enum ErrorCode {
 	EXCEEDED_MAX_TICKET_COUNT(HttpStatus.BAD_REQUEST, "인당 최대 4매까지 예매 가능합니다.", "T10"),
 	INVALID_HOLD_SEAT(HttpStatus.BAD_REQUEST, "타인이 점유한 좌석입니다.", "T11"),
 
+	INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 예약 상태입니다.", "B01"),
 
 	NOT_FOUND_SHOW(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.", "M01"),
 	NOT_FOUND_ARTIST(HttpStatus.NOT_FOUND, "존재하지 않는 배우입니다.", "M02"),
@@ -58,7 +59,6 @@ public enum ErrorCode {
 	EVENT_PUBLISH_FAILED(HttpStatus.BAD_REQUEST, "이벤트 발행 실패입니다.", "I02"),
 	EVENT_USER_SIGNED_UP_FAILED(HttpStatus.BAD_REQUEST, "유저 회원가입 이벤트 소비 실패입니다.", "I03"),
 	;
-
 
 
 	private final HttpStatus status;
