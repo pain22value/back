@@ -86,4 +86,12 @@ public class BookingService {
 			seatInfo.getSeatNumber()
 		);
 	}
+
+	public void paymentProcess(String reservationNumber, BookingRequest.ApplicantInfo request) {
+		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
+
+		reservation.readyForPayment(request.toEntity());
+
+		// TODO: 결제 생성 이벤트 발행
+	}
 }
