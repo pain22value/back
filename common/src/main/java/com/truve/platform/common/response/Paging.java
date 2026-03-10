@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Paging {
-	@Min(0)
+	@Min(1)
 	int page;
 	@Min(1)
 	int size;
