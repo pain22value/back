@@ -22,7 +22,7 @@ public class PageResponse<T> {
 		this.content = pageData.getContent();
 		this.totalCount = pageData.getTotalElements();
 		this.totalPages = pageData.getTotalPages();
-		this.page = pageData.getNumber();
+		this.page = pageData.getNumber() + 1;
 		this.size = pageData.getSize();
 		this.hasNext = pageData.hasNext();
 		this.hasPrevious = pageData.hasPrevious();
