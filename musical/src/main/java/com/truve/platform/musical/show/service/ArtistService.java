@@ -37,10 +37,6 @@ public class ArtistService {
 		try {
 			artistLikeRepository.save(artistLike);
 		} catch (DataIntegrityViolationException e) {
-			boolean alreadyExists = artistLikeRepository.existsByUserIdAndArtistId(userId, artistId);
-			if (alreadyExists) {
-				throw new CustomException(ErrorCode.ALREADY_LIKED_ARTIST);
-			}
 			throw new CustomException(ErrorCode.ALREADY_LIKED_ARTIST);
 		}
 	}
