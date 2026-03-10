@@ -32,7 +32,28 @@ services:
     networks:
       - truve-network
 
-  # 3. API Gateway
+  # 3. Kafka
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:29092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+    networks:
+      - truve-network
+
+  # 4. API Gateway
   api-gateway:
     build:
       context: .
@@ -49,10 +70,11 @@ services:
       - USER_REDIS_HOST=user-redis
       - USER_REDIS_PORT=6379
       - TICKETING_SERVER_URI=http://ticketing:8084
+      - MUSICAL_SERVER_URI=http://musical:8085
     networks:
       - truve-network
 
-  # 4. Auth Server
+  # 5. Auth Server
   auth-server:
     build:
       context: .
@@ -79,15 +101,18 @@ services:
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
       - NAVER_REDIRECT_URI=${NAVER_REDIRECT_URI}
       - FRONT_OAUTH_CALLBACK=${FRONT_OAUTH_CALLBACK}
+      - KAFKA_SERVERS=kafka:9092
     depends_on:
       db:
         condition: service_healthy
       user-redis:
         condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - truve-network
 
-  # 5. Payment Server
+  # 6. Payment Server
   payment:
     build:
       context: .
@@ -109,7 +134,7 @@ services:
     networks:
       - truve-network
 
-  # 6. Queue Server
+  # 7. Queue Server
   queue:
     build:
       context: .
@@ -130,7 +155,7 @@ services:
     networks:
       - truve-network
 
-  # 7. Ticketing Server
+  # 8. Ticketing Server
   ticketing:
     build:
       context: .
@@ -156,7 +181,7 @@ services:
     networks:
       - truve-network
 
-  # 8. Musical Server
+  # 9. Musical Server
   musical:
     build:
       context: .
@@ -171,9 +196,31 @@ services:
       - MUSICAL_MYSQL_URL=jdbc:mysql://db:3306/musical_db
       - MUSICAL_MYSQL_USERNAME=root
       - MUSICAL_MYSQL_PASSWORD=1234
+      - AWS_S3_BUCKET=truve-media
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY=test
+      - AWS_SECRET_KEY=test
+      - AWS_S3_ENDPOINT=http://localstack:4566
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - truve-network
+
+
+  # 10. LocalStack
+  localstack:
+    image: localstack/localstack
+    container_name: truve-media-dev
+    ports:
+      - "4566:4566"
+    volumes:
+      - "./localstack:/var/lib/localstack"
+      - "./init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
+    environment:
+      - PERSISTENCE=1
+    entrypoint: >
+      /bin/sh -c "chmod +x /etc/localstack/init/ready.d/init-s3.sh && /usr/local/bin/docker-entrypoint.sh"
     networks:
       - truve-network
 

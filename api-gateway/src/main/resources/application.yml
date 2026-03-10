@@ -8,6 +8,12 @@ spring:
       host: ${USER_REDIS_HOST:user-redis}
       port: ${USER_REDIS_PORT:6379}
 
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
   cloud:
     gateway:
       globalcors:
@@ -53,9 +59,17 @@ spring:
               predicates:
                 - Path=/api/queue/**
             - id: ticketing
-              uri: ${QUEUE_SERVER_URI:http://localhost:8084}
+              uri: ${TICKETING_SERVER_URI:http://localhost:8084}
               predicates:
                 - Path=/api/ticketing/**
+            - id: booking
+              uri: ${TICKETING_SERVER_URI:http://localhost:8084}
+              predicates:
+                - Path=/api/bookings/**
+            - id: show
+              uri: ${MUSICAL_SERVER_URI:http://localhost:8085}
+              predicates:
+                - Path=/api/shows/**
 
 
 
@@ -76,7 +90,8 @@ springdoc:
       - name: "03-Queue Service"
         url: /api/queue/v3/api-docs
       - name: "04-Ticketing Service"
-        url: /api/tickets/v3/api-docs
-      - name: "05-Musical Service"
+        url: /api/ticketing/v3/api-docs/ticketing
+      - name: "05-Booking Service"
+        url: /api/ticketing/v3/api-docs/booking
+      - name: "06-Musical Service"
         url: /api/shows/v3/api-docs
-

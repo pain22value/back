@@ -3,3 +3,30 @@ spring:
     name: musical
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+  cloud:
+    aws:
+      s3:
+        bucket: ${AWS_S3_BUCKET:truve-media}
+        endpoint: ${AWS_S3_ENDPOINT:http://localstack:4566}
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY:test}
+        secret-key: ${AWS_SECRET_KEY:test}
+      stack:
+        auto: false
+
+springdoc:
+  api-docs:
+    path: /api/shows/v3/api-docs

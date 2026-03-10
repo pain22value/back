@@ -6,6 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
 import com.truve.platform.musical.seat.domain.repository.VenueRepository;
 import com.truve.platform.musical.show.domain.entity.Show;
@@ -31,6 +32,7 @@ public class ShowService {
 	private final ShowScheduleRepository showScheduleRepository;
 	private final ArtistLikeRepository artistLikeRepository;
 	private final ShowSeatGradeRepository showSeatGradeRepository;
+	private final S3Service s3Service;
 
 	@Transactional(readOnly = true)
 	public ShowResponse.Detail getDetail(Long showId) {
@@ -67,8 +69,8 @@ public class ShowService {
 			.description(show.getDescription())
 			.runtimeMin(show.getRuntimeMin())
 			.ageLimit(show.getAgeLimit())
-			.posterUrl(show.getPosterUrl())
-			.noticeUrl(show.getNoticeUrl())
+			.posterUrl(s3Service.getImageUrl(show.getPosterImg()))
+			.noticeUrl(s3Service.getImageUrl(show.getNoticeImg()))
 			.startTime(show.getStartTime())
 			.endTime(show.getEndTime())
 			.venue(toVenueResponse(show))
@@ -117,7 +119,7 @@ public class ShowService {
 			.showCastId(casting.getId())
 			.artistId(casting.getArtist().getId())
 			.artistName(casting.getArtist().getName())
-			.profileImageUrl(casting.getArtist().getProfileImageUrl())
+			.profileImageUrl(s3Service.getImageUrl(casting.getArtist().getProfileImg()))
 			.roleName(casting.getRoleName())
 			.order(casting.getCastingOrder())
 			.isLiked(isLiked)
