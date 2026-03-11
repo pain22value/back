@@ -120,6 +120,8 @@ class AuthServiceTest {
 		void 재발급_성공() {
 			// given
 			String refreshToken = "refresh-token";
+			String email = "user@test.com";
+
 			User user = createUser(1L, email, "encoded");
 			Date newAccessExp = new Date(System.currentTimeMillis() + 60_000L);
 			Date newRefreshExp = new Date(System.currentTimeMillis() + 120_000L);
@@ -249,15 +251,17 @@ class AuthServiceTest {
 			// then
 			ArgumentCaptor<User> savedUserCaptor = ArgumentCaptor.forClass(User.class);
 			ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+			ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
 
 			verify(userRepository).save(savedUserCaptor.capture());
 			verify(emailVerificationRepository).deleteVerifiedEmail(email);
-			verify(userSignedUpEventPublisher).publish(eq("1"), eventCaptor.capture());
+			verify(userSignedUpEventPublisher).publish(keyCaptor.capture(), eventCaptor.capture());
 
 			assertThat(savedUserCaptor.getValue().getEmail()).isEqualTo(email);
 			assertThat(savedUserCaptor.getValue().getPassword()).isEqualTo("encoded");
 			assertThat(savedUserCaptor.getValue().getRole()).isEqualTo(UserRole.MEMBER);
 			assertThat(savedUserCaptor.getValue().getPublicId()).isInstanceOf(UUID.class);
+			assertThat(keyCaptor.getValue()).isEqualTo(savedUserCaptor.getValue().getPublicId().toString());
 			assertThat(eventCaptor.getValue()).isInstanceOf(UserSignedUpEvent.class);
 		}
 

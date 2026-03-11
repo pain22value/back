@@ -23,7 +23,7 @@ import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 
 import jakarta.servlet.http.HttpServletResponse;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = AuthController.class)
 @Import(SecurityConfig.class)
@@ -80,7 +80,8 @@ class AuthControllerTest {
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value("CLIENT_ERROR"));
+			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
+			.andExpect(jsonPath("$.code").value(ErrorCode.ALREADY_EXISTS_EMAIL.getCode()));
 	}
 
 	@Test

@@ -117,7 +117,7 @@ public class AuthService {
 		emailVerificationRepository.deleteVerifiedEmail(email);
 
 		UserSignedUpEvent event = UserSignedUpEvent.from(user);
-		userSignedUpEventPublisher.publish(String.valueOf(user.getId()), event);
+		userSignedUpEventPublisher.publish(user.getPublicId().toString(), event);
 	}
 
 }
