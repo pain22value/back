@@ -2,6 +2,7 @@ package com.truve.platform.musical.review.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
 import com.truve.platform.musical.review.domain.constant.ReviewPointCategory;
+import com.truve.platform.musical.review.domain.constant.ReviewPointName;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +25,8 @@ public class ReviewPointType extends BaseEntity {
 	private ReviewPointCategory category;
 
 	@Column(nullable = false)
-	private String name;
+	@Enumerated(EnumType.STRING)
+	private ReviewPointName name;
 
 	@Column(nullable = false)
 	private String code;
@@ -33,7 +35,7 @@ public class ReviewPointType extends BaseEntity {
 	private Long order;
 
 	@Builder
-	public ReviewPointType(ReviewPointCategory category, String name, String code, Long order) {
+	public ReviewPointType(ReviewPointCategory category, ReviewPointName name, String code, Long order) {
 		this.category = category;
 		this.name = name;
 		this.code = code;
