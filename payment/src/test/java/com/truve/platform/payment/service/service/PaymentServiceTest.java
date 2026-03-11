@@ -71,15 +71,14 @@ class PaymentServiceTest {
 			given(paymentRepository.save(any(Payment.class))).willReturn(savedPayment);
 
 			// when
-			Long paymentId = paymentService.create(request);
+			paymentService.create(request);
 
 			// then
-			assertThat(paymentId).isEqualTo(id);
 			verify(paymentRepository, times(1)).save(any(Payment.class));
 		}
 
 		@Test
-		@DisplayName("기존 결제가 READY 상태로 존재하면 생성하지 않고 기존 ID를 반환한다")
+		@DisplayName("기존 결제가 READY 상태로 존재하면 생성하지 않는다.")
 		void 결제생성_READY상태_존재() {
 			// given
 			Long id = 1L;
@@ -89,11 +88,10 @@ class PaymentServiceTest {
 			given(paymentRepository.findByOrderId(orderId)).willReturn(Optional.of(existingPayment));
 
 			// when
-			Long paymentId = paymentService.create(request);
+			paymentService.create(request);
 
 			// then
-			assertThat(paymentId).isEqualTo(id);
-			verify(paymentRepository, never()).save(any());
+			verify(paymentRepository, never()).save(any(Payment.class));
 		}
 	}
 
