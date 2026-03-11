@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
@@ -35,6 +36,8 @@ class PaymentServiceTest {
 	private PaymentCancelRepository paymentCancelRepository;
 	@Mock
 	private TossClient tossClient;
+	@Mock
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	@InjectMocks
 	private PaymentService paymentService;

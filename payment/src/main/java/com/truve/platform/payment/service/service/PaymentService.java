@@ -90,7 +90,7 @@ public class PaymentService {
 
 		eventPublisher.publishEvent(PaymentUpdated.Confirmed.of(payment));
 
-		return new PaymentResponse.OrderId(payment.getId());
+		return new PaymentResponse.OrderId(payment.getOrderId());
 	}
 
 	@Transactional
@@ -100,7 +100,7 @@ public class PaymentService {
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 
 		payment.completeDeposit(parseTime(approvedAt));
-		
+
 		eventPublisher.publishEvent(PaymentUpdated.DepositReceived.of(payment));
 	}
 

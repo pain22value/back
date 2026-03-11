@@ -43,7 +43,7 @@ public class PaymentResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class OrderId {
-		private final Long orderId;
+		private final String orderId;
 	}
 
 	@Getter
