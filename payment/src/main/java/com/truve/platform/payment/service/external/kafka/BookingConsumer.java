@@ -29,7 +29,6 @@ public class BookingConsumer {
 	}
 
 	private void handleCreate(String payload) {
-		System.out.println(payload);
 		PaymentEventCommand.Create request = jsonConverter.convert(payload, PaymentEventCommand.Create.class);
 		paymentService.create(request);
 	}
