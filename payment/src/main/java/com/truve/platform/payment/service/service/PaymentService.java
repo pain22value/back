@@ -70,13 +70,13 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public PaymentResponse.OrderId confirm(String orderId, String paymentKey, Long amount) {
-		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
+	public PaymentResponse.OrderId confirm(PaymentRequest.Confirm request) {
+		Payment payment = paymentRepository.getByOrderIdWithLock(request.getOrderId());
 
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
-		payment.validateAmount(amount);
+		payment.validateAmount(request.getAmount());
 
-		TossResponse.Payment response = tossClient.confirm(new TossRequest.Confirm(orderId, amount, paymentKey));
+		TossResponse.Payment response = tossClient.confirm(TossRequest.Confirm.of(request));
 
 		payment.confirm(
 			response.getPaymentKey(),

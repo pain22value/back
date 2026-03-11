@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.truve.platform.common.response.ApiResult;
@@ -42,13 +41,9 @@ public class PaymentController {
 	}
 
 	@Operation(summary = "결제 승인", description = "결제를 승인 처리합니다.")
-	@GetMapping("/confirm")
-	public ApiResult<PaymentResponse.OrderId> confirm(
-		@RequestParam String orderId,
-		@RequestParam String paymentKey,
-		@RequestParam Long amount
-	) {
-		return ApiResult.ok(paymentService.confirm(orderId, paymentKey, amount));
+	@PostMapping("/confirm")
+	public ApiResult<PaymentResponse.OrderId> confirm(PaymentRequest.Confirm request) {
+		return ApiResult.ok(paymentService.confirm(request));
 	}
 
 	@Operation(summary = "결제 취소",

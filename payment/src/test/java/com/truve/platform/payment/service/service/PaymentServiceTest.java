@@ -107,6 +107,8 @@ class PaymentServiceTest {
 			Payment payment = Payment.builder().orderId(orderId).amount(amount).build();
 			given(paymentRepository.getByOrderIdWithLock(orderId)).willReturn(payment);
 
+			PaymentRequest.Confirm request = new PaymentRequest.Confirm(orderId, "paymentKey", amount);
+
 			TossResponse.Payment tossResponse = mock(TossResponse.Payment.class);
 			given(tossResponse.getMethodDetailsEntity()).willReturn(
 				EasyPay.builder().provider("토스").discountAmount(0L).build());
@@ -115,7 +117,7 @@ class PaymentServiceTest {
 			given(tossClient.confirm(any())).willReturn(tossResponse);
 
 			// when
-			paymentService.confirm(orderId, "paymentKey", amount);
+			paymentService.confirm(request);
 
 			// then
 			assertThat(payment.getStatus()).isNotEqualTo(PaymentStatus.READY);
