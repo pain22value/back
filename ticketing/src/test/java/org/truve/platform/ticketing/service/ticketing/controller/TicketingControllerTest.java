@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,7 +29,8 @@ import com.truve.platform.common.exception.ApiAdvice;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @WebMvcTest(controllers = TicketingController.class)
 @Import(ApiAdvice.class)
@@ -42,8 +42,6 @@ class TicketingControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@MockitoBean
 	private TicketingService ticketingService;
@@ -51,6 +49,8 @@ class TicketingControllerTest {
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 	@MockitoBean
 	private ApplicationEventPublisher applicationEventPublisher;
+
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Test
 	@DisplayName("티켓팅 입장 성공")
@@ -223,8 +223,8 @@ class TicketingControllerTest {
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("C02"));
-		verify(ticketingService, never()).holdSeat(anyLong(),
-			UUID.fromString(ArgumentMatchers.anyString()), anyString(), anyList());
+		verify(ticketingService, never())
+			.holdSeat(anyLong(), any(UUID.class), anyString(), anyList());
 	}
 
 	@Test
@@ -236,14 +236,15 @@ class TicketingControllerTest {
 		// when
 		ResultActions resultActions = mockMvc.perform(delete("/api/ticketing/{showScheduleId}/hold/seat", 1L)
 			.contentType(MediaType.APPLICATION_JSON)
-			.header(USER_ID_HEADER, 2L)
+			.header(USER_ID_HEADER, "11111111-1111-1111-1111-111111111111")
 			.header(SESSION_HEADER, "session-token")
 			.content(objectMapper.writeValueAsString(request)));
 
 		// then
 		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("C02"));
-		verify(ticketingService, never()).cancelHoldSeat(anyLong(),
-			UUID.fromString(ArgumentMatchers.anyString()), anyString(), anyList());
+
+		verify(ticketingService, never())
+			.cancelHoldSeat(anyLong(), any(UUID.class), anyString(), anyList());
 	}
 }
