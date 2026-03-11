@@ -2,7 +2,6 @@ package com.truve.platform.payment.service.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,12 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/payments")
 public class PaymentController {
 	private final PaymentService paymentService;
-
-	@Value("${app.frontend.success-url}")
-	private String successUrl;
-
-	@Value("${app.frontend.fail-url}")
-	private String failUrl;
 
 	@Operation(summary = "결제 정보 상세 조회", description = "주문 ID로 결제 정보를 조회합니다.")
 	@GetMapping("/{orderId}")
