@@ -53,20 +53,14 @@ public class PaymentController {
 		return ApiResult.ok(paymentService.getBankList());
 	}
 
-	@Operation(summary = "결제 승인",
-		description = "Toss Payments에서 결제 요청 승인 후 successUrl로 호출하는 API입니다. 프론트엔드의 성공 페이지로 orderId를 담아 리다이렉트 합니다.")
+	@Operation(summary = "결제 승인", description = "결제를 승인 처리합니다.")
 	@GetMapping("/confirm")
-	@ApiResponse(responseCode = "302")
-	public ResponseEntity<Void> confirm(
+	public ApiResult<PaymentResponse.OrderId> confirm(
 		@RequestParam String orderId,
 		@RequestParam String paymentKey,
 		@RequestParam Long amount
 	) {
-		paymentService.confirm(orderId, paymentKey, amount);
-
-		return ResponseEntity.status(HttpStatus.FOUND)
-			.location(URI.create(successUrl + "?orderId=" + orderId))
-			.build();
+		return ApiResult.ok(paymentService.confirm(orderId, paymentKey, amount));
 	}
 
 	@Operation(summary = "결제 실패",

@@ -70,7 +70,7 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public void confirm(String orderId, String paymentKey, Long amount) {
+	public PaymentResponse.OrderId confirm(String orderId, String paymentKey, Long amount) {
 		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
 
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
@@ -84,6 +84,8 @@ public class PaymentService {
 			parseTime(response.getRequestedAt()),
 			parseTime(response.getApprovedAt())
 		);
+
+		return new PaymentResponse.OrderId(payment.getId());
 	}
 
 	@Transactional
