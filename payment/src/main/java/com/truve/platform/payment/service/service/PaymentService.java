@@ -19,11 +19,11 @@ import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
+import com.truve.platform.payment.service.external.toss.TossClient;
+import com.truve.platform.payment.service.external.toss.dto.TossRequest;
+import com.truve.platform.payment.service.external.toss.dto.TossResponse;
 import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
-import com.truve.platform.payment.service.service.external.TossClient;
-import com.truve.platform.payment.service.service.external.dto.TossRequest;
-import com.truve.platform.payment.service.service.external.dto.TossResponse;
 
 import lombok.RequiredArgsConstructor;
 

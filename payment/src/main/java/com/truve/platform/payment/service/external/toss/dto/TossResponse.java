@@ -1,4 +1,4 @@
-package com.truve.platform.payment.service.service.external.dto;
+package com.truve.platform.payment.service.external.toss.dto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -21,8 +21,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-import com.truve.platform.payment.service.service.external.dto.TossRequest;
-import com.truve.platform.payment.service.service.external.dto.TossResponse;
+import com.truve.platform.payment.service.external.toss.TossClient;
+import com.truve.platform.payment.service.external.toss.dto.TossRequest;
+import com.truve.platform.payment.service.external.toss.dto.TossResponse;
 
 @RestClientTest(TossClient.class)
 @TestPropertySource(properties = {
