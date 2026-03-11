@@ -32,10 +32,10 @@ public class Show extends BaseEntity {
 
 	private Integer ageLimit;
 
-	@Column(nullable = false, length = 500)
+	@Column(name = "poster_img", nullable = false, length = 500)
 	private String posterImg;
 
-	@Column(length = 500)
+	@Column(name = "notice_img", length = 500)
 	private String noticeImg;
 
 	@Column(name = "start_time")
