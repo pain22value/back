@@ -52,7 +52,7 @@ class HomeControllerTest {
 
 		given(homeService.getHomeBanners()).willReturn(response);
 
-		mockMvc.perform(get("/api/home/banners"))
+		mockMvc.perform(get("/api/musical/home/banners"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.banners[0].bannerId").value(11))

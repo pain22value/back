@@ -108,7 +108,7 @@ class ShowControllerTest {
 
 		given(showDetailService.getDetail(anyLong(), nullable(UUID.class))).willReturn(response);
 
-		mockMvc.perform(get("/api/shows/{showId}", 1L))
+		mockMvc.perform(get("/api/musical/shows/{showId}", 1L))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.showId").value(1))
@@ -145,7 +145,7 @@ class ShowControllerTest {
 
 		given(showDetailService.getDetail(org.mockito.ArgumentMatchers.eq(10L), nullable(UUID.class))).willReturn(response);
 
-		mockMvc.perform(get("/api/shows/{showId}", 10L))
+		mockMvc.perform(get("/api/musical/shows/{showId}", 10L))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.data.noticeUrl").value(nullValue()))
 			.andExpect(jsonPath("$.data.schedules").isArray())
@@ -160,7 +160,7 @@ class ShowControllerTest {
 		willThrow(new CustomException(ErrorCode.NOT_FOUND_SHOW))
 			.given(showDetailService).getDetail(org.mockito.ArgumentMatchers.eq(999L), nullable(UUID.class));
 
-		mockMvc.perform(get("/api/shows/{showId}", 999L))
+		mockMvc.perform(get("/api/musical/shows/{showId}", 999L))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M01"))
@@ -212,7 +212,7 @@ class ShowControllerTest {
 			org.mockito.ArgumentMatchers.eq(50)
 		)).willReturn(response);
 
-		mockMvc.perform(get("/api/shows/{showId}/casting-schedules", 1L)
+		mockMvc.perform(get("/api/musical/shows/{showId}/casting-schedules", 1L)
 				.param("from", "2025-12-17")
 				.param("to", "2026-03-29")
 				.param("artistIds", "1")
