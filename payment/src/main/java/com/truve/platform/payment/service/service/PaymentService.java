@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,6 +19,7 @@ import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
+import com.truve.platform.payment.service.event.PaymentUpdated;
 import com.truve.platform.payment.service.external.client.TossClient;
 import com.truve.platform.payment.service.external.client.TossRequest;
 import com.truve.platform.payment.service.external.client.TossResponse;
@@ -37,6 +39,7 @@ public class PaymentService {
 	private final PaymentRepository paymentRepository;
 	private final PaymentCancelRepository paymentCancelRepository;
 	private final TossClient tossClient;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional(readOnly = true)
 	public PaymentResponse.Details details(String orderId) {
@@ -84,6 +87,8 @@ public class PaymentService {
 			parseTime(response.getRequestedAt()),
 			parseTime(response.getApprovedAt())
 		);
+
+		eventPublisher.publishEvent(PaymentUpdated.Confirmed.of(payment));
 
 		return new PaymentResponse.OrderId(payment.getId());
 	}

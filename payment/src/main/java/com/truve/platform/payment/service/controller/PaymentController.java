@@ -42,7 +42,7 @@ public class PaymentController {
 
 	@Operation(summary = "결제 승인", description = "결제를 승인 처리합니다.")
 	@PostMapping("/confirm")
-	public ApiResult<PaymentResponse.OrderId> confirm(PaymentRequest.Confirm request) {
+	public ApiResult<PaymentResponse.OrderId> confirm(@RequestBody @Valid PaymentRequest.Confirm request) {
 		return ApiResult.ok(paymentService.confirm(request));
 	}
 

@@ -80,4 +80,9 @@ public class Reservation extends BaseEntity {
 		this.applicant = applicant;
 		this.status = ReservationStatus.PENDING_PAYMENT;
 	}
+
+	public void confirm(LocalDateTime paidAt, boolean isDepositPending) {
+		this.paidAt = paidAt;
+		this.status = isDepositPending ? ReservationStatus.PENDING_DEPOSIT : ReservationStatus.CONFIRMED;
+	}
 }
