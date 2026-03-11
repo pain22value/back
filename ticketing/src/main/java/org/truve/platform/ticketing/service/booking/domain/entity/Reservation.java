@@ -3,6 +3,7 @@ package org.truve.platform.ticketing.service.booking.domain.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
 
@@ -30,7 +31,7 @@ import lombok.NoArgsConstructor;
 public class Reservation extends BaseEntity {
 
 	@Column(nullable = false)
-	private Long userId;
+	private UUID userId;
 
 	@Column(name = "reservation_number", unique = true, nullable = false)
 	private String number;
@@ -55,7 +56,7 @@ public class Reservation extends BaseEntity {
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	private Reservation(Long userId, String number, Long totalAmount, String gradeSummary) {
+	private Reservation(UUID userId, String number, Long totalAmount, String gradeSummary) {
 
 		this.userId = userId;
 		this.number = number;
@@ -64,7 +65,7 @@ public class Reservation extends BaseEntity {
 		this.status = ReservationStatus.CREATED;
 	}
 
-	public static Reservation create(Long userId, String number, Long totalAmount, String gradeSummary) {
+	public static Reservation create(UUID userId, String number, Long totalAmount, String gradeSummary) {
 		return Reservation.builder()
 			.userId(userId)
 			.number(number)
