@@ -18,9 +18,10 @@ import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
-import com.truve.platform.payment.service.external.toss.TossClient;
-import com.truve.platform.payment.service.external.toss.dto.TossRequest;
-import com.truve.platform.payment.service.external.toss.dto.TossResponse;
+import com.truve.platform.payment.service.external.client.TossClient;
+import com.truve.platform.payment.service.external.client.TossRequest;
+import com.truve.platform.payment.service.external.client.TossResponse;
+import com.truve.platform.payment.service.external.kafka.EventCommand;
 import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 
@@ -44,7 +45,7 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public void create(PaymentRequest.Create request) {
+	public void create(EventCommand.Create request) {
 		paymentRepository.findByOrderId(request.getOrderId())
 			.ifPresentOrElse(
 				this::handleExistingPayment,
@@ -56,7 +57,7 @@ public class PaymentService {
 		Preconditions.validate(p.getStatus() == PaymentStatus.READY, ErrorCode.ALREADY_EXIST_PAYMENT);
 	}
 
-	private void saveNewPayment(PaymentRequest.Create request) {
+	private void saveNewPayment(EventCommand.Create request) {
 		Payment payment = Payment.builder()
 			.orderId(request.getOrderId())
 			.amount(request.getAmount())

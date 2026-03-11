@@ -6,14 +6,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.truve.platform.ticketing.service.booking.client.payment.PaymentClient;
-import org.truve.platform.ticketing.service.booking.client.payment.dto.PaymentRequest;
-import org.truve.platform.ticketing.service.booking.client.ticketing.TicketingClient;
-import org.truve.platform.ticketing.service.booking.client.ticketing.dto.TicketingResponse;
 import org.truve.platform.ticketing.service.booking.domain.entity.Reservation;
 import org.truve.platform.ticketing.service.booking.domain.entity.Ticket;
 import org.truve.platform.ticketing.service.booking.dto.BookingRequest;
 import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
+import org.truve.platform.ticketing.service.booking.external.client.TicketingClient;
+import org.truve.platform.ticketing.service.booking.external.client.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.external.kafka.EventCommand;
+import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
 import org.truve.platform.ticketing.service.booking.service.util.NumberGenerator;
 
@@ -29,7 +29,7 @@ public class BookingService {
 	private final ReservationRepository reservationRepository;
 	private final TicketingClient ticketingClient;
 	private final NumberGenerator numberGenerator;
-	private final PaymentClient paymentClient;
+	private final PaymentPublisher paymentPublisher;
 
 	@Transactional
 	public BookingResponse.Create create(Long userId, BookingRequest.Create request) {
@@ -96,6 +96,6 @@ public class BookingService {
 
 		reservation.readyForPayment(request.toEntity());
 
-		paymentClient.publish(PaymentRequest.Create.of(reservation));
+		paymentPublisher.publish(EventCommand.Create.of(reservation));
 	}
 }

@@ -1,16 +1,15 @@
-package com.truve.platform.payment.service.external.booking.dto;
+package com.truve.platform.payment.service.external.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-public class BookingRequest {
+public class EventCommand {
 
 	@Getter
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class Create {
-		private String type;
 		private String orderId;
 		private Long amount;
 	}

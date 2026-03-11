@@ -21,8 +21,9 @@ import com.truve.platform.payment.service.domain.entity.EasyPay;
 import com.truve.platform.payment.service.domain.entity.Payment;
 import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
-import com.truve.platform.payment.service.external.toss.TossClient;
-import com.truve.platform.payment.service.external.toss.dto.TossResponse;
+import com.truve.platform.payment.service.external.client.TossClient;
+import com.truve.platform.payment.service.external.client.TossResponse;
+import com.truve.platform.payment.service.external.kafka.EventCommand;
 import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 
@@ -51,11 +52,11 @@ class PaymentServiceTest {
 	@DisplayName("결제 생성 테스트")
 	class CreateTest {
 
-		PaymentRequest.Create request;
+		EventCommand.Create request;
 
 		@BeforeEach
 		void setRequest() {
-			request = new PaymentRequest.Create(orderId, amount);
+			request = new EventCommand.Create(orderId, amount);
 		}
 
 		@Test

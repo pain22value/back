@@ -1,0 +1,39 @@
+package com.truve.platform.payment.service.external.kafka;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.stereotype.Component;
+
+import com.truve.platform.common.support.JsonConverter;
+import com.truve.platform.payment.service.service.PaymentService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class BookingConsumer {
+	public static final String TOPIC = "booking.payment";
+	public static final String GROUP = "booking-payment-group";
+
+	private final JsonConverter jsonConverter;
+	private final PaymentService paymentService;
+
+	@KafkaListener(topics = TOPIC, groupId = GROUP)
+	public void consume(String payload, @Header("event-type") String type) {
+		switch (type) {
+			case "CREATE" -> handleCreate(payload);
+			case "CANCEL" -> handleCancel(payload);
+		}
+	}
+
+	private void handleCreate(String payload) {
+		System.out.println(payload);
+		EventCommand.Create request = jsonConverter.convert(payload, EventCommand.Create.class);
+		paymentService.create(request);
+	}
+
+	private void handleCancel(String payload) {
+	}
+}
