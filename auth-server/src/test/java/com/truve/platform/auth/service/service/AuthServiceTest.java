@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -256,6 +257,7 @@ class AuthServiceTest {
 			assertThat(savedUserCaptor.getValue().getEmail()).isEqualTo(email);
 			assertThat(savedUserCaptor.getValue().getPassword()).isEqualTo("encoded");
 			assertThat(savedUserCaptor.getValue().getRole()).isEqualTo(UserRole.MEMBER);
+			assertThat(savedUserCaptor.getValue().getPublicId()).isInstanceOf(UUID.class);
 			assertThat(eventCaptor.getValue()).isInstanceOf(UserSignedUpEvent.class);
 		}
 
