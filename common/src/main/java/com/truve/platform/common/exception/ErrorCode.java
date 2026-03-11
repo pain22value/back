@@ -35,7 +35,6 @@ public enum ErrorCode {
 	ALREADY_DONE_PAYMENT(HttpStatus.BAD_REQUEST, "이미 처리된 결제입니다.", "P13"),
 	INVALID_PAYMENT_METHOD_DETAILS(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 수단 정보입니다.", "P14"),
 
-
 	JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON 파싱 중 오류가 발생했습니다.", "T01"),
 	INVALID_ADMISSION_TOKEN(HttpStatus.BAD_REQUEST, "입장 토큰이 유효하지 않습니다.", "T02"),
 	EXPIRED_ADMISSION_TOKEN(HttpStatus.BAD_REQUEST, "입장 토큰이 만료되었습니다.", "T03"),
@@ -58,8 +57,7 @@ public enum ErrorCode {
 	EVENT_SERIALIZATION_FAILED(HttpStatus.BAD_REQUEST, "이벤트 직렬화 오류입니다.", "I01"),
 	EVENT_PUBLISH_FAILED(HttpStatus.BAD_REQUEST, "이벤트 발행 실패입니다.", "I02"),
 	EVENT_USER_SIGNED_UP_FAILED(HttpStatus.BAD_REQUEST, "유저 회원가입 이벤트 소비 실패입니다.", "I03"),
-	;
-
+	EVENT_DESERIALIZATION_FAILED(HttpStatus.BAD_REQUEST, "이벤트 역직렬화 오류입니다.", "I04");
 
 	private final HttpStatus status;
 	private final String message;
