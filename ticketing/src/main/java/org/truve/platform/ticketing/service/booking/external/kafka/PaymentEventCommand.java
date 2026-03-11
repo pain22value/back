@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-public class EventCommand {
+public class PaymentEventCommand {
 
 	@Getter
 	@Builder

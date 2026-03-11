@@ -21,7 +21,7 @@ import com.truve.platform.payment.service.dto.PaymentResponse;
 import com.truve.platform.payment.service.external.client.TossClient;
 import com.truve.platform.payment.service.external.client.TossRequest;
 import com.truve.platform.payment.service.external.client.TossResponse;
-import com.truve.platform.payment.service.external.kafka.EventCommand;
+import com.truve.platform.payment.service.external.kafka.PaymentEventCommand;
 import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 
@@ -45,7 +45,7 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public void create(EventCommand.Create request) {
+	public void create(PaymentEventCommand.Create request) {
 		paymentRepository.findByOrderId(request.getOrderId())
 			.ifPresentOrElse(
 				this::handleExistingPayment,
@@ -57,7 +57,7 @@ public class PaymentService {
 		Preconditions.validate(p.getStatus() == PaymentStatus.READY, ErrorCode.ALREADY_EXIST_PAYMENT);
 	}
 
-	private void saveNewPayment(EventCommand.Create request) {
+	private void saveNewPayment(PaymentEventCommand.Create request) {
 		Payment payment = Payment.builder()
 			.orderId(request.getOrderId())
 			.amount(request.getAmount())

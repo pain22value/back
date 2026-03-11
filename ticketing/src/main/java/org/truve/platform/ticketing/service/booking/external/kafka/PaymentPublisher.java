@@ -14,7 +14,7 @@ public class PaymentPublisher {
 
 	private final EventPublisher eventPublisher;
 
-	public void publish(EventCommand.Create request) {
+	public void publish(PaymentEventCommand.Create request) {
 		eventPublisher.publish(TOPIC, request.getOrderId(), CREATE_EVENT_TYPE, request);
 	}
 }

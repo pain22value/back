@@ -13,7 +13,7 @@ import org.truve.platform.ticketing.service.booking.dto.BookingRequest;
 import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
 import org.truve.platform.ticketing.service.booking.external.client.TicketingClient;
 import org.truve.platform.ticketing.service.booking.external.client.TicketingResponse;
-import org.truve.platform.ticketing.service.booking.external.kafka.EventCommand;
+import org.truve.platform.ticketing.service.booking.external.kafka.PaymentEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
 import org.truve.platform.ticketing.service.booking.service.util.NumberGenerator;
@@ -97,6 +97,6 @@ public class BookingService {
 
 		reservation.readyForPayment(request.toEntity());
 
-		paymentPublisher.publish(EventCommand.Create.of(reservation));
+		paymentPublisher.publish(PaymentEventCommand.Create.of(reservation));
 	}
 }

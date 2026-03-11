@@ -23,7 +23,7 @@ import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.external.client.TossClient;
 import com.truve.platform.payment.service.external.client.TossResponse;
-import com.truve.platform.payment.service.external.kafka.EventCommand;
+import com.truve.platform.payment.service.external.kafka.PaymentEventCommand;
 import com.truve.platform.payment.service.repository.PaymentCancelRepository;
 import com.truve.platform.payment.service.repository.PaymentRepository;
 
@@ -52,11 +52,11 @@ class PaymentServiceTest {
 	@DisplayName("결제 생성 테스트")
 	class CreateTest {
 
-		EventCommand.Create request;
+		PaymentEventCommand.Create request;
 
 		@BeforeEach
 		void setRequest() {
-			request = new EventCommand.Create(orderId, amount);
+			request = new PaymentEventCommand.Create(orderId, amount);
 		}
 
 		@Test
