@@ -115,9 +115,9 @@ class HomeServiceTest {
 
 		assertEquals(1, result.getBanners().size());
 		assertEquals(999L, result.getBanners().get(0).getShowId());
-		assertEquals(null, result.getBanners().get(0).getShowTitle());
-		assertEquals(null, result.getBanners().get(0).getVenueName());
-		assertEquals(null, result.getBanners().get(0).getDate());
+		assertEquals("공연 정보 없음", result.getBanners().get(0).getShowTitle());
+		assertEquals("공연장 정보 없음", result.getBanners().get(0).getVenueName());
+		assertEquals("기간 미정", result.getBanners().get(0).getDate());
 		assertEquals("https://img.example/home/banner-dangling.jpg", result.getBanners().get(0).getPosterUrl());
 	}
 

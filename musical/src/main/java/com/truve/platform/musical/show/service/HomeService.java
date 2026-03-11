@@ -31,6 +31,9 @@ public class HomeService {
 
 	private static final int MAX_BANNERS = 5;
 	private static final DateTimeFormatter BANNER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+	private static final String DEFAULT_SHOW_TITLE = "공연 제목 없음";
+	private static final String DEFAULT_VENUE_NAME = "공연장 정보 없음";
+	private static final String DEFAULT_DATE = "기간 미정";
 
 	private final HomeBannerRepository homeBannerRepository;
 	private final ShowRepository showRepository;
@@ -64,8 +67,8 @@ public class HomeService {
 		return HomeResponse.Banner.builder()
 			.bannerId(banner.getId())
 			.showId(banner.getShowId())
-			.showTitle(show != null ? show.getTitle() : null)
-			.venueName(venueId != null ? venueNamesById.get(venueId) : null)
+			.showTitle(show != null ? show.getTitle() : DEFAULT_SHOW_TITLE)
+			.venueName(venueId != null ? venueNamesById.getOrDefault(venueId, DEFAULT_VENUE_NAME) : DEFAULT_VENUE_NAME)
 			.date(toDateRange(show))
 			.posterUrl(toImageUrl(banner.getImageKey()))
 			.displayOrder(banner.getDisplayOrder())
@@ -74,7 +77,7 @@ public class HomeService {
 
 	private String toDateRange(Show show) {
 		if (show == null || show.getStartTime() == null || show.getEndTime() == null) {
-			return null;
+			return DEFAULT_DATE;
 		}
 		return BANNER_DATE_FORMATTER.format(show.getStartTime()) + " - "
 			+ BANNER_DATE_FORMATTER.format(show.getEndTime());
