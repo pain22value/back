@@ -106,4 +106,10 @@ public class BookingService {
 		Reservation reservation = reservationRepository.findByNumber(event.getReservationNumber());
 		reservation.confirm(event.getPaidAt(), event.isDepositPending());
 	}
+
+	@Transactional
+	public void depositReceive(BookingEventCommand.DepositReceived event) {
+		Reservation reservation = reservationRepository.findByNumber(event.getReservationNumber());
+		reservation.depositReceive(event.getPaidAt());
+	}
 }

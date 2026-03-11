@@ -27,4 +27,19 @@ public class PaymentUpdated {
 			);
 		}
 	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class DepositReceived {
+		private String orderId;
+		private LocalDateTime approvedAt;
+
+		public static DepositReceived of(Payment payment) {
+			return new DepositReceived(
+				payment.getOrderId(),
+				payment.getApprovedAt()
+			);
+		}
+	}
 }

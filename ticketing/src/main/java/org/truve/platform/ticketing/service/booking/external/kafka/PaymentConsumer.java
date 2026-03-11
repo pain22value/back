@@ -23,12 +23,10 @@ public class PaymentConsumer {
 	@KafkaListener(topics = TOPIC, groupId = GROUP)
 	public void consume(String payload, @Header("event-type") String type) {
 		switch (type) {
-			case "CONFIRMED" -> handleConfirmed(payload);
+			case "CONFIRMED" -> bookingService.confirm(jsonConverter.convert(payload, BookingEventCommand.Confirmed.class));
+			case "DEPOSIT_RECEIVED" ->
+				bookingService.depositReceive(jsonConverter.convert(payload, BookingEventCommand.DepositReceived.class));
+			default -> log.warn("[Kafka Consumer] Unknown event type: {}", type);
 		}
-	}
-
-	private void handleConfirmed(String payload) {
-		BookingEventCommand.Confirmed request = jsonConverter.convert(payload, BookingEventCommand.Confirmed.class);
-		bookingService.confirm(request);
 	}
 }

@@ -26,4 +26,14 @@ public class PaymentUpdatedListener {
 			)
 		);
 	}
+
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	public void onDepositReceived(PaymentUpdated.DepositReceived event) {
+		bookingPublisher.publish(
+			new BookingEventCommand.DepositReceived(
+				event.getOrderId(),
+				event.getApprovedAt()
+			)
+		);
+	}
 }

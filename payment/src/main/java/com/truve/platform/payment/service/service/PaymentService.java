@@ -100,6 +100,8 @@ public class PaymentService {
 		Preconditions.validate(payment.isNotDone(), ErrorCode.ALREADY_DONE_PAYMENT);
 
 		payment.completeDeposit(parseTime(approvedAt));
+		
+		eventPublisher.publishEvent(PaymentUpdated.DepositReceived.of(payment));
 	}
 
 	@Transactional

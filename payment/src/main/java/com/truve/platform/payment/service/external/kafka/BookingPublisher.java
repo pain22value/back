@@ -10,11 +10,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BookingPublisher {
 	private static final String TOPIC = "payment.booking";
-	private static final String CONFIRMED_EVENT_TYPE = "CONFIRMED";
 
 	private final EventPublisher eventPublisher;
 
-	public void publish(BookingEventCommand.Confirmed command) {
-		eventPublisher.publish(TOPIC, command.getReservationNumber(), CONFIRMED_EVENT_TYPE, command);
+	public void publish(BookingEventCommand.BookingEvent command) {
+		eventPublisher.publish(TOPIC, command.getReservationNumber(), command.getEventType(), command);
 	}
 }
