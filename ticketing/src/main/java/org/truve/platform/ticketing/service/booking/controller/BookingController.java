@@ -33,13 +33,13 @@ public class BookingController {
 	}
 
 	@Operation(summary = "예매 결제 준비",
-		description = "예매 상태를 결제 대기 중으로 변경하고, 결제 정보를 생성합니다. 결제 요청 전 호출해 주세요!")
-	@PostMapping("/{reservationNumber}/payment")
-	public ApiResult<Void> paymentProcess(
+		description = "예매 상태를 결제 대기 중으로 변경하고, 예약자 정보를 저장한 후 결제 정보를 생성합니다.")
+	@PostMapping("/{reservationNumber}/payment-ready")
+	public ApiResult<Void> readyPayment(
 		@PathVariable String reservationNumber,
 		@RequestBody @Valid BookingRequest.ApplicantInfo request
 	) {
-		bookingService.paymentProcess(reservationNumber, request);
+		bookingService.paymentReady(reservationNumber, request);
 		return ApiResult.ok();
 	}
 }

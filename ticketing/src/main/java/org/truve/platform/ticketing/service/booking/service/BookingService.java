@@ -91,7 +91,7 @@ public class BookingService {
 	}
 
 	@Transactional
-	public void paymentProcess(String reservationNumber, BookingRequest.ApplicantInfo request) {
+	public void paymentReady(String reservationNumber, BookingRequest.ApplicantInfo request) {
 		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
 
 		reservation.readyForPayment(request.toEntity());
