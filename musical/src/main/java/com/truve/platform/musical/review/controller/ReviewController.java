@@ -45,25 +45,25 @@ public class ReviewController {
 	}
 
 	@GetMapping("/{showId}")
-	public ApiResult<ReviewResponse.Search> getReviews(
-		@Parameter(hidden = true)
-		@RequestHeader(value = USER_ID_HEADER) UUID userId,
-		@PathVariable	Long showId
-	) {
-		var response = reviewService.getReviews(showId);
-
-		return ApiResult.ok(response);
-	}
-
-	@GetMapping("/{showId}/items")
-	public ApiResult<PageResponse<ReviewResponse.ReviewItem>> getReviewItems(
+	public ApiResult<PageResponse<ReviewResponse.ReviewItem>> getReviews(
 		@Parameter(hidden = true)
 		@RequestHeader(value = USER_ID_HEADER) UUID userId,
 		@PathVariable Long showId,
 		@RequestParam(required = false, defaultValue = "LATEST") ReviewSortType sort,
 		@Valid Paging paging
 	) {
-		Page<ReviewResponse.ReviewItem> response = reviewService.getReviewItems(showId, sort, paging);
+		Page<ReviewResponse.ReviewItem> response = reviewService.getReviews(showId, sort, paging);
+
+		return ApiResult.ok(response);
+	}
+
+	@GetMapping("/{showId}/meta")
+	public ApiResult<ReviewResponse.Search> getReviewMeta(
+		@Parameter(hidden = true)
+		@RequestHeader(value = USER_ID_HEADER) UUID userId,
+		@PathVariable Long showId
+	) {
+		var response = reviewService.getReviewMeta(showId);
 
 		return ApiResult.ok(response);
 	}

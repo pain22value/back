@@ -82,7 +82,7 @@ public class ReviewService {
 		reviewPointRepository.saveAll(reviewPoints);
 	}
 
-	public ReviewResponse.Search getReviews(Long showId) {
+	public ReviewResponse.Search getReviewMeta(Long showId) {
 		long reviewCount = reviewRepository.countByShowIdAndDeletedAtIsNull(showId);
 		long positiveReviewCount = reviewRepository.countByShowIdAndDeletedAtIsNullAndIsPositiveTrue(showId);
 
@@ -108,7 +108,7 @@ public class ReviewService {
 		);
 	}
 
-	public Page<ReviewResponse.ReviewItem> getReviewItems(Long showId, ReviewSortType sort, Paging paging) {
+	public Page<ReviewResponse.ReviewItem> getReviews(Long showId, ReviewSortType sort, Paging paging) {
 		Page<Review> reviews = getSortedReviews(showId, sort, paging.toPageable());
 		return reviews.map(this::toReviewItem);
 	}
