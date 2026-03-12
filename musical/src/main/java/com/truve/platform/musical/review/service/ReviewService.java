@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
+import com.truve.platform.musical.review.domain.constant.ReviewPointName;
 import com.truve.platform.musical.review.domain.entity.Review;
 import com.truve.platform.musical.review.domain.entity.ReviewPoint;
 import com.truve.platform.musical.review.domain.entity.ReviewPointType;
@@ -38,19 +39,8 @@ public class ReviewService {
 			ErrorCode.ALREADY_EXIST_REVIEW
 		);
 
-		List<ReviewPointType> emotionPoints = request.getEmotionPoints().stream()
-			.map(emotionPoint -> {
-			Preconditions.validate(emotionPoint.isEmotionPoint(), ErrorCode.NOT_EMOTION_POINT);
-			return reviewPointTypeRepository.findByPoint(emotionPoint)
-				.orElseThrow(() -> new CustomException(ErrorCode.NOT_EMOTION_POINT));
-			}).toList();
-
-		List<ReviewPointType> charmPoints = request.getCharmPoints().stream()
-			.map(charmPoint -> {
-				Preconditions.validate(charmPoint.isCharmPoint(), ErrorCode.NOT_CHARM_POINT);
-				return reviewPointTypeRepository.findByPoint(charmPoint)
-					.orElseThrow(() -> new CustomException(ErrorCode.NOT_CHARM_POINT));
-			}).toList();
+		List<ReviewPointType> emotionPoints = getEmotionPoints(request.getCharmPoints());
+		List<ReviewPointType> charmPoints = getCharmPoints(request.getEmotionPoints());
 
 
 		Review review = Review.builder().
@@ -68,13 +58,33 @@ public class ReviewService {
 
 
 		emotionPoints.forEach(emotionPoint -> {
-			reviewPoints.add(ReviewPoint.of(savedReview, emotionPoint));
+			reviewPoints.add(ReviewPoint.create(savedReview, emotionPoint));
 		});
 
 		charmPoints.forEach(charmPoint -> {
-			reviewPoints.add(ReviewPoint.of(savedReview, charmPoint));
+			reviewPoints.add(ReviewPoint.create(savedReview, charmPoint));
 		});
 
 		reviewPointRepository.saveAll(reviewPoints);
 	}
+
+
+	private List<ReviewPointType> getCharmPoints(List<ReviewPointName> charmPoints) {
+		return charmPoints.stream()
+			.map(charmPoint -> {
+				Preconditions.validate(charmPoint.isCharmPoint(), ErrorCode.NOT_CHARM_POINT);
+				return reviewPointTypeRepository.findByPoint(charmPoint)
+					.orElseThrow(() -> new CustomException(ErrorCode.NOT_CHARM_POINT));
+			}).toList();
+	}
+
+	private List<ReviewPointType> getEmotionPoints(List<ReviewPointName> emotionPoints) {
+		return emotionPoints.stream()
+			.map(emotionPoint -> {
+				Preconditions.validate(emotionPoint.isEmotionPoint(), ErrorCode.NOT_EMOTION_POINT);
+				return reviewPointTypeRepository.findByPoint(emotionPoint)
+					.orElseThrow(() -> new CustomException(ErrorCode.NOT_EMOTION_POINT));
+			}).toList();
+	}
+
 }
