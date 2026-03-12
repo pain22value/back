@@ -10,7 +10,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,19 +33,11 @@ public class ReviewPointType extends BaseEntity {
 	@Column(nullable = false)
 	private Long order;
 
-	@Builder
-	public ReviewPointType(ReviewPointName point) {
-		this.category = point.getCategory();
-		this.point = point;
-		this.code = point.getCode();
-		this.order = point.getOrder();
+	public boolean isEmotionPoint(ReviewPointName point) {
+		return ReviewPointCategory.EMOTION == point.getCategory();
 	}
 
-	public boolean isEmotionPoint() {
-		return this.category ==  ReviewPointCategory.EMOTION;
-	}
-
-	public boolean isCharmPoint() {
-		return this.category ==   ReviewPointCategory.CHARM;
+	public boolean isCharmPoint(ReviewPointName point) {
+		return ReviewPointCategory.CHARM == point.getCategory();
 	}
 }
