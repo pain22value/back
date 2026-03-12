@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import com.truve.platform.musical.s3.S3Service;
@@ -40,6 +41,43 @@ class HomeServiceTest {
 
 	@InjectMocks
 	private HomeService homeService;
+
+	@Test
+	@DisplayName("홈 공연 목록 조회는 기본 정렬(일간 예매순)로 목록을 응답한다.")
+	void 홈_공연_목록_조회_기본정렬_성공() {
+		Show show = org.mockito.Mockito.mock(Show.class);
+		when(show.getId()).thenReturn(1L);
+		when(show.getVenueId()).thenReturn(10L);
+		when(show.getTitle()).thenReturn("Wicked");
+		when(show.getPosterImg()).thenReturn("shows/1/poster.jpg");
+		when(show.getStartTime()).thenReturn(LocalDateTime.of(2025, 11, 29, 10, 0));
+		when(show.getEndTime()).thenReturn(LocalDateTime.of(2026, 2, 22, 20, 0));
+
+		Venue venue = org.mockito.Mockito.mock(Venue.class);
+		when(venue.getId()).thenReturn(10L);
+		when(venue.getName()).thenReturn("샤롯데씨어터");
+
+		when(showRepository.findHomeShowsOrderByDailyRank(
+			org.mockito.ArgumentMatchers.isNull(),
+			org.mockito.ArgumentMatchers.any(LocalDateTime.class),
+			org.mockito.ArgumentMatchers.eq(PageRequest.of(0, 20))
+		))
+			.thenReturn(new PageImpl<>(List.of(show), PageRequest.of(0, 20), 1));
+		when(venueRepository.findAllById(List.of(10L))).thenReturn(List.of(venue));
+		when(s3Service.getImageUrl("shows/1/poster.jpg")).thenReturn("https://img.example/shows/1/poster.jpg");
+
+		HomeResponse.ShowList result = homeService.getHomeShows(null, null, 0, 20);
+
+		assertEquals(1, result.getShows().size());
+		assertEquals(1L, result.getShows().get(0).getShowId());
+		assertEquals("Wicked", result.getShows().get(0).getShowTitle());
+		assertEquals("샤롯데씨어터", result.getShows().get(0).getVenueName());
+		assertEquals("2025.11.29 - 2026.02.22", result.getShows().get(0).getDate());
+		assertEquals(true, result.getShows().get(0).getIsConfirm());
+		assertEquals(1, result.getPage().getCurrentPage());
+		assertEquals(1, result.getPage().getTotalElements());
+		assertEquals(1, result.getPage().getTotalPages());
+	}
 
 	@Test
 	@DisplayName("홈 배너 조회는 노출 배너를 순서대로 URL 변환해 응답한다.")
@@ -99,7 +137,7 @@ class HomeServiceTest {
 	}
 
 	@Test
-	@DisplayName("공연이 삭제된 배너도 isActive면 노출되며 공연 정보 필드는 null이다.")
+	@DisplayName("공연이 삭제된 배너도 isActive면 노출되며 기본값으로 응답한다.")
 	void 홈_배너_조회_공연삭제_배너_노출() {
 		HomeBanner danglingBanner = org.mockito.Mockito.mock(HomeBanner.class);
 		when(danglingBanner.getId()).thenReturn(21L);
@@ -115,7 +153,7 @@ class HomeServiceTest {
 
 		assertEquals(1, result.getBanners().size());
 		assertEquals(999L, result.getBanners().get(0).getShowId());
-		assertEquals("공연 정보 없음", result.getBanners().get(0).getShowTitle());
+		assertEquals("공연 제목 없음", result.getBanners().get(0).getShowTitle());
 		assertEquals("공연장 정보 없음", result.getBanners().get(0).getVenueName());
 		assertEquals("기간 미정", result.getBanners().get(0).getDate());
 		assertEquals("https://img.example/home/banner-dangling.jpg", result.getBanners().get(0).getPosterUrl());
