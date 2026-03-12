@@ -99,7 +99,7 @@ public class ReviewService {
 		List<ReviewResponse.PointScore> emotionPointScores = toPointScores(ReviewPointCategory.EMOTION, pointCounts, reviewCount);
 
 		// TODO: 일간 랭킹 예매순 추가 후 반영
-		return new ReviewResponse.Search(
+		return ReviewResponse.Search.create(
 			1L,
 			truveScore,
 			showId,
@@ -151,7 +151,7 @@ public class ReviewService {
 
 		return Arrays.stream(ReviewPointName.values())
 			.filter(point -> point.getCategory() == category)
-			.map(point -> new ReviewResponse.PointScore(
+			.map(point -> ReviewResponse.PointScore.create(
 				point,
 				point.getLabel(),
 				Math.round(pointCounts.getOrDefault(point, 0L) * 100.0 / reviewCount)
@@ -165,7 +165,7 @@ public class ReviewService {
 			() -> new CustomException(ErrorCode.NOT_FOUND_REVIEW_USER)
 		);
 
-		return new ReviewResponse.ReviewItem(
+		return ReviewResponse.ReviewItem.create(
 			review.getId(),
 			review.getUserId(),
 			user.getNickname(),
