@@ -1,7 +1,6 @@
 package com.truve.platform.musical.review.domain.entity;
 
 import com.truve.platform.common.support.BaseEntity;
-import com.truve.platform.musical.review.domain.constant.ReviewPointName;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.Entity;
@@ -32,7 +31,7 @@ public class ReviewPoint extends BaseEntity {
 		this.reviewPointType = reviewPointType;
 	}
 
-	public static ReviewPoint of(Review review, ReviewPointType reviewPointType) {
+	public static ReviewPoint create(Review review, ReviewPointType reviewPointType) {
 		return ReviewPoint.builder()
 			.review(review)
 			.reviewPointType(reviewPointType)
