@@ -6,9 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,8 @@ import org.springframework.util.StringUtils;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
 import com.truve.platform.musical.seat.domain.repository.VenueRepository;
+import com.truve.platform.musical.show.domain.constant.HomeShowOrder;
+import com.truve.platform.musical.show.domain.constant.HomeRegion;
 import com.truve.platform.musical.show.domain.entity.HomeBanner;
 import com.truve.platform.musical.show.domain.entity.Show;
 import com.truve.platform.musical.show.dto.HomeResponse;
@@ -30,6 +33,10 @@ import lombok.RequiredArgsConstructor;
 public class HomeService {
 
 	private static final int MAX_BANNERS = 5;
+	private static final int DEFAULT_PAGE = 1;
+	private static final int DEFAULT_SIZE = 10;
+	private static final HomeShowOrder DEFAULT_ORDER = HomeShowOrder.DAILY_BOOKING;
+	private static final HomeRegion DEFAULT_REGION = HomeRegion.ALL;
 	private static final DateTimeFormatter BANNER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 	private static final String DEFAULT_SHOW_TITLE = "공연 제목 없음";
 	private static final String DEFAULT_VENUE_NAME = "공연장 정보 없음";
@@ -39,6 +46,35 @@ public class HomeService {
 	private final ShowRepository showRepository;
 	private final VenueRepository venueRepository;
 	private final S3Service s3Service;
+
+	@Transactional(readOnly = true)
+	public HomeResponse.ShowList getHomeShows(HomeShowOrder order, HomeRegion region, Integer page, Integer size) {
+		HomeShowOrder normalizedOrder = order != null ? order : DEFAULT_ORDER;
+		HomeRegion normalizedRegion = region != null ? region : DEFAULT_REGION;
+		int safePage = normalizePage(page);
+		int safeSize = normalizeSize(size);
+		PageRequest pageRequest = PageRequest.of(safePage - 1, safeSize);
+		Page<Show> showPage = findHomeShowsByOrder(normalizedOrder, normalizedRegion, pageRequest);
+		List<Show> pageShows = showPage.getContent();
+		Map<Long, Venue> venuesById = getVenuesByShowList(pageShows);
+
+		List<HomeResponse.ShowSummary> summaries = pageShows.stream()
+			.map(show -> toShowSummary(show, venuesById))
+			.toList();
+
+		return toShowListResponse(showPage, summaries, safePage, safeSize);
+	}
+
+	private Page<Show> findHomeShowsByOrder(HomeShowOrder order, HomeRegion region, PageRequest pageRequest) {
+		String regionKeyword = region.getKeyword();
+		LocalDateTime now = LocalDate.now().atStartOfDay();
+		return switch (order) {
+			case WEEKLY_BOOKING -> showRepository.findHomeShowsOrderByWeeklyRank(regionKeyword, now, pageRequest);
+			case ENDING_SOON -> showRepository.findHomeShowsOrderByEndingSoon(regionKeyword, now, pageRequest);
+			case MOST_REVIEWED -> showRepository.findHomeShowsOrderByReviewCount(regionKeyword, now, pageRequest);
+			case DAILY_BOOKING -> showRepository.findHomeShowsOrderByDailyRank(regionKeyword, now, pageRequest);
+		};
+	}
 
 	@Transactional(readOnly = true)
 	public HomeResponse.BannerList getHomeBanners() {
@@ -103,8 +139,64 @@ public class HomeService {
 			.map(Show::getVenueId)
 			.distinct()
 			.toList();
-		return venueRepository.findAllById(venueIds).stream()
+		return getVenuesByIds(venueIds).stream()
 			.collect(Collectors.toMap(Venue::getId, Venue::getName, (left, right) -> left, LinkedHashMap::new));
+	}
+
+	private int normalizePage(Integer page) {
+		return (page == null || page < DEFAULT_PAGE) ? DEFAULT_PAGE : page;
+	}
+
+	private int normalizeSize(Integer size) {
+		return (size == null || size < 1) ? DEFAULT_SIZE : size;
+	}
+
+	private Map<Long, Venue> getVenuesByShowList(List<Show> shows) {
+		if (shows.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		List<Long> venueIds = shows.stream()
+			.map(Show::getVenueId)
+			.distinct()
+			.toList();
+		return getVenuesByIds(venueIds).stream()
+			.collect(Collectors.toMap(Venue::getId, venue -> venue));
+	}
+
+	private List<Venue> getVenuesByIds(List<Long> venueIds) {
+		if (venueIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return venueRepository.findAllById(venueIds);
+	}
+
+	private HomeResponse.ShowSummary toShowSummary(Show show, Map<Long, Venue> venuesById) {
+		Venue venue = venuesById.get(show.getVenueId());
+		return HomeResponse.ShowSummary.builder()
+			.showId(show.getId())
+			.posterUrl(toImageUrl(show.getPosterImg()))
+			.showTitle(show.getTitle())
+			.venueName(venue != null ? venue.getName() : DEFAULT_VENUE_NAME)
+			.date(toDateRange(show))
+			.isConfirm(true)
+			.build();
+	}
+
+	private HomeResponse.ShowList toShowListResponse(
+		Page<Show> showPage,
+		List<HomeResponse.ShowSummary> summaries,
+		int currentPage,
+		int size
+	) {
+		return HomeResponse.ShowList.builder()
+			.shows(summaries)
+			.page(HomeResponse.Page.builder()
+				.currentPage(currentPage)
+				.size(size)
+				.totalElements(showPage.getTotalElements())
+				.totalPages(showPage.getTotalPages())
+				.build())
+			.build();
 	}
 
 	private boolean isVisibleBanner(HomeBanner banner, Map<Long, Show> showsById, LocalDate today) {
