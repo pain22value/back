@@ -8,11 +8,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.musical.review.dao.ReviewPointCountDao;
 import com.truve.platform.musical.review.domain.constant.ReviewPointCategory;
@@ -79,8 +82,7 @@ public class ReviewService {
 		reviewPointRepository.saveAll(reviewPoints);
 	}
 
-	public ReviewResponse.Search getReviews(Long showId, ReviewSortType sort) {
-		List<Review> reviews = getSortedReviews(showId, sort);
+	public ReviewResponse.Search getReviews(Long showId) {
 		long reviewCount = reviewRepository.countByShowIdAndDeletedAtIsNull(showId);
 		long positiveReviewCount = reviewRepository.countByShowIdAndDeletedAtIsNullAndIsPositiveTrue(showId);
 
@@ -96,12 +98,19 @@ public class ReviewService {
 		List<ReviewResponse.PointScore> charmPointScores = toPointScores(ReviewPointCategory.CHARM, pointCounts, reviewCount);
 		List<ReviewResponse.PointScore> emotionPointScores = toPointScores(ReviewPointCategory.EMOTION, pointCounts, reviewCount);
 
-		List<ReviewResponse.ReviewItem> reviewItems = reviews.stream()
-			.map(this::toReviewItem)
-			.toList();
-
 		// TODO: 일간 랭킹 예매순 추가 후 반영
-		return new ReviewResponse.Search(1L, truveScore, showId, charmPointScores, emotionPointScores, reviewItems);
+		return new ReviewResponse.Search(
+			1L,
+			truveScore,
+			showId,
+			charmPointScores,
+			emotionPointScores
+		);
+	}
+
+	public Page<ReviewResponse.ReviewItem> getReviewItems(Long showId, ReviewSortType sort, Paging paging) {
+		Page<Review> reviews = getSortedReviews(showId, sort, paging.toPageable());
+		return reviews.map(this::toReviewItem);
 	}
 
 	private List<ReviewPointType> getCharmPoints(List<ReviewPointName> charmPoints) {
@@ -123,11 +132,11 @@ public class ReviewService {
 	}
 
 
-	private List<Review> getSortedReviews(Long showId,  ReviewSortType sort) {
+	private Page<Review> getSortedReviews(Long showId, ReviewSortType sort, Pageable pageable) {
 		return switch (sort) {
-			case LATEST ->  reviewRepository.findByShowIdAndDeletedAtIsNullOrderByCreatedAtDesc(showId);
-			case POSITIVE -> reviewRepository.findByShowIdAndDeletedAtIsNullAndIsPositiveTrueOrderByCreatedAtDesc(showId);
-			case NEGATIVE -> reviewRepository.findByShowIdAndDeletedAtIsNullAndIsPositiveFalseOrderByCreatedAtDesc(showId);
+			case LATEST -> reviewRepository.findByShowIdAndDeletedAtIsNull(showId, pageable);
+			case POSITIVE -> reviewRepository.findByShowIdAndDeletedAtIsNullAndIsPositiveTrue(showId, pageable);
+			case NEGATIVE -> reviewRepository.findByShowIdAndDeletedAtIsNullAndIsPositiveFalse(showId, pageable);
 		};
 	}
 
