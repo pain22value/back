@@ -39,8 +39,8 @@ public class ReviewService {
 			ErrorCode.ALREADY_EXIST_REVIEW
 		);
 
-		List<ReviewPointType> emotionPoints = getEmotionPoints(request.getCharmPoints());
-		List<ReviewPointType> charmPoints = getCharmPoints(request.getEmotionPoints());
+		List<ReviewPointType> emotionPoints = getEmotionPoints(request.getEmotionPoints());
+		List<ReviewPointType> charmPoints = getCharmPoints(request.getCharmPoints());
 
 
 		Review review = Review.builder().
