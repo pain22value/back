@@ -2,6 +2,7 @@ package com.truve.platform.musical.review.controller;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.truve.platform.common.response.ApiResult;
+import com.truve.platform.common.response.PageResponse;
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.review.domain.constant.ReviewSortType;
 import com.truve.platform.musical.review.dto.ReviewRequest;
 import com.truve.platform.musical.review.dto.ReviewResponse;
@@ -45,10 +48,22 @@ public class ReviewController {
 	public ApiResult<ReviewResponse.Search> getReviews(
 		@Parameter(hidden = true)
 		@RequestHeader(value = USER_ID_HEADER) UUID userId,
-		@PathVariable	Long showId,
-		@RequestParam(required = false, defaultValue = "LATEST") ReviewSortType sort
+		@PathVariable	Long showId
 	) {
-		var response = reviewService.getReviews(showId, sort);
+		var response = reviewService.getReviews(showId);
+
+		return ApiResult.ok(response);
+	}
+
+	@GetMapping("/{showId}/items")
+	public ApiResult<PageResponse<ReviewResponse.ReviewItem>> getReviewItems(
+		@Parameter(hidden = true)
+		@RequestHeader(value = USER_ID_HEADER) UUID userId,
+		@PathVariable Long showId,
+		@RequestParam(required = false, defaultValue = "LATEST") ReviewSortType sort,
+		@Valid Paging paging
+	) {
+		Page<ReviewResponse.ReviewItem> response = reviewService.getReviewItems(showId, sort, paging);
 
 		return ApiResult.ok(response);
 	}

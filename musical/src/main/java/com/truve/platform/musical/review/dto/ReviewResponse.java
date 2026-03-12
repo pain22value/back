@@ -39,7 +39,6 @@ public class ReviewResponse {
 		private Long showId;
 		private List<PointScore> charmPointScores;
 		private List<PointScore> emotionPointScores;
-		private List<ReviewItem> reviewItems;
 	}
 
 
