@@ -11,6 +11,36 @@ public class HomeResponse {
 	@Getter
 	@AllArgsConstructor
 	@Builder
+	public static class ShowList {
+		private List<ShowSummary> shows;
+		private Page page;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
+	public static class ShowSummary {
+		private Long showId;
+		private String posterUrl;
+		private String showTitle;
+		private String venueName;
+		private String date;
+		private Boolean isConfirm;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
+	public static class Page {
+		private int currentPage;
+		private int size;
+		private long totalElements;
+		private int totalPages;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
 	public static class BannerList {
 		private List<Banner> banners;
 	}
