@@ -24,4 +24,12 @@ public enum ReviewPointName {
 	private final String label;
 	private final String code;
 	private final Long order;
+
+	public boolean isCharmPoint() {
+		return this.category == ReviewPointCategory.CHARM;
+	}
+
+	public boolean isEmotionPoint() {
+		return this.category == ReviewPointCategory.EMOTION;
+	}
 }
