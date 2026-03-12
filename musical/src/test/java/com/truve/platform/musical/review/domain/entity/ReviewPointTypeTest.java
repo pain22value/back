@@ -26,7 +26,7 @@ class ReviewPointTypeTest {
 			() -> assertThat(reviewPointType.getPoint()).isEqualTo(ReviewPointName.TOUCHING),
 			() -> assertThat(reviewPointType.getCode()).isEqualTo("E05"),
 			() -> assertThat(reviewPointType.getOrder()).isEqualTo(5L),
-			() -> assertThat(reviewPointType.isEmotionPoint(ReviewPointName.TOUCHING)).isTrue(),
+			() -> assertThat(reviewPointType.isEmotionPoint()).isTrue(),
 			() -> assertThat(reviewPointType.isCharmPoint(ReviewPointName.STORY)).isTrue()
 		);
 	}

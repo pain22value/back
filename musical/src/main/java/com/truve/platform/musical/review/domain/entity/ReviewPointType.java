@@ -33,11 +33,11 @@ public class ReviewPointType extends BaseEntity {
 	@Column(nullable = false)
 	private Long order;
 
-	public boolean isEmotionPoint(ReviewPointName point) {
-		return ReviewPointCategory.EMOTION == point.getCategory();
+	public boolean isEmotionPoint() {
+		return this.category == ReviewPointCategory.EMOTION;
 	}
 
 	public boolean isCharmPoint(ReviewPointName point) {
-		return ReviewPointCategory.CHARM == point.getCategory();
+		return this.category ==  ReviewPointCategory.CHARM;
 	}
 }
