@@ -26,7 +26,7 @@ public class ReviewPointType extends BaseEntity {
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private ReviewPointName name;
+	private ReviewPointName point;
 
 	@Column(nullable = false)
 	private String code;
@@ -35,10 +35,18 @@ public class ReviewPointType extends BaseEntity {
 	private Long order;
 
 	@Builder
-	public ReviewPointType(ReviewPointCategory category, ReviewPointName name, String code, Long order) {
-		this.category = category;
-		this.name = name;
-		this.code = code;
-		this.order = order;
+	public ReviewPointType(ReviewPointName point) {
+		this.category = point.getCategory();
+		this.point = point;
+		this.code = point.getCode();
+		this.order = point.getOrder();
+	}
+
+	public boolean isEmotionPoint() {
+		return this.category ==  ReviewPointCategory.EMOTION;
+	}
+
+	public boolean isCharmPoint() {
+		return this.category ==   ReviewPointCategory.CHARM;
 	}
 }

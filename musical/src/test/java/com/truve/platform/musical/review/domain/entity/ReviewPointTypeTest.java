@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.truve.platform.musical.review.domain.constant.ReviewPointCategory;
+import com.truve.platform.musical.review.domain.constant.ReviewPointName;
 
 class ReviewPointTypeTest {
 
@@ -14,17 +15,14 @@ class ReviewPointTypeTest {
 	@DisplayName("ReviewPointType을 생성한다.")
 	void 리뷰포인트타입_생성_성공() {
 		ReviewPointType reviewPointType = ReviewPointType.builder()
-			.category(ReviewPointCategory.CHARM)
-			.name("감동")
-			.code("TOUCHED")
-			.order(1L)
+			.point(ReviewPointName.TOUCHING)
 			.build();
 
 		assertAll(
 			() -> assertThat(reviewPointType.getCategory()).isEqualTo(ReviewPointCategory.CHARM),
-			() -> assertThat(reviewPointType.getName()).isEqualTo("감동"),
-			() -> assertThat(reviewPointType.getCode()).isEqualTo("TOUCHED"),
-			() -> assertThat(reviewPointType.getOrder()).isEqualTo(1L)
+			() -> assertThat(reviewPointType.getPoint()).isEqualTo("감동"),
+			() -> assertThat(reviewPointType.getCode()).isEqualTo("E05"),
+			() -> assertThat(reviewPointType.getOrder()).isEqualTo(5L)
 		);
 	}
 }
