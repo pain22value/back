@@ -2,15 +2,19 @@ package com.truve.platform.musical.review.controller;
 
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.truve.platform.common.response.ApiResult;
+import com.truve.platform.musical.review.domain.constant.ReviewSortType;
 import com.truve.platform.musical.review.dto.ReviewRequest;
+import com.truve.platform.musical.review.dto.ReviewResponse;
 import com.truve.platform.musical.review.service.ReviewService;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/musical/review")
+@RequestMapping("/api/musical/reviews")
 public class ReviewController {
 
 	private static final String USER_ID_HEADER = "X-User-Id";
@@ -35,6 +39,18 @@ public class ReviewController {
 	) {
 		reviewService.create(userId, showId, request);
 		return ApiResult.ok();
+	}
+
+	@GetMapping("/{showId}")
+	public ApiResult<ReviewResponse.Search> getReviews(
+		@Parameter(hidden = true)
+		@RequestHeader(value = USER_ID_HEADER) UUID userId,
+		@PathVariable	Long showId,
+		@RequestParam(required = false, defaultValue = "LATEST") ReviewSortType sort
+	) {
+		var response = reviewService.getReviews(showId, sort);
+
+		return ApiResult.ok(response);
 	}
 
 }
