@@ -59,6 +59,7 @@ public class BookingService {
 			seatInfo -> Ticket.create(
 				reservation,
 				numberGenerator.generateTicketNumber(),
+				seatInfo.getGradeName(),
 				seatInfo.getPrice(),
 				createSeatDetail(seatInfo)
 			)
