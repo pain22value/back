@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
 import com.truve.platform.musical.seat.domain.repository.VenueRepository;
@@ -66,7 +67,7 @@ class HomeServiceTest {
 		when(venueRepository.findAllById(List.of(10L))).thenReturn(List.of(venue));
 		when(s3Service.getImageUrl("shows/1/poster.jpg")).thenReturn("https://img.example/shows/1/poster.jpg");
 
-		HomeResponse.ShowList result = homeService.getHomeShows(null, null, 0, 20);
+		HomeResponse.ShowList result = homeService.getHomeShows(null, null, new Paging(1, 20));
 
 		assertEquals(1, result.getShows().size());
 		assertEquals(1L, result.getShows().get(0).getShowId());

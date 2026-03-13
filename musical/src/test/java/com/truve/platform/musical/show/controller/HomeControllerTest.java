@@ -2,6 +2,7 @@ package com.truve.platform.musical.show.controller;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.truve.platform.common.exception.ApiAdvice;
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.MusicalApplication;
 import com.truve.platform.musical.show.domain.constant.HomeRegion;
 import com.truve.platform.musical.show.dto.HomeResponse;
@@ -60,12 +62,13 @@ class HomeControllerTest {
 			given(homeService.getHomeShows(
 				org.mockito.ArgumentMatchers.isNull(),
 				org.mockito.ArgumentMatchers.isNull(),
-				org.mockito.ArgumentMatchers.isNull(),
-				org.mockito.ArgumentMatchers.isNull()
+				argThat((Paging p) -> p != null && p.getPage() == 1 && p.getSize() == 10)
 			))
 				.willReturn(response);
 
-		mockMvc.perform(get("/api/musical/home/shows"))
+		mockMvc.perform(get("/api/musical/home/shows")
+				.param("page", "1")
+				.param("size", "10"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.shows[0].showId").value(1))
@@ -89,13 +92,12 @@ class HomeControllerTest {
 		given(homeService.getHomeShows(
 			org.mockito.ArgumentMatchers.isNull(),
 			org.mockito.ArgumentMatchers.eq(HomeRegion.SEOUL),
-			org.mockito.ArgumentMatchers.eq(0),
-			org.mockito.ArgumentMatchers.eq(20)
+			argThat((Paging p) -> p != null && p.getPage() == 1 && p.getSize() == 20)
 		)).willReturn(response);
 
 		mockMvc.perform(get("/api/musical/home/shows")
 				.param("region", "SEOUL")
-				.param("page", "0")
+				.param("page", "1")
 				.param("size", "20"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
@@ -132,12 +134,13 @@ class HomeControllerTest {
 	}
 
 	@Test
-	@DisplayName("홈 공연 목록 조회에서 size가 0 이하면 보정되어 200을 응답한다.")
+	@DisplayName("홈 공연 목록 조회에서 size가 0 이하면 400(C02)을 응답한다.")
 	void 홈_공연_목록_조회_검증_실패() throws Exception {
 		mockMvc.perform(get("/api/musical/home/shows")
-				.param("page", "0")
+				.param("page", "1")
 				.param("size", "0"))
-			.andExpect(status().isOk());
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("C02"));
 	}
 
 	@Test
