@@ -1,0 +1,36 @@
+package org.truve.platform.ticketing.service.booking.domain.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+public class ShowInfo {
+
+	@Column(nullable = false)
+	private Long showId;
+
+	@Column(nullable = false)
+	private String title;
+
+	@Column
+	private String venueName;
+
+	@Column(nullable = false)
+	private LocalDateTime startAt;
+
+	@Builder
+	public ShowInfo(Long showId, String title, String venueName, LocalDateTime startAt) {
+		this.showId = showId;
+		this.title = title;
+		this.venueName = venueName;
+		this.startAt = startAt;
+	}
+}
