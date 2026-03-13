@@ -10,11 +10,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
 import com.truve.platform.musical.seat.domain.repository.VenueRepository;
@@ -33,8 +35,6 @@ import lombok.RequiredArgsConstructor;
 public class HomeService {
 
 	private static final int MAX_BANNERS = 5;
-	private static final int DEFAULT_PAGE = 1;
-	private static final int DEFAULT_SIZE = 10;
 	private static final HomeShowOrder DEFAULT_ORDER = HomeShowOrder.DAILY_BOOKING;
 	private static final HomeRegion DEFAULT_REGION = HomeRegion.ALL;
 	private static final DateTimeFormatter BANNER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
@@ -48,13 +48,11 @@ public class HomeService {
 	private final S3Service s3Service;
 
 	@Transactional(readOnly = true)
-	public HomeResponse.ShowList getHomeShows(HomeShowOrder order, HomeRegion region, Integer page, Integer size) {
+	public HomeResponse.ShowList getHomeShows(HomeShowOrder order, HomeRegion region, Paging paging) {
 		HomeShowOrder normalizedOrder = order != null ? order : DEFAULT_ORDER;
 		HomeRegion normalizedRegion = region != null ? region : DEFAULT_REGION;
-		int safePage = normalizePage(page);
-		int safeSize = normalizeSize(size);
-		PageRequest pageRequest = PageRequest.of(safePage - 1, safeSize);
-		Page<Show> showPage = findHomeShowsByOrder(normalizedOrder, normalizedRegion, pageRequest);
+		Pageable pageable = paging.toPageable();
+		Page<Show> showPage = findHomeShowsByOrder(normalizedOrder, normalizedRegion, pageable);
 		List<Show> pageShows = showPage.getContent();
 		Map<Long, Venue> venuesById = getVenuesByShowList(pageShows);
 
@@ -62,17 +60,17 @@ public class HomeService {
 			.map(show -> toShowSummary(show, venuesById))
 			.toList();
 
-		return toShowListResponse(showPage, summaries, safePage, safeSize);
+		return toShowListResponse(showPage, summaries);
 	}
 
-	private Page<Show> findHomeShowsByOrder(HomeShowOrder order, HomeRegion region, PageRequest pageRequest) {
+	private Page<Show> findHomeShowsByOrder(HomeShowOrder order, HomeRegion region, Pageable pageable) {
 		String regionKeyword = region.getKeyword();
 		LocalDateTime now = LocalDate.now().atStartOfDay();
 		return switch (order) {
-			case WEEKLY_BOOKING -> showRepository.findHomeShowsOrderByWeeklyRank(regionKeyword, now, pageRequest);
-			case ENDING_SOON -> showRepository.findHomeShowsOrderByEndingSoon(regionKeyword, now, pageRequest);
-			case MOST_REVIEWED -> showRepository.findHomeShowsOrderByReviewCount(regionKeyword, now, pageRequest);
-			case DAILY_BOOKING -> showRepository.findHomeShowsOrderByDailyRank(regionKeyword, now, pageRequest);
+			case WEEKLY_BOOKING -> showRepository.findHomeShowsOrderByWeeklyRank(regionKeyword, now, pageable);
+			case ENDING_SOON -> showRepository.findHomeShowsOrderByEndingSoon(regionKeyword, now, pageable);
+			case MOST_REVIEWED -> showRepository.findHomeShowsOrderByReviewCount(regionKeyword, now, pageable);
+			case DAILY_BOOKING -> showRepository.findHomeShowsOrderByDailyRank(regionKeyword, now, pageable);
 		};
 	}
 
@@ -143,14 +141,6 @@ public class HomeService {
 			.collect(Collectors.toMap(Venue::getId, Venue::getName, (left, right) -> left, LinkedHashMap::new));
 	}
 
-	private int normalizePage(Integer page) {
-		return (page == null || page < DEFAULT_PAGE) ? DEFAULT_PAGE : page;
-	}
-
-	private int normalizeSize(Integer size) {
-		return (size == null || size < 1) ? DEFAULT_SIZE : size;
-	}
-
 	private Map<Long, Venue> getVenuesByShowList(List<Show> shows) {
 		if (shows.isEmpty()) {
 			return Collections.emptyMap();
@@ -184,15 +174,13 @@ public class HomeService {
 
 	private HomeResponse.ShowList toShowListResponse(
 		Page<Show> showPage,
-		List<HomeResponse.ShowSummary> summaries,
-		int currentPage,
-		int size
+		List<HomeResponse.ShowSummary> summaries
 	) {
 		return HomeResponse.ShowList.builder()
 			.shows(summaries)
 			.page(HomeResponse.Page.builder()
-				.currentPage(currentPage)
-				.size(size)
+				.currentPage(showPage.getNumber() + 1)
+				.size(showPage.getSize())
 				.totalElements(showPage.getTotalElements())
 				.totalPages(showPage.getTotalPages())
 				.build())

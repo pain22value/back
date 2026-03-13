@@ -1,11 +1,13 @@
 package com.truve.platform.musical.show.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.truve.platform.common.response.ApiResult;
+import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.show.domain.constant.HomeRegion;
 import com.truve.platform.musical.show.domain.constant.HomeShowOrder;
 import com.truve.platform.musical.show.dto.HomeResponse;
@@ -13,6 +15,7 @@ import com.truve.platform.musical.show.service.HomeService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,18 +37,18 @@ public class HomeController {
 				name = "region",
 				description = "지역 필터 (ALL=전체, SEOUL=서울, GYEONGGI=경기, GANGWON=강원, CHUNGCHEONG=충청, JEOLLA=전라, GYEONGSANG=경상, JEJU=제주)"
 			),
-			@Parameter(name = "page", description = "페이지 번호(1부터 시작)", example = "1"),
-			@Parameter(name = "size", description = "페이지 크기", example = "10")
+			@Parameter(name = "page", description = "페이지 번호(기본 1)", example = "1"),
+			@Parameter(name = "size", description = "페이지 크기(기본 10)", example = "10")
 		}
 	)
 	@GetMapping("/shows")
 	public ApiResult<HomeResponse.ShowList> getHomeShows(
 		@RequestParam(name = "order", required = false) HomeShowOrder order,
 		@RequestParam(name = "region", required = false) HomeRegion region,
-		@RequestParam(name = "page", required = false) Integer page,
-		@RequestParam(name = "size", required = false) Integer size
+		@Parameter(hidden = true)
+		@Valid @ModelAttribute Paging paging
 	) {
-		return ApiResult.ok(homeService.getHomeShows(order, region, page, size));
+		return ApiResult.ok(homeService.getHomeShows(order, region, paging));
 	}
 
 	@Operation(summary = "홈 배너 조회", description = "홈 화면 상단 배너 목록을 조회합니다.")
