@@ -48,6 +48,12 @@ public class Reservation extends BaseEntity {
 	private LocalDateTime paidAt;
 
 	@Embedded
+	private VirtualAccount virtualAccount;
+
+	@Column
+	private String paymentMethod;
+
+	@Embedded
 	private Applicant applicant;
 
 	@OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
