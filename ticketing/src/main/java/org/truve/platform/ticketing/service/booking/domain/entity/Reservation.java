@@ -57,21 +57,29 @@ public class Reservation extends BaseEntity {
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	private Reservation(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	private Reservation(UUID userId, String number, Long totalAmount, String gradeSummary, ShowInfo showInfo) {
 
 		this.userId = userId;
 		this.number = number;
 		this.totalAmount = totalAmount;
 		this.gradeSummary = gradeSummary;
+		this.showInfo = showInfo;
 		this.status = ReservationStatus.CREATED;
 	}
 
-	public static Reservation create(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	public static Reservation create(
+		UUID userId,
+		String number,
+		Long totalAmount,
+		String gradeSummary,
+		ShowInfo showInfo
+	) {
 		return Reservation.builder()
 			.userId(userId)
 			.number(number)
 			.totalAmount(totalAmount)
 			.gradeSummary(gradeSummary)
+			.showInfo(showInfo)
 			.build();
 	}
 

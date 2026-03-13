@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "show_scheduled")
 public class ShowScheduled extends BaseEntity {
 
+	@Column(nullable = false)
+	Long showId;
 
 	@Column(nullable = false)
 	private String title;
@@ -29,8 +31,9 @@ public class ShowScheduled extends BaseEntity {
 	LocalDateTime startAt;
 
 	@Builder
-	public ShowScheduled(String title, String venueName, LocalDateTime startAt) {
+	public ShowScheduled(Long showId, String title, String venueName, LocalDateTime startAt) {
 
+		this.showId = showId;
 		this.title = title;
 		this.venueName = venueName;
 		this.startAt = startAt;

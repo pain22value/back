@@ -20,7 +20,7 @@ public class ShowInfo {
 	@Column(nullable = false)
 	private String title;
 
-	@Column
+	@Column(nullable = false)
 	private String venueName;
 
 	@Column(nullable = false)
