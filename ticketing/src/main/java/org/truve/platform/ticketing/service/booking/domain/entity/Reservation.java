@@ -87,9 +87,20 @@ public class Reservation extends BaseEntity {
 		this.status = ReservationStatus.PENDING_PAYMENT;
 	}
 
-	public void confirm(LocalDateTime paidAt, boolean isDepositPending) {
+	public void confirm(LocalDateTime paidAt, String paymentMethod, VirtualAccount virtualAccount) {
 		this.paidAt = paidAt;
-		this.status = isDepositPending ? ReservationStatus.PENDING_DEPOSIT : ReservationStatus.CONFIRMED;
+		this.paymentMethod = paymentMethod;
+
+		if (isVirtualAccountPayment(virtualAccount)) {
+			this.virtualAccount = virtualAccount;
+			this.status = ReservationStatus.PENDING_DEPOSIT;
+		} else {
+			this.status = ReservationStatus.CONFIRMED;
+		}
+	}
+
+	private boolean isVirtualAccountPayment(VirtualAccount virtualAccount) {
+		return virtualAccount != null;
 	}
 
 	public void depositReceive(LocalDateTime paidAt) {
