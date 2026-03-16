@@ -74,7 +74,6 @@ class HomeServiceTest {
 		assertEquals("Wicked", result.getShows().get(0).getShowTitle());
 		assertEquals("샤롯데씨어터", result.getShows().get(0).getVenueName());
 		assertEquals("2025.11.29 - 2026.02.22", result.getShows().get(0).getDate());
-		assertEquals(true, result.getShows().get(0).getIsConfirm());
 		assertEquals(1, result.getPage().getCurrentPage());
 		assertEquals(1, result.getPage().getTotalElements());
 		assertEquals(1, result.getPage().getTotalPages());

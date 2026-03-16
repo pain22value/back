@@ -25,7 +25,6 @@ public class HomeResponse {
 		private String showTitle;
 		private String venueName;
 		private String date;
-		private Boolean isConfirm;
 	}
 
 	@Getter

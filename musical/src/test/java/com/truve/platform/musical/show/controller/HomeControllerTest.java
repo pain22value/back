@@ -48,7 +48,6 @@ class HomeControllerTest {
 						.showTitle("Wicked")
 						.venueName("샤롯데씨어터")
 						.date("2025.11.29 - 2026.02.22")
-						.isConfirm(true)
 					.build()
 			))
 			.page(HomeResponse.Page.builder()

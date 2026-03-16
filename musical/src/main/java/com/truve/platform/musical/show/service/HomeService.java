@@ -168,7 +168,6 @@ public class HomeService {
 			.showTitle(show.getTitle())
 			.venueName(venue != null ? venue.getName() : DEFAULT_VENUE_NAME)
 			.date(toDateRange(show))
-			.isConfirm(true)
 			.build();
 	}
 
