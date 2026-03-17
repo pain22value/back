@@ -186,7 +186,6 @@ class ShowControllerTest {
 					ShowCastingResponse.FilterArtist.builder()
 						.artistId(1L)
 						.artistName("김호영")
-						.profileImageUrl("https://img.example/artist-charlie.jpg")
 						.build()
 				))
 				.build())
@@ -208,10 +207,12 @@ class ShowControllerTest {
 						"찰리", ShowCastingResponse.CastArtist.builder()
 							.artistId(1L)
 							.artistName("김호영")
+							.profileImageUrl("https://img.example/show-casting-charlie.jpg")
 							.build(),
 						"롤라", ShowCastingResponse.CastArtist.builder()
 							.artistId(10L)
 							.artistName("강홍석")
+							.profileImageUrl("https://img.example/show-casting-lola.jpg")
 							.build()
 					))
 					.build()
@@ -237,10 +238,10 @@ class ShowControllerTest {
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.showId").value(1))
 			.andExpect(jsonPath("$.data.range.from").value("2025-12-17"))
-			.andExpect(jsonPath("$.data.filters.artists[0].profileImageUrl").value("https://img.example/artist-charlie.jpg"))
 			.andExpect(jsonPath("$.data.roles[0].roleName").value("찰리"))
 			.andExpect(jsonPath("$.data.page.currentPage").value(0))
 			.andExpect(jsonPath("$.data.rows[0].scheduleId").value(101))
-			.andExpect(jsonPath("$.data.rows[0].casts.찰리.artistName").value("김호영"));
+			.andExpect(jsonPath("$.data.rows[0].casts.찰리.artistName").value("김호영"))
+			.andExpect(jsonPath("$.data.rows[0].casts.찰리.profileImageUrl").value("https://img.example/show-casting-charlie.jpg"));
 	}
 }

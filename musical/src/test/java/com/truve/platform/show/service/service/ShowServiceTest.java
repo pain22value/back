@@ -109,16 +109,10 @@ class ShowServiceTest {
 		Artist artistC = org.mockito.Mockito.mock(Artist.class);
 		when(artistA.getId()).thenReturn(101L);
 		when(artistA.getName()).thenReturn("배우A");
-		when(artistA.getProfileImg()).thenReturn("artistA.jpg");
-		when(s3Service.getImageUrl("artistA.jpg")).thenReturn("https://img.example/artistA.jpg");
 		when(artistB.getId()).thenReturn(102L);
 		when(artistB.getName()).thenReturn("배우B");
-		when(artistB.getProfileImg()).thenReturn("artistB.jpg");
-		when(s3Service.getImageUrl("artistB.jpg")).thenReturn("https://img.example/artistB.jpg");
 		when(artistC.getId()).thenReturn(103L);
 		when(artistC.getName()).thenReturn("배우C");
-		when(artistC.getProfileImg()).thenReturn("artistC.jpg");
-		when(s3Service.getImageUrl("artistC.jpg")).thenReturn("https://img.example/artistC.jpg");
 
 		ShowCasting castOrder1 = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrder2 = org.mockito.Mockito.mock(ShowCasting.class);
@@ -127,14 +121,18 @@ class ShowServiceTest {
 		when(castOrder1.getArtist()).thenReturn(artistA);
 		when(castOrder1.getRoleName()).thenReturn("주연");
 		when(castOrder1.getCastingOrder()).thenReturn(1);
+		when(castOrder1.getProfileImg()).thenReturn("show-casting-artistA.jpg");
+		when(s3Service.getImageUrl("show-casting-artistA.jpg")).thenReturn("https://img.example/show-casting-artistA.jpg");
 		when(castOrder2.getId()).thenReturn(5002L);
 		when(castOrder2.getArtist()).thenReturn(artistB);
 		when(castOrder2.getRoleName()).thenReturn("조연");
 		when(castOrder2.getCastingOrder()).thenReturn(2);
+		when(castOrder2.getProfileImg()).thenReturn(null);
 		when(castOrderNull.getId()).thenReturn(5003L);
 		when(castOrderNull.getArtist()).thenReturn(artistC);
 		when(castOrderNull.getRoleName()).thenReturn("특별출연");
 		when(castOrderNull.getCastingOrder()).thenReturn(null);
+		when(castOrderNull.getProfileImg()).thenReturn(null);
 
 		ShowSectionGrade seat = org.mockito.Mockito.mock(ShowSectionGrade.class);
 		when(seat.getId()).thenReturn(7001L);
@@ -163,11 +161,13 @@ class ShowServiceTest {
 		List<ShowResponse.Casting> castings = result.getCastings();
 		assertEquals(3, castings.size());
 		assertEquals("배우A", castings.get(0).getArtistName());
-		assertEquals("https://img.example/artistA.jpg", castings.get(0).getProfileImageUrl());
+		assertEquals("https://img.example/show-casting-artistA.jpg", castings.get(0).getProfileImageUrl());
 		assertEquals(1, castings.get(0).getOrder());
 		assertEquals("배우B", castings.get(1).getArtistName());
+		assertNull(castings.get(1).getProfileImageUrl());
 		assertEquals(2, castings.get(1).getOrder());
 		assertEquals("배우C", castings.get(2).getArtistName());
+		assertNull(castings.get(2).getProfileImageUrl());
 		assertNull(castings.get(2).getOrder());
 
 		assertTrue(castings.get(0).getIsLiked());
@@ -191,24 +191,24 @@ class ShowServiceTest {
 		Artist artistCharlie = org.mockito.Mockito.mock(Artist.class);
 		when(artistCharlie.getId()).thenReturn(1L);
 		when(artistCharlie.getName()).thenReturn("김호영");
-		when(artistCharlie.getProfileImg()).thenReturn("artist-charlie.png");
-		when(s3Service.getImageUrl("artist-charlie.png")).thenReturn("https://img.example/artist-charlie.png");
 
 		Artist artistLola = org.mockito.Mockito.mock(Artist.class);
 		when(artistLola.getId()).thenReturn(10L);
 		when(artistLola.getName()).thenReturn("강홍석");
-		when(artistLola.getProfileImg()).thenReturn("artist-lola.png");
-		when(s3Service.getImageUrl("artist-lola.png")).thenReturn("https://img.example/artist-lola.png");
 
 		ShowCasting charlieCasting = org.mockito.Mockito.mock(ShowCasting.class);
 		when(charlieCasting.getRoleName()).thenReturn("찰리");
 		when(charlieCasting.getCastingOrder()).thenReturn(1);
 		when(charlieCasting.getArtist()).thenReturn(artistCharlie);
+		when(charlieCasting.getProfileImg()).thenReturn("show-casting-charlie.png");
+		when(s3Service.getImageUrl("show-casting-charlie.png"))
+			.thenReturn("https://img.example/show-casting-charlie.png");
 
 		ShowCasting lolaCasting = org.mockito.Mockito.mock(ShowCasting.class);
 		when(lolaCasting.getRoleName()).thenReturn("롤라");
 		when(lolaCasting.getCastingOrder()).thenReturn(2);
 		when(lolaCasting.getArtist()).thenReturn(artistLola);
+		when(lolaCasting.getProfileImg()).thenReturn(null);
 
 		ShowScheduleCasting sc1 = org.mockito.Mockito.mock(ShowScheduleCasting.class);
 		when(sc1.getShowSchedule()).thenReturn(schedule1);
@@ -245,11 +245,15 @@ class ShowServiceTest {
 		assertEquals(2, result.getRoles().size());
 		assertEquals("찰리", result.getRoles().get(0).getRoleName());
 		assertEquals(1, result.getRoles().get(0).getOrder());
-		assertEquals("https://img.example/artist-charlie.png", result.getFilters().getArtists().get(0).getProfileImageUrl());
 		assertEquals(1, result.getRows().size());
 		assertEquals(101L, result.getRows().get(0).getScheduleId());
 		assertEquals("김호영", result.getRows().get(0).getCasts().get("찰리").getArtistName());
+		assertEquals(
+			"https://img.example/show-casting-charlie.png",
+			result.getRows().get(0).getCasts().get("찰리").getProfileImageUrl()
+		);
 		assertEquals("강홍석", result.getRows().get(0).getCasts().get("롤라").getArtistName());
+		assertNull(result.getRows().get(0).getCasts().get("롤라").getProfileImageUrl());
 		assertEquals(0, result.getPage().getCurrentPage());
 		assertEquals(50, result.getPage().getSize());
 		assertEquals(1, result.getPage().getTotalElements());
