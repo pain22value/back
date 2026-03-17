@@ -81,9 +81,14 @@ class ShowServiceTest {
 		when(show.getRuntimeMin()).thenReturn(120);
 		when(show.getAgeLimit()).thenReturn(8);
 		when(show.getPosterImg()).thenReturn("poster.jpg");
-		when(show.getNoticeImg()).thenReturn("notice.jpg");
+		when(show.getNoticeImg()).thenReturn(List.of("notice.jpg", "detail1.jpg", "detail2.jpg"));
+		when(show.getDetailImg()).thenReturn(List.of("content1.jpg", "content2.jpg"));
 		when(s3Service.getImageUrl("poster.jpg")).thenReturn("https://img/poster.jpg");
-		when(s3Service.getImageUrl("notice.jpg")).thenReturn(null);
+		when(s3Service.getImageUrl("notice.jpg")).thenReturn("https://img/notice.jpg");
+		when(s3Service.getImageUrl("detail1.jpg")).thenReturn("https://img/detail1.jpg");
+		when(s3Service.getImageUrl("detail2.jpg")).thenReturn("https://img/detail2.jpg");
+		when(s3Service.getImageUrl("content1.jpg")).thenReturn("https://img/content1.jpg");
+		when(s3Service.getImageUrl("content2.jpg")).thenReturn("https://img/content2.jpg");
 		when(show.getStartTime()).thenReturn(LocalDateTime.of(2026, 3, 1, 0, 0));
 		when(show.getEndTime()).thenReturn(LocalDateTime.of(2026, 4, 1, 0, 0));
 		when(show.getVenueId()).thenReturn(10L);
@@ -147,6 +152,10 @@ class ShowServiceTest {
 
 		ShowResponse.Detail result = showDetailService.getDetail(showId, userId);
 
+		assertEquals(3, result.getNoticeImgs().size());
+		assertEquals("https://img/notice.jpg", result.getNoticeImgs().get(0));
+		assertEquals(2, result.getDetailImgs().size());
+		assertEquals("https://img/content1.jpg", result.getDetailImgs().get(0));
 		assertEquals(2, result.getSchedules().size());
 		assertEquals("OPEN", result.getSchedules().get(0).getStatus());
 		assertEquals("CANCELLED", result.getSchedules().get(1).getStatus());
@@ -182,10 +191,14 @@ class ShowServiceTest {
 		Artist artistCharlie = org.mockito.Mockito.mock(Artist.class);
 		when(artistCharlie.getId()).thenReturn(1L);
 		when(artistCharlie.getName()).thenReturn("김호영");
+		when(artistCharlie.getProfileImg()).thenReturn("artist-charlie.jpg");
+		when(s3Service.getImageUrl("artist-charlie.jpg")).thenReturn("https://img.example/artist-charlie.jpg");
 
 		Artist artistLola = org.mockito.Mockito.mock(Artist.class);
 		when(artistLola.getId()).thenReturn(10L);
 		when(artistLola.getName()).thenReturn("강홍석");
+		when(artistLola.getProfileImg()).thenReturn("artist-lola.jpg");
+		when(s3Service.getImageUrl("artist-lola.jpg")).thenReturn("https://img.example/artist-lola.jpg");
 
 		ShowCasting charlieCasting = org.mockito.Mockito.mock(ShowCasting.class);
 		when(charlieCasting.getRoleName()).thenReturn("찰리");
@@ -235,7 +248,9 @@ class ShowServiceTest {
 		assertEquals(1, result.getRows().size());
 		assertEquals(101L, result.getRows().get(0).getScheduleId());
 		assertEquals("김호영", result.getRows().get(0).getCasts().get("찰리").getArtistName());
+		assertEquals("https://img.example/artist-charlie.jpg", result.getRows().get(0).getCasts().get("찰리").getProfileImageUrl());
 		assertEquals("강홍석", result.getRows().get(0).getCasts().get("롤라").getArtistName());
+		assertEquals("https://img.example/artist-lola.jpg", result.getRows().get(0).getCasts().get("롤라").getProfileImageUrl());
 		assertEquals(0, result.getPage().getCurrentPage());
 		assertEquals(50, result.getPage().getSize());
 		assertEquals(1, result.getPage().getTotalElements());
