@@ -14,7 +14,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.show.domain.entity.Show;
 import com.truve.platform.musical.show.domain.entity.ShowCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSchedule;
@@ -35,6 +37,7 @@ public class ShowCastingService {
 	private final ShowScheduleRepository showScheduleRepository;
 	private final ShowCastingRepository showCastingRepository;
 	private final ShowScheduleCastingRepository showScheduleCastingRepository;
+	private final S3Service s3Service;
 
 	@Transactional(readOnly = true)
 	public ShowCastingResponse.Detail getCastingSchedules(
@@ -154,6 +157,7 @@ public class ShowCastingService {
 					(ShowScheduleCasting sc) -> ShowCastingResponse.CastArtist.builder()
 						.artistId(sc.getShowCasting().getArtist().getId())
 						.artistName(sc.getShowCasting().getArtist().getName())
+						.profileImageUrl(toImageUrl(sc.getShowCasting().getArtist().getProfileImg()))
 						.build(),
 					(existing, replacement) -> existing,
 					LinkedHashMap::new
@@ -161,5 +165,12 @@ public class ShowCastingService {
 			result.put(scheduleId, casts);
 		});
 		return result;
+	}
+
+	private String toImageUrl(String fileName) {
+		if (!StringUtils.hasText(fileName)) {
+			return null;
+		}
+		return s3Service.getImageUrl(fileName);
 	}
 }
