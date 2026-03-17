@@ -119,7 +119,7 @@ public class ShowDetailService {
 			.showCastId(casting.getId())
 			.artistId(casting.getArtist().getId())
 			.artistName(casting.getArtist().getName())
-			.profileImageUrl(toImageUrl(casting.getArtist().getProfileImg()))
+			.profileImageUrl(toImageUrl(casting.getProfileImg()))
 			.roleName(casting.getRoleName())
 			.order(casting.getCastingOrder())
 			.isLiked(isLiked)
