@@ -119,7 +119,7 @@ public class ShowDetailService {
 			.showCastId(casting.getId())
 			.artistId(casting.getArtist().getId())
 			.artistName(casting.getArtist().getName())
-			.profileImageUrl(toImageUrl(casting.getProfileImg()))
+			.profileImageUrl(toImageUrl(chooseProfileImgKey(casting)))
 			.roleName(casting.getRoleName())
 			.order(casting.getCastingOrder())
 			.isLiked(isLiked)
@@ -151,5 +151,12 @@ public class ShowDetailService {
 			.colorCode(seatGrade.getColorCode())
 			.price(seatGrade.getPrice())
 			.build();
+	}
+
+	private String chooseProfileImgKey(ShowCasting casting) {
+		if (StringUtils.hasText(casting.getProfileImg())) {
+			return casting.getProfileImg();
+		}
+		return casting.getArtist().getProfileImg();
 	}
 }

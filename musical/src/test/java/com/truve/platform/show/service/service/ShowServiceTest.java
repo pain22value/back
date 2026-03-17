@@ -111,6 +111,8 @@ class ShowServiceTest {
 		when(artistA.getName()).thenReturn("배우A");
 		when(artistB.getId()).thenReturn(102L);
 		when(artistB.getName()).thenReturn("배우B");
+		when(artistB.getProfileImg()).thenReturn("artistB.jpg");
+		when(s3Service.getImageUrl("artistB.jpg")).thenReturn("https://img.example/artistB.jpg");
 		when(artistC.getId()).thenReturn(103L);
 		when(artistC.getName()).thenReturn("배우C");
 
@@ -164,7 +166,7 @@ class ShowServiceTest {
 		assertEquals("https://img.example/show-casting-artistA.jpg", castings.get(0).getProfileImageUrl());
 		assertEquals(1, castings.get(0).getOrder());
 		assertEquals("배우B", castings.get(1).getArtistName());
-		assertNull(castings.get(1).getProfileImageUrl());
+		assertEquals("https://img.example/artistB.jpg", castings.get(1).getProfileImageUrl());
 		assertEquals(2, castings.get(1).getOrder());
 		assertEquals("배우C", castings.get(2).getArtistName());
 		assertNull(castings.get(2).getProfileImageUrl());
