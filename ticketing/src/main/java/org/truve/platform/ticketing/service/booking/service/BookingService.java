@@ -52,7 +52,7 @@ public class BookingService {
 			userId,
 			numberGenerator.generateReservationNumber(),
 			calculateTotalAmount(seatInfo),
-      TICKET_SERVICE_FEE * seatInfos.size(),
+			TICKET_SERVICE_FEE * seatInfo.getSeats().size(),
 			createGradeSummary(seatInfo),
 			createShowInfo(seatInfo)
 		);
