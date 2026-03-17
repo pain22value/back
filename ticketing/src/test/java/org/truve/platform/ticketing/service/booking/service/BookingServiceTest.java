@@ -54,6 +54,7 @@ class BookingServiceTest {
 			"title",
 			"venue",
 			LocalDateTime.now(),
+			"poster",
 			seats);
 
 		String reservationNumber = "R20260309ABCDEF";

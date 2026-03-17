@@ -28,14 +28,18 @@ public class ShowScheduled extends BaseEntity {
 	private String venueName;
 
 	@Column(nullable = false)
-	LocalDateTime startAt;
+	private LocalDateTime startAt;
+
+	@Column(nullable = false)
+	private String posterImg;
 
 	@Builder
-	public ShowScheduled(Long showId, String title, String venueName, LocalDateTime startAt) {
+	public ShowScheduled(Long showId, String title, String venueName, LocalDateTime startAt, String posterImg) {
 
 		this.showId = showId;
 		this.title = title;
 		this.venueName = venueName;
 		this.startAt = startAt;
+		this.posterImg = posterImg;
 	}
 }

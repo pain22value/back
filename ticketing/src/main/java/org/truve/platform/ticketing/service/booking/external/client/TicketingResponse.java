@@ -17,6 +17,8 @@ public class TicketingResponse {
 
 		LocalDateTime getStartAt();
 
+		String getPosterImg();
+
 		String getSectionName();
 
 		Long getFloor();
@@ -37,6 +39,7 @@ public class TicketingResponse {
 		private final String showTitle;
 		private final String venueName;
 		private final LocalDateTime startAt;
+		private final String posterImg;
 		private final List<Seat> seats;
 
 		public static SeatInfo from(FlatSeatInfo flat, List<Seat> seats) {
@@ -45,6 +48,7 @@ public class TicketingResponse {
 				flat.getShowTitle(),
 				flat.getVenueName(),
 				flat.getStartAt(),
+				flat.getPosterImg(),
 				seats
 			);
 		}

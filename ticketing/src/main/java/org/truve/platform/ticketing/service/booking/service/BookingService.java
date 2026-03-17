@@ -92,6 +92,7 @@ public class BookingService {
 			.title(seatInfo.getShowTitle())
 			.venueName(seatInfo.getVenueName())
 			.startAt(seatInfo.getStartAt())
+			.posterImg(seatInfo.getPosterImg())
 			.build();
 	}
 

@@ -37,6 +37,7 @@ public interface ScheduledSeatRepository extends JpaRepository<ScheduledSeat, Lo
 			shs.title AS showTitle,
 			shs.venueName AS venueName,
 			shs.startAt AS startAt,
+			shs.posterImg AS posterImg,
 			sc.name AS sectionName,
 			sc.floor AS floor,
 			sc.gradeName AS gradeName,

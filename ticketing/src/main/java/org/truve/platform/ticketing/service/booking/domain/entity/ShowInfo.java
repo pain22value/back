@@ -26,11 +26,15 @@ public class ShowInfo {
 	@Column(nullable = false)
 	private LocalDateTime startAt;
 
+	@Column(nullable = false)
+	private String posterImg;
+
 	@Builder
-	public ShowInfo(Long showId, String title, String venueName, LocalDateTime startAt) {
+	public ShowInfo(Long showId, String title, String venueName, LocalDateTime startAt, String posterImg) {
 		this.showId = showId;
 		this.title = title;
 		this.venueName = venueName;
 		this.startAt = startAt;
+		this.posterImg = posterImg;
 	}
 }
