@@ -135,7 +135,6 @@ public class ShowCastingService {
 			ShowCastingResponse.FilterArtist.builder()
 				.artistId(casting.getArtist().getId())
 				.artistName(casting.getArtist().getName())
-				.profileImageUrl(toImageUrl(casting.getArtist().getProfileImg()))
 				.build()
 		));
 		return byArtistId.values().stream().toList();
@@ -145,7 +144,6 @@ public class ShowCastingService {
 		List<ShowScheduleCasting> scheduleCastings = showScheduleCastingRepository.findAllByScheduleIds(scheduleIds);
 		Map<Long, List<ShowScheduleCasting>> grouped = scheduleCastings.stream()
 			.collect(Collectors.groupingBy(sc -> sc.getShowSchedule().getId()));
-
 		Map<Long, Map<String, ShowCastingResponse.CastArtist>> result = new LinkedHashMap<>();
 		grouped.forEach((Long scheduleId, List<ShowScheduleCasting> castings) -> {
 			Map<String, ShowCastingResponse.CastArtist> casts = castings.stream()
@@ -158,6 +156,7 @@ public class ShowCastingService {
 					(ShowScheduleCasting sc) -> ShowCastingResponse.CastArtist.builder()
 						.artistId(sc.getShowCasting().getArtist().getId())
 						.artistName(sc.getShowCasting().getArtist().getName())
+						.profileImageUrl(toImageUrl(sc.getShowCasting().getProfileImg()))
 						.build(),
 					(existing, replacement) -> existing,
 					LinkedHashMap::new
