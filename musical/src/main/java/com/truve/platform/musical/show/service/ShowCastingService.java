@@ -135,6 +135,7 @@ public class ShowCastingService {
 			ShowCastingResponse.FilterArtist.builder()
 				.artistId(casting.getArtist().getId())
 				.artistName(casting.getArtist().getName())
+				.profileImageUrl(toImageUrl(casting.getArtist().getProfileImg()))
 				.build()
 		));
 		return byArtistId.values().stream().toList();
@@ -157,7 +158,6 @@ public class ShowCastingService {
 					(ShowScheduleCasting sc) -> ShowCastingResponse.CastArtist.builder()
 						.artistId(sc.getShowCasting().getArtist().getId())
 						.artistName(sc.getShowCasting().getArtist().getName())
-						.profileImageUrl(toImageUrl(sc.getShowCasting().getArtist().getProfileImg()))
 						.build(),
 					(existing, replacement) -> existing,
 					LinkedHashMap::new

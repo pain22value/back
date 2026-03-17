@@ -45,6 +45,7 @@ public class ShowCastingResponse {
 	public static class FilterArtist {
 		private Long artistId;
 		private String artistName;
+		private String profileImageUrl;
 	}
 
 	@Getter
@@ -81,6 +82,5 @@ public class ShowCastingResponse {
 	public static class CastArtist {
 		private Long artistId;
 		private String artistName;
-		private String profileImageUrl;
 	}
 }

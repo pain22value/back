@@ -191,14 +191,14 @@ class ShowServiceTest {
 		Artist artistCharlie = org.mockito.Mockito.mock(Artist.class);
 		when(artistCharlie.getId()).thenReturn(1L);
 		when(artistCharlie.getName()).thenReturn("김호영");
-		when(artistCharlie.getProfileImg()).thenReturn("artist-charlie.jpg");
-		when(s3Service.getImageUrl("artist-charlie.jpg")).thenReturn("https://img.example/artist-charlie.jpg");
+		when(artistCharlie.getProfileImg()).thenReturn("artist-charlie.png");
+		when(s3Service.getImageUrl("artist-charlie.png")).thenReturn("https://img.example/artist-charlie.png");
 
 		Artist artistLola = org.mockito.Mockito.mock(Artist.class);
 		when(artistLola.getId()).thenReturn(10L);
 		when(artistLola.getName()).thenReturn("강홍석");
-		when(artistLola.getProfileImg()).thenReturn("artist-lola.jpg");
-		when(s3Service.getImageUrl("artist-lola.jpg")).thenReturn("https://img.example/artist-lola.jpg");
+		when(artistLola.getProfileImg()).thenReturn("artist-lola.png");
+		when(s3Service.getImageUrl("artist-lola.png")).thenReturn("https://img.example/artist-lola.png");
 
 		ShowCasting charlieCasting = org.mockito.Mockito.mock(ShowCasting.class);
 		when(charlieCasting.getRoleName()).thenReturn("찰리");
@@ -245,12 +245,11 @@ class ShowServiceTest {
 		assertEquals(2, result.getRoles().size());
 		assertEquals("찰리", result.getRoles().get(0).getRoleName());
 		assertEquals(1, result.getRoles().get(0).getOrder());
+		assertEquals("https://img.example/artist-charlie.png", result.getFilters().getArtists().get(0).getProfileImageUrl());
 		assertEquals(1, result.getRows().size());
 		assertEquals(101L, result.getRows().get(0).getScheduleId());
 		assertEquals("김호영", result.getRows().get(0).getCasts().get("찰리").getArtistName());
-		assertEquals("https://img.example/artist-charlie.jpg", result.getRows().get(0).getCasts().get("찰리").getProfileImageUrl());
 		assertEquals("강홍석", result.getRows().get(0).getCasts().get("롤라").getArtistName());
-		assertEquals("https://img.example/artist-lola.jpg", result.getRows().get(0).getCasts().get("롤라").getProfileImageUrl());
 		assertEquals(0, result.getPage().getCurrentPage());
 		assertEquals(50, result.getPage().getSize());
 		assertEquals(1, result.getPage().getTotalElements());
