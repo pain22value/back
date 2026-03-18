@@ -38,6 +38,9 @@ public class Reservation extends BaseEntity {
 	private Long totalAmount;
 
 	@Column(nullable = false)
+	private Long serviceFee;
+
+	@Column(nullable = false)
 	private String gradeSummary;
 
 	@Column(nullable = false)
@@ -53,6 +56,9 @@ public class Reservation extends BaseEntity {
 	@Column
 	private String paymentMethod;
 
+  @Embedded
+	private ShowInfo showInfo;
+
 	@Embedded
 	private Applicant applicant;
 
@@ -60,21 +66,32 @@ public class Reservation extends BaseEntity {
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	private Reservation(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	private Reservation(UUID userId, String number, Long totalAmount, Long serviceFee, String gradeSummary, ShowInfo showInfo) {
 
 		this.userId = userId;
 		this.number = number;
 		this.totalAmount = totalAmount;
+		this.serviceFee = serviceFee;
 		this.gradeSummary = gradeSummary;
+		this.showInfo = showInfo;
 		this.status = ReservationStatus.CREATED;
 	}
 
-	public static Reservation create(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	public static Reservation create(
+		UUID userId,
+		String number,
+		Long totalAmount,
+    Long serviceFee,
+		String gradeSummary,
+		ShowInfo showInfo
+	) {
 		return Reservation.builder()
 			.userId(userId)
 			.number(number)
 			.totalAmount(totalAmount)
+			.serviceFee(serviceFee)
 			.gradeSummary(gradeSummary)
+			.showInfo(showInfo)
 			.build();
 	}
 
