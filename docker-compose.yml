@@ -207,6 +207,7 @@ services:
       - AWS_ACCESS_KEY=test
       - AWS_SECRET_KEY=test
       - AWS_S3_ENDPOINT=http://localstack:4566
+      - KAFKA_SERVERS=kafka:9092
     depends_on:
       db:
         condition: service_healthy
