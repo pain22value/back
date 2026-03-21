@@ -53,7 +53,7 @@ class AuthServiceTest {
 	private AuthService authService;
 
 	private User createUser(Long id, String email, String encodedPassword) {
-		User user = User.createLocalUser(email, encodedPassword);
+		User user = User.createLocalUser(email, encodedPassword, true, true, true, false, true);
 		ReflectionTestUtils.setField(user, "id", id);
 		return user;
 	}
@@ -260,6 +260,11 @@ class AuthServiceTest {
 			assertThat(savedUserCaptor.getValue().getEmail()).isEqualTo(email);
 			assertThat(savedUserCaptor.getValue().getPassword()).isEqualTo("encoded");
 			assertThat(savedUserCaptor.getValue().getRole()).isEqualTo(UserRole.MEMBER);
+			assertThat(savedUserCaptor.getValue().isServiceTermsAgreed()).isTrue();
+			assertThat(savedUserCaptor.getValue().isElectronicFinanceTermsAgreed()).isTrue();
+			assertThat(savedUserCaptor.getValue().isPrivacyCollectionAgreed()).isTrue();
+			assertThat(savedUserCaptor.getValue().isMarketingInfoAgreed()).isFalse();
+			assertThat(savedUserCaptor.getValue().isOver14Agreed()).isTrue();
 			assertThat(savedUserCaptor.getValue().getPublicId()).isInstanceOf(UUID.class);
 			assertThat(keyCaptor.getValue()).isEqualTo(savedUserCaptor.getValue().getPublicId().toString());
 			assertThat(eventCaptor.getValue()).isInstanceOf(UserSignedUpEvent.class);

@@ -123,7 +123,15 @@ public class AuthService {
 
 		String encodedPassword = passwordEncoder.encode(password);
 
-		User user = User.createLocalUser(email, encodedPassword);
+		User user = User.createLocalUser(
+			email,
+			encodedPassword,
+			serviceTermsAgreed,
+			electronicFinanceTermsAgreed,
+			privacyCollectionAgreed,
+			marketingInfoAgreed,
+			over14Agreed
+		);
 
 		userRepository.save(user);
 		emailVerificationRepository.deleteVerifiedEmail(email);
