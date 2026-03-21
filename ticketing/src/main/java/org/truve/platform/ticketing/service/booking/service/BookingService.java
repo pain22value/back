@@ -1,5 +1,7 @@
 package org.truve.platform.ticketing.service.booking.service;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
@@ -111,7 +113,12 @@ public class BookingService {
 	@Transactional
 	public void confirm(BookingEventCommand.Confirmed event) {
 		Reservation reservation = reservationRepository.findByNumber(event.getReservationNumber());
-		reservation.confirm(event.getPaidAt(), event.getMethod(), VirtualAccount.from(event.getVirtualAccount()));
+		reservation.confirm(
+			event.getBookedAt(),
+			event.getPaidAt(),
+			event.getMethod(),
+			VirtualAccount.from(event.getVirtualAccount())
+		);
 	}
 
 	@Transactional

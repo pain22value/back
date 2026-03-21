@@ -111,15 +111,16 @@ public class Reservation extends BaseEntity {
 	}
 
 	// TODO: 메서드 분리
-	public void confirm(LocalDateTime bookedAt, String paymentMethod, VirtualAccount virtualAccount) {
+	public void confirm(LocalDateTime bookedAt, LocalDateTime paidAt, String paymentMethod,
+		VirtualAccount virtualAccount) {
 		this.bookedAt = bookedAt;
+		this.paidAt = paidAt;
 		this.paymentMethod = paymentMethod;
 
 		if (isVirtualAccountPayment(virtualAccount)) {
 			this.virtualAccount = virtualAccount;
 			this.status = ReservationStatus.PENDING_DEPOSIT;
 		} else {
-			this.paidAt = bookedAt;
 			this.status = ReservationStatus.CONFIRMED;
 		}
 	}
