@@ -240,6 +240,7 @@ class AuthServiceTest {
 
 			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn(verifiedAt);
 			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
 			given(passwordEncoder.encode(password)).willReturn("encoded");
 			given(userRepository.save(any(User.class))).willAnswer(invocation -> {
 				User savedUser = invocation.getArgument(0);
@@ -326,6 +327,7 @@ class AuthServiceTest {
 
 			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
 			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
 
 			// when
 			CustomException exception = assertThrows(
@@ -339,6 +341,49 @@ class AuthServiceTest {
 			verify(userRepository, never()).save(any(User.class));
 			verify(emailVerificationRepository, never()).deleteVerifiedEmail(anyString());
 			verify(userSignedUpEventPublisher, never()).publish(anyString(), any());
+		}
+
+		@Test
+		@DisplayName("닉네임 형식이 유효하지 않으면 예외가 발생한다.")
+		void 회원가입_실패_닉네임_형식_오류() {
+			// given
+			String email = "new@test.com";
+			String password = "plain";
+
+			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
+			given(userRepository.existsByEmail(email)).willReturn(false);
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.signUp(email, "a b", password, true, true, true, false, true)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_NICKNAME);
+			verify(userRepository, never()).save(any(User.class));
+		}
+
+		@Test
+		@DisplayName("이미 사용 중인 닉네임이면 예외가 발생한다.")
+		void 회원가입_실패_중복_닉네임() {
+			// given
+			String email = "new@test.com";
+			String password = "plain";
+
+			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
+			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.existsByNickname(NICKNAME)).willReturn(true);
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.signUp(email, NICKNAME, password, true, true, true, false, true)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_EXISTS_NICKNAME);
+			verify(userRepository, never()).save(any(User.class));
 		}
 	}
 }

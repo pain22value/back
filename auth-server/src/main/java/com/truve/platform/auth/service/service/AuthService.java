@@ -1,6 +1,7 @@
 package com.truve.platform.auth.service.service;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.springframework.data.util.Pair;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9가-힣]{2,10}$");
 
 	private final UserRepository userRepository;
 	private final EmailVerificationRepository emailVerificationRepository;
@@ -116,6 +118,14 @@ public class AuthService {
 		Preconditions.validate(
 			!userRepository.existsByEmail(email),
 			ErrorCode.ALREADY_EXISTS_EMAIL
+		);
+		Preconditions.validate(
+			nickname != null && NICKNAME_PATTERN.matcher(nickname).matches(),
+			ErrorCode.INVALID_NICKNAME
+		);
+		Preconditions.validate(
+			!userRepository.existsByNickname(nickname),
+			ErrorCode.ALREADY_EXISTS_NICKNAME
 		);
 		Preconditions.validate(
 			serviceTermsAgreed && electronicFinanceTermsAgreed && privacyCollectionAgreed && over14Agreed,

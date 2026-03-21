@@ -127,6 +127,36 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("닉네임 형식 오류로 회원가입 요청하면 400을 반환한다.")
+	void 회원가입_실패_닉네임_형식_오류() throws Exception {
+		// given
+		String body = """
+			{
+			  "email": "new@test.com",
+			  "password": "password123",
+			  "nickname": "a b",
+			  "serviceTermsAgreed": true,
+			  "electronicFinanceTermsAgreed": true,
+			  "privacyCollectionAgreed": true,
+			  "marketingInfoAgreed": false,
+			  "over14Agreed": true
+			}
+			""";
+		willThrow(new CustomException(ErrorCode.INVALID_NICKNAME))
+			.given(authService).signUp(anyString(), anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+
+		// when
+		ResultActions resultActions = mockMvc.perform(post("/api/auth/sign-up")
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(body));
+
+		// then
+		resultActions.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
+			.andExpect(jsonPath("$.code").value(ErrorCode.INVALID_NICKNAME.getCode()));
+	}
+
+	@Test
 	@DisplayName("로그인에 성공하면 accessToken을 반환하고 refreshToken 쿠키를 설정한다.")
 	void 로그인_성공() throws Exception {
 		// given
