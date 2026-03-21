@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
-	private static final Long TICKET_SERVICE_FEE = 2000L;
 	private static final String GRADE_SUMMARY_FORMAT = "%s석 %d인";
 	private static final String LINE_BREAK = "\n";
 	private static final String SEAT_DETAIL_FORMAT = "%d층 %s구역 %s열 %d번";
@@ -52,8 +51,6 @@ public class BookingService {
 		return Reservation.create(
 			userId,
 			numberGenerator.generateReservationNumber(),
-			calculateTotalAmount(seatInfo),
-			TICKET_SERVICE_FEE * seatInfo.getSeats().size(),
 			createGradeSummary(seatInfo),
 			createShowInfo(seatInfo)
 		);
@@ -69,12 +66,6 @@ public class BookingService {
 				createSeatDetail(seat)
 			)
 		).toList();
-	}
-
-	private Long calculateTotalAmount(TicketingResponse.SeatInfo seatInfo) {
-		return seatInfo.getSeats().stream()
-			.map(TicketingResponse.Seat::getPrice)
-			.reduce(0L, Long::sum);
 	}
 
 	private String createGradeSummary(TicketingResponse.SeatInfo seatInfo) {

@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "reservations")
 public class Reservation extends BaseEntity {
+	private static final Long TICKET_SERVICE_FEE = 2000L;
 
 	@Column(nullable = false)
 	private UUID userId;
@@ -56,7 +57,7 @@ public class Reservation extends BaseEntity {
 	@Column
 	private String paymentMethod;
 
-  @Embedded
+	@Embedded
 	private ShowInfo showInfo;
 
 	@Embedded
@@ -66,12 +67,12 @@ public class Reservation extends BaseEntity {
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	private Reservation(UUID userId, String number, Long totalAmount, Long serviceFee, String gradeSummary, ShowInfo showInfo) {
+	private Reservation(UUID userId, String number, String gradeSummary, ShowInfo showInfo) {
 
 		this.userId = userId;
 		this.number = number;
-		this.totalAmount = totalAmount;
-		this.serviceFee = serviceFee;
+		this.totalAmount = 0L;
+		this.serviceFee = 0L;
 		this.gradeSummary = gradeSummary;
 		this.showInfo = showInfo;
 		this.status = ReservationStatus.CREATED;
@@ -80,16 +81,12 @@ public class Reservation extends BaseEntity {
 	public static Reservation create(
 		UUID userId,
 		String number,
-		Long totalAmount,
-    Long serviceFee,
 		String gradeSummary,
 		ShowInfo showInfo
 	) {
 		return Reservation.builder()
 			.userId(userId)
 			.number(number)
-			.totalAmount(totalAmount)
-			.serviceFee(serviceFee)
 			.gradeSummary(gradeSummary)
 			.showInfo(showInfo)
 			.build();
@@ -97,6 +94,12 @@ public class Reservation extends BaseEntity {
 
 	public void addTickets(List<Ticket> tickets) {
 		this.tickets.addAll(tickets);
+		this.serviceFee = tickets.size() * TICKET_SERVICE_FEE;
+		this.totalAmount = calculateTicketAmount() + this.serviceFee;
+	}
+
+	public Long calculateTicketAmount() {
+		return tickets.stream().mapToLong(Ticket::getPriceSnapshot).sum();
 	}
 
 	public void readyForPayment(Applicant applicant) {
