@@ -30,6 +30,9 @@ public class User extends BaseEntity {
 	@Column(nullable = false, unique = true)
 	private String email;
 
+	@Column(unique = true)
+	private String nickname;
+
 	// TODO: 기획 논의 이후 비밀번호 정책 정규식 설정
 	private String password;
 
@@ -67,6 +70,7 @@ public class User extends BaseEntity {
 	private User(
 		UUID publicId,
 		String email,
+		String nickname,
 		String password,
 		AuthProvider provider,
 		UserRole role,
@@ -81,6 +85,7 @@ public class User extends BaseEntity {
 	) {
 		this.publicId = publicId;
 		this.email = email;
+		this.nickname = nickname;
 		this.password = password;
 		this.provider = provider;
 		this.role = role;
@@ -96,6 +101,7 @@ public class User extends BaseEntity {
 
 	public static User createLocalUser(
 		String email,
+		String nickname,
 		String password,
 		boolean serviceTermsAgreed,
 		boolean electronicFinanceTermsAgreed,
@@ -106,6 +112,7 @@ public class User extends BaseEntity {
 		return User.builder()
 			.publicId(UUID.randomUUID())
 			.email(email)
+			.nickname(nickname)
 			.password(password)
 			.provider(AuthProvider.LOCAL)
 			.role(UserRole.MEMBER)
@@ -127,6 +134,7 @@ public class User extends BaseEntity {
 		return User.builder()
 			.publicId(UUID.randomUUID())
 			.email(email)
+			.nickname(null)
 			.provider(provider)
 			.role(UserRole.MEMBER)
 			.oAuthUserId(oAuthUserId)
