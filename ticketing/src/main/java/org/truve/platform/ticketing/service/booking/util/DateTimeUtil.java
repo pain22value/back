@@ -10,9 +10,9 @@ public class DateTimeUtil {
 	private DateTimeUtil() {
 	}
 
-	public static String formatDate(LocalDateTime showDate, String pattern) {
+	public static String formatDate(LocalDateTime dateTime, String pattern) {
 		DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(pattern, Locale.KOREAN);
-		return showDate.format(formatter);
+		return dateTime.format(formatter);
 	}
 
 	public static String formatDuration(LocalDateTime now, LocalDateTime target, String prefix, String suffix) {
