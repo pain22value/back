@@ -52,8 +52,10 @@ class AuthServiceTest {
 	@InjectMocks
 	private AuthService authService;
 
+	private static final String NICKNAME = "tester";
+
 	private User createUser(Long id, String email, String encodedPassword) {
-		User user = User.createLocalUser(email, encodedPassword, true, true, true, false, true);
+		User user = User.createLocalUser(email, NICKNAME, encodedPassword, true, true, true, false, true);
 		ReflectionTestUtils.setField(user, "id", id);
 		return user;
 	}
@@ -246,7 +248,7 @@ class AuthServiceTest {
 			});
 
 			// when
-			authService.signUp(email, password, true, true, true, false, true);
+			authService.signUp(email, NICKNAME, password, true, true, true, false, true);
 
 			// then
 			ArgumentCaptor<User> savedUserCaptor = ArgumentCaptor.forClass(User.class);
@@ -258,6 +260,7 @@ class AuthServiceTest {
 			verify(userSignedUpEventPublisher).publish(keyCaptor.capture(), eventCaptor.capture());
 
 			assertThat(savedUserCaptor.getValue().getEmail()).isEqualTo(email);
+			assertThat(savedUserCaptor.getValue().getNickname()).isEqualTo(NICKNAME);
 			assertThat(savedUserCaptor.getValue().getPassword()).isEqualTo("encoded");
 			assertThat(savedUserCaptor.getValue().getRole()).isEqualTo(UserRole.MEMBER);
 			assertThat(savedUserCaptor.getValue().isServiceTermsAgreed()).isTrue();
@@ -282,7 +285,7 @@ class AuthServiceTest {
 			// when
 			CustomException exception = assertThrows(
 				CustomException.class,
-				() -> authService.signUp(email, password, true, true, true, false, true)
+				() -> authService.signUp(email, NICKNAME, password, true, true, true, false, true)
 			);
 
 			// then
@@ -304,7 +307,7 @@ class AuthServiceTest {
 			// when
 			CustomException exception = assertThrows(
 				CustomException.class,
-				() -> authService.signUp(email, password, true, true, true, false, true)
+				() -> authService.signUp(email, NICKNAME, password, true, true, true, false, true)
 			);
 
 			// then
@@ -327,7 +330,7 @@ class AuthServiceTest {
 			// when
 			CustomException exception = assertThrows(
 				CustomException.class,
-				() -> authService.signUp(email, password, true, false, true, false, true)
+				() -> authService.signUp(email, NICKNAME, password, true, false, true, false, true)
 			);
 
 			// then

@@ -101,6 +101,7 @@ public class AuthService {
 	@Transactional
 	public void signUp(
 		String email,
+		String nickname,
 		String password,
 		boolean serviceTermsAgreed,
 		boolean electronicFinanceTermsAgreed,
@@ -125,6 +126,7 @@ public class AuthService {
 
 		User user = User.createLocalUser(
 			email,
+			nickname,
 			encodedPassword,
 			serviceTermsAgreed,
 			electronicFinanceTermsAgreed,
