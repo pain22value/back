@@ -21,7 +21,7 @@ import org.truve.platform.ticketing.service.booking.external.kafka.BookingEventC
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
-import org.truve.platform.ticketing.service.booking.service.util.NumberGenerator;
+import org.truve.platform.ticketing.service.booking.util.NumberGenerator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +34,6 @@ public class BookingService {
 
 	private final ReservationRepository reservationRepository;
 	private final TicketingClient ticketingClient;
-	private final NumberGenerator numberGenerator;
 	private final PaymentPublisher paymentPublisher;
 
 	@Transactional
@@ -52,7 +51,7 @@ public class BookingService {
 	private Reservation createReservation(UUID userId, TicketingResponse.SeatInfo seatInfo) {
 		return Reservation.create(
 			userId,
-			numberGenerator.generateReservationNumber(),
+			NumberGenerator.generateReservationNumber(),
 			createGradeSummary(seatInfo),
 			createShowInfo(seatInfo)
 		);
@@ -62,7 +61,7 @@ public class BookingService {
 		return seatInfo.getSeats().stream().map(
 			seat -> Ticket.create(
 				reservation,
-				numberGenerator.generateTicketNumber(),
+				NumberGenerator.generateTicketNumber(),
 				seat.getGradeName(),
 				seat.getPrice(),
 				createSeatDetail(seat)
