@@ -70,6 +70,7 @@ public class BookingResponse {
 	@Builder
 	public static class Summary {
 		private final String reservationNumber;
+		private final String reservationDate;
 		private final Detail.Status status;
 		private final Detail.Show show;
 		private final String gradeSummary;
@@ -81,6 +82,7 @@ public class BookingResponse {
 		public static Summary from(Reservation reservation) {
 			return Summary.builder()
 				.reservationNumber(reservation.getNumber())
+				.reservationDate(DateTimeUtil.formatDate(reservation.getBookedAt(), "yyyy.MM.dd"))
 				.status(Detail.Status.from(reservation))
 				.show(Detail.Show.from(reservation.getShowInfo()))
 				.gradeSummary(reservation.getGradeSummary())
