@@ -246,7 +246,7 @@ class AuthServiceTest {
 			});
 
 			// when
-			authService.signUp(email, password);
+			authService.signUp(email, password, true, true, true, false, true);
 
 			// then
 			ArgumentCaptor<User> savedUserCaptor = ArgumentCaptor.forClass(User.class);
@@ -275,7 +275,10 @@ class AuthServiceTest {
 			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("");
 
 			// when
-			CustomException exception = assertThrows(CustomException.class, () -> authService.signUp(email, password));
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.signUp(email, password, true, true, true, false, true)
+			);
 
 			// then
 			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_VERIFIED_EMAIL);
@@ -294,7 +297,10 @@ class AuthServiceTest {
 			given(userRepository.existsByEmail(email)).willReturn(true);
 
 			// when
-			CustomException exception = assertThrows(CustomException.class, () -> authService.signUp(email, password));
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.signUp(email, password, true, true, true, false, true)
+			);
 
 			// then
 			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_EXISTS_EMAIL);

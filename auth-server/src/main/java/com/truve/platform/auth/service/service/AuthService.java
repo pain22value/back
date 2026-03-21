@@ -99,7 +99,15 @@ public class AuthService {
 	}
 
 	@Transactional
-	public void signUp(String email, String password) {
+	public void signUp(
+		String email,
+		String password,
+		boolean serviceTermsAgreed,
+		boolean electronicFinanceTermsAgreed,
+		boolean privacyCollectionAgreed,
+		boolean marketingInfoAgreed,
+		boolean over14Agreed
+	) {
 
 		String verifiedAt = emailVerificationRepository.isVerifiedEmail(email);
 		Preconditions.validate(!(verifiedAt == null || verifiedAt.isBlank()), ErrorCode.NOT_VERIFIED_EMAIL);
@@ -107,6 +115,10 @@ public class AuthService {
 		Preconditions.validate(
 			!userRepository.existsByEmail(email),
 			ErrorCode.ALREADY_EXISTS_EMAIL
+		);
+		Preconditions.validate(
+			serviceTermsAgreed && electronicFinanceTermsAgreed && privacyCollectionAgreed && over14Agreed,
+			ErrorCode.REQUIRED_TERMS_NOT_AGREED
 		);
 
 		String encodedPassword = passwordEncoder.encode(password);
