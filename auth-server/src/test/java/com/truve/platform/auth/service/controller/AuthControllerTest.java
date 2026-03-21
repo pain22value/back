@@ -45,7 +45,12 @@ class AuthControllerTest {
 		String body = """
 			{
 			  "email": "new@test.com",
-			  "password": "password123"
+			  "password": "password123",
+			  "serviceTermsAgreed": true,
+			  "electronicFinanceTermsAgreed": true,
+			  "privacyCollectionAgreed": true,
+			  "marketingInfoAgreed": false,
+			  "over14Agreed": true
 			}
 			""";
 
@@ -57,7 +62,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
-		verify(authService).signUp("new@test.com", "password123");
+		verify(authService).signUp("new@test.com", "password123", true, true, true, false, true);
 	}
 
 	@Test
@@ -67,11 +72,16 @@ class AuthControllerTest {
 		String body = """
 			{
 			  "email": "dup@test.com",
-			  "password": "password123"
+			  "password": "password123",
+			  "serviceTermsAgreed": true,
+			  "electronicFinanceTermsAgreed": true,
+			  "privacyCollectionAgreed": true,
+			  "marketingInfoAgreed": false,
+			  "over14Agreed": true
 			}
 			""";
 		willThrow(new CustomException(ErrorCode.ALREADY_EXISTS_EMAIL))
-			.given(authService).signUp(anyString(), anyString());
+			.given(authService).signUp(anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
 
 		// when
 		ResultActions resultActions = mockMvc.perform(post("/api/auth/sign-up")
