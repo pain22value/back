@@ -313,5 +313,29 @@ class AuthServiceTest {
 			verify(emailVerificationRepository, never()).deleteVerifiedEmail(anyString());
 			verify(userSignedUpEventPublisher, never()).publish(anyString(), any());
 		}
+
+		@Test
+		@DisplayName("필수 약관에 동의하지 않으면 예외가 발생한다.")
+		void 회원가입_실패_필수_약관_미동의() {
+			// given
+			String email = "new@test.com";
+			String password = "plain";
+
+			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
+			given(userRepository.existsByEmail(email)).willReturn(false);
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.signUp(email, password, true, false, true, false, true)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REQUIRED_TERMS_NOT_AGREED);
+			verify(passwordEncoder, never()).encode(anyString());
+			verify(userRepository, never()).save(any(User.class));
+			verify(emailVerificationRepository, never()).deleteVerifiedEmail(anyString());
+			verify(userSignedUpEventPublisher, never()).publish(anyString(), any());
+		}
 	}
 }
