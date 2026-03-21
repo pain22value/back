@@ -28,7 +28,7 @@ class UserTest {
 		@DisplayName("createLocalUser 호출 시 LOCAL/MEMBER 권한으로 사용자를 생성한다.")
 		void createLocalUser_success() {
 			// when
-			User user = User.createLocalUser(EMAIL, PASSWORD);
+			User user = User.createLocalUser(EMAIL, PASSWORD, true, true, true, false, true);
 
 			// then
 			assertAll(
@@ -37,6 +37,11 @@ class UserTest {
 				() -> assertThat(user.getPassword()).isEqualTo(PASSWORD),
 				() -> assertThat(user.getProvider()).isEqualTo(AuthProvider.LOCAL),
 				() -> assertThat(user.getRole()).isEqualTo(UserRole.MEMBER),
+				() -> assertThat(user.isServiceTermsAgreed()).isTrue(),
+				() -> assertThat(user.isElectronicFinanceTermsAgreed()).isTrue(),
+				() -> assertThat(user.isPrivacyCollectionAgreed()).isTrue(),
+				() -> assertThat(user.isMarketingInfoAgreed()).isFalse(),
+				() -> assertThat(user.isOver14Agreed()).isTrue(),
 				() -> assertThat(user.getOAuthUserId()).isNull(),
 				() -> assertThat(user.getOAuthAccessToken()).isNull(),
 				() -> assertThat(user.getOAuthRefreshToken()).isNull()
@@ -67,6 +72,11 @@ class UserTest {
 				() -> assertThat(user.getPassword()).isNull(),
 				() -> assertThat(user.getProvider()).isEqualTo(AuthProvider.KAKAO),
 				() -> assertThat(user.getRole()).isEqualTo(UserRole.MEMBER),
+				() -> assertThat(user.isServiceTermsAgreed()).isFalse(),
+				() -> assertThat(user.isElectronicFinanceTermsAgreed()).isFalse(),
+				() -> assertThat(user.isPrivacyCollectionAgreed()).isFalse(),
+				() -> assertThat(user.isMarketingInfoAgreed()).isFalse(),
+				() -> assertThat(user.isOver14Agreed()).isFalse(),
 				() -> assertThat(user.getOAuthUserId()).isEqualTo(OAUTH_USER_ID),
 				() -> assertThat(user.getOAuthAccessToken()).isEqualTo(OAUTH_ACCESS_TOKEN),
 				() -> assertThat(user.getOAuthRefreshToken()).isEqualTo(OAUTH_REFRESH_TOKEN)

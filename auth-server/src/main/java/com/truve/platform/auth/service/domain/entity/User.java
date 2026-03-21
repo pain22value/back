@@ -47,10 +47,38 @@ public class User extends BaseEntity {
 
 	private String oAuthRefreshToken;
 
+	@Column(nullable = false)
+	private boolean serviceTermsAgreed;
+
+	@Column(nullable = false)
+	private boolean electronicFinanceTermsAgreed;
+
+	@Column(nullable = false)
+	private boolean privacyCollectionAgreed;
+
+	@Column(nullable = false)
+	private boolean marketingInfoAgreed;
+
+	@Column(nullable = false)
+	private boolean over14Agreed;
+
 
 	@Builder
-	private User(UUID publicId, String email, String password, AuthProvider provider,
-		UserRole role,  String oAuthUserId, String oAuthAccessToken, String oAuthRefreshToken) {
+	private User(
+		UUID publicId,
+		String email,
+		String password,
+		AuthProvider provider,
+		UserRole role,
+		String oAuthUserId,
+		String oAuthAccessToken,
+		String oAuthRefreshToken,
+		boolean serviceTermsAgreed,
+		boolean electronicFinanceTermsAgreed,
+		boolean privacyCollectionAgreed,
+		boolean marketingInfoAgreed,
+		boolean over14Agreed
+	) {
 		this.publicId = publicId;
 		this.email = email;
 		this.password = password;
@@ -59,15 +87,33 @@ public class User extends BaseEntity {
 		this.oAuthUserId = oAuthUserId;
 		this.oAuthAccessToken = oAuthAccessToken;
 		this.oAuthRefreshToken = oAuthRefreshToken;
+		this.serviceTermsAgreed = serviceTermsAgreed;
+		this.electronicFinanceTermsAgreed = electronicFinanceTermsAgreed;
+		this.privacyCollectionAgreed = privacyCollectionAgreed;
+		this.marketingInfoAgreed = marketingInfoAgreed;
+		this.over14Agreed = over14Agreed;
 	}
 
-	public static User createLocalUser(String email, String password) {
+	public static User createLocalUser(
+		String email,
+		String password,
+		boolean serviceTermsAgreed,
+		boolean electronicFinanceTermsAgreed,
+		boolean privacyCollectionAgreed,
+		boolean marketingInfoAgreed,
+		boolean over14Agreed
+	) {
 		return User.builder()
 			.publicId(UUID.randomUUID())
 			.email(email)
 			.password(password)
 			.provider(AuthProvider.LOCAL)
 			.role(UserRole.MEMBER)
+			.serviceTermsAgreed(serviceTermsAgreed)
+			.electronicFinanceTermsAgreed(electronicFinanceTermsAgreed)
+			.privacyCollectionAgreed(privacyCollectionAgreed)
+			.marketingInfoAgreed(marketingInfoAgreed)
+			.over14Agreed(over14Agreed)
 			.build();
 	}
 
@@ -86,6 +132,11 @@ public class User extends BaseEntity {
 			.oAuthUserId(oAuthUserId)
 			.oAuthAccessToken(oAuthAccessToken)
 			.oAuthRefreshToken(oAuthRefreshToken)
+			.serviceTermsAgreed(false)
+			.electronicFinanceTermsAgreed(false)
+			.privacyCollectionAgreed(false)
+			.marketingInfoAgreed(false)
+			.over14Agreed(false)
 			.build();
 	}
 }
