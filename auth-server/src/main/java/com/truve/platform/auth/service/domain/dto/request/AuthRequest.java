@@ -19,6 +19,9 @@ public class AuthRequest {
 		@NotBlank
 		private String password;
 
+		@NotBlank
+		private String nickname;
+
 		private boolean serviceTermsAgreed;
 
 		private boolean electronicFinanceTermsAgreed;

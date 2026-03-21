@@ -46,6 +46,7 @@ class AuthControllerTest {
 			{
 			  "email": "new@test.com",
 			  "password": "password123",
+			  "nickname": "tester",
 			  "serviceTermsAgreed": true,
 			  "electronicFinanceTermsAgreed": true,
 			  "privacyCollectionAgreed": true,
@@ -62,7 +63,7 @@ class AuthControllerTest {
 		// then
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
-		verify(authService).signUp("new@test.com", "password123", true, true, true, false, true);
+		verify(authService).signUp("new@test.com", "tester", "password123", true, true, true, false, true);
 	}
 
 	@Test
@@ -73,6 +74,7 @@ class AuthControllerTest {
 			{
 			  "email": "dup@test.com",
 			  "password": "password123",
+			  "nickname": "tester",
 			  "serviceTermsAgreed": true,
 			  "electronicFinanceTermsAgreed": true,
 			  "privacyCollectionAgreed": true,
@@ -81,7 +83,7 @@ class AuthControllerTest {
 			}
 			""";
 		willThrow(new CustomException(ErrorCode.ALREADY_EXISTS_EMAIL))
-			.given(authService).signUp(anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+			.given(authService).signUp(anyString(), anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
 
 		// when
 		ResultActions resultActions = mockMvc.perform(post("/api/auth/sign-up")
@@ -102,6 +104,7 @@ class AuthControllerTest {
 			{
 			  "email": "new@test.com",
 			  "password": "password123",
+			  "nickname": "tester",
 			  "serviceTermsAgreed": true,
 			  "electronicFinanceTermsAgreed": false,
 			  "privacyCollectionAgreed": true,
@@ -110,7 +113,7 @@ class AuthControllerTest {
 			}
 			""";
 		willThrow(new CustomException(ErrorCode.REQUIRED_TERMS_NOT_AGREED))
-			.given(authService).signUp(anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+			.given(authService).signUp(anyString(), anyString(), anyString(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
 
 		// when
 		ResultActions resultActions = mockMvc.perform(post("/api/auth/sign-up")

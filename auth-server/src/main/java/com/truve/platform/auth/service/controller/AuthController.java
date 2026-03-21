@@ -40,6 +40,7 @@ public class AuthController {
 	) {
 		authService.signUp(
 			request.getEmail(),
+			request.getNickname(),
 			request.getPassword(),
 			request.isServiceTermsAgreed(),
 			request.isElectronicFinanceTermsAgreed(),
