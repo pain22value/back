@@ -81,9 +81,14 @@ class ShowServiceTest {
 		when(show.getRuntimeMin()).thenReturn(120);
 		when(show.getAgeLimit()).thenReturn(8);
 		when(show.getPosterImg()).thenReturn("poster.jpg");
-		when(show.getNoticeImg()).thenReturn("notice.jpg");
+		when(show.getNoticeImg()).thenReturn(List.of("notice.jpg", "detail1.jpg", "detail2.jpg"));
+		when(show.getDetailImg()).thenReturn(List.of("content1.jpg", "content2.jpg"));
 		when(s3Service.getImageUrl("poster.jpg")).thenReturn("https://img/poster.jpg");
-		when(s3Service.getImageUrl("notice.jpg")).thenReturn(null);
+		when(s3Service.getImageUrl("notice.jpg")).thenReturn("https://img/notice.jpg");
+		when(s3Service.getImageUrl("detail1.jpg")).thenReturn("https://img/detail1.jpg");
+		when(s3Service.getImageUrl("detail2.jpg")).thenReturn("https://img/detail2.jpg");
+		when(s3Service.getImageUrl("content1.jpg")).thenReturn("https://img/content1.jpg");
+		when(s3Service.getImageUrl("content2.jpg")).thenReturn("https://img/content2.jpg");
 		when(show.getStartTime()).thenReturn(LocalDateTime.of(2026, 3, 1, 0, 0));
 		when(show.getEndTime()).thenReturn(LocalDateTime.of(2026, 4, 1, 0, 0));
 		when(show.getVenueId()).thenReturn(10L);
@@ -104,16 +109,12 @@ class ShowServiceTest {
 		Artist artistC = org.mockito.Mockito.mock(Artist.class);
 		when(artistA.getId()).thenReturn(101L);
 		when(artistA.getName()).thenReturn("배우A");
-		when(artistA.getProfileImg()).thenReturn("artistA.jpg");
-		when(s3Service.getImageUrl("artistA.jpg")).thenReturn("https://img.example/artistA.jpg");
 		when(artistB.getId()).thenReturn(102L);
 		when(artistB.getName()).thenReturn("배우B");
 		when(artistB.getProfileImg()).thenReturn("artistB.jpg");
 		when(s3Service.getImageUrl("artistB.jpg")).thenReturn("https://img.example/artistB.jpg");
 		when(artistC.getId()).thenReturn(103L);
 		when(artistC.getName()).thenReturn("배우C");
-		when(artistC.getProfileImg()).thenReturn("artistC.jpg");
-		when(s3Service.getImageUrl("artistC.jpg")).thenReturn("https://img.example/artistC.jpg");
 
 		ShowCasting castOrder1 = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrder2 = org.mockito.Mockito.mock(ShowCasting.class);
@@ -122,14 +123,18 @@ class ShowServiceTest {
 		when(castOrder1.getArtist()).thenReturn(artistA);
 		when(castOrder1.getRoleName()).thenReturn("주연");
 		when(castOrder1.getCastingOrder()).thenReturn(1);
+		when(castOrder1.getProfileImg()).thenReturn("show-casting-artistA.jpg");
+		when(s3Service.getImageUrl("show-casting-artistA.jpg")).thenReturn("https://img.example/show-casting-artistA.jpg");
 		when(castOrder2.getId()).thenReturn(5002L);
 		when(castOrder2.getArtist()).thenReturn(artistB);
 		when(castOrder2.getRoleName()).thenReturn("조연");
 		when(castOrder2.getCastingOrder()).thenReturn(2);
+		when(castOrder2.getProfileImg()).thenReturn(null);
 		when(castOrderNull.getId()).thenReturn(5003L);
 		when(castOrderNull.getArtist()).thenReturn(artistC);
 		when(castOrderNull.getRoleName()).thenReturn("특별출연");
 		when(castOrderNull.getCastingOrder()).thenReturn(null);
+		when(castOrderNull.getProfileImg()).thenReturn(null);
 
 		ShowSectionGrade seat = org.mockito.Mockito.mock(ShowSectionGrade.class);
 		when(seat.getId()).thenReturn(7001L);
@@ -147,6 +152,11 @@ class ShowServiceTest {
 
 		ShowResponse.Detail result = showDetailService.getDetail(showId, userId);
 
+		assertEquals(3, result.getNoticeImgs().size());
+		assertEquals("https://img/notice.jpg", result.getNoticeImgs().get(0));
+		assertEquals(2, result.getDetailImgs().size());
+		assertEquals("https://img/content1.jpg", result.getDetailImgs().get(0));
+		assertEquals("2026.03.01 ~ 2026.04.01", result.getDate());
 		assertEquals(2, result.getSchedules().size());
 		assertEquals("OPEN", result.getSchedules().get(0).getStatus());
 		assertEquals("CANCELLED", result.getSchedules().get(1).getStatus());
@@ -154,11 +164,13 @@ class ShowServiceTest {
 		List<ShowResponse.Casting> castings = result.getCastings();
 		assertEquals(3, castings.size());
 		assertEquals("배우A", castings.get(0).getArtistName());
-		assertEquals("https://img.example/artistA.jpg", castings.get(0).getProfileImageUrl());
+		assertEquals("https://img.example/show-casting-artistA.jpg", castings.get(0).getProfileImageUrl());
 		assertEquals(1, castings.get(0).getOrder());
 		assertEquals("배우B", castings.get(1).getArtistName());
+		assertEquals("https://img.example/artistB.jpg", castings.get(1).getProfileImageUrl());
 		assertEquals(2, castings.get(1).getOrder());
 		assertEquals("배우C", castings.get(2).getArtistName());
+		assertNull(castings.get(2).getProfileImageUrl());
 		assertNull(castings.get(2).getOrder());
 
 		assertTrue(castings.get(0).getIsLiked());
@@ -172,8 +184,6 @@ class ShowServiceTest {
 		Long showId = 1L;
 		Show show = org.mockito.Mockito.mock(Show.class);
 		when(show.getId()).thenReturn(showId);
-		when(show.getStartTime()).thenReturn(LocalDateTime.of(2025, 12, 17, 0, 0));
-		when(show.getEndTime()).thenReturn(LocalDateTime.of(2026, 3, 29, 0, 0));
 
 		ShowSchedule schedule1 = org.mockito.Mockito.mock(ShowSchedule.class);
 		when(schedule1.getId()).thenReturn(101L);
@@ -234,11 +244,47 @@ class ShowServiceTest {
 		assertEquals(1, result.getRoles().get(0).getOrder());
 		assertEquals(1, result.getRows().size());
 		assertEquals(101L, result.getRows().get(0).getScheduleId());
+		assertEquals("01/02(금)", result.getRows().get(0).getShowDateLabel());
+		assertEquals("오후 7:00", result.getRows().get(0).getShowTimeLabel());
 		assertEquals("김호영", result.getRows().get(0).getCasts().get("찰리").getArtistName());
 		assertEquals("강홍석", result.getRows().get(0).getCasts().get("롤라").getArtistName());
 		assertEquals(0, result.getPage().getCurrentPage());
 		assertEquals(50, result.getPage().getSize());
 		assertEquals(1, result.getPage().getTotalElements());
 		assertEquals(1, result.getPage().getTotalPages());
+	}
+
+	@Test
+	@DisplayName("캐스팅 일정 조회 range는 요청 from/to를 우선 반환한다.")
+	void 캐스팅_일정_조회_range는_요청값_우선() {
+		Long showId = 1L;
+		Show show = org.mockito.Mockito.mock(Show.class);
+		when(show.getId()).thenReturn(showId);
+
+		LocalDate requestFrom = LocalDate.of(2026, 3, 10);
+		LocalDate requestTo = LocalDate.of(2026, 3, 12);
+
+		when(showRepository.findByIdOrThrow(showId)).thenReturn(show);
+		when(showScheduleRepository.findCastingSchedules(
+			org.mockito.ArgumentMatchers.eq(showId),
+			org.mockito.ArgumentMatchers.any(),
+			org.mockito.ArgumentMatchers.any(),
+			org.mockito.ArgumentMatchers.eq(true),
+			org.mockito.ArgumentMatchers.anyList(),
+			org.mockito.ArgumentMatchers.any(PageRequest.class)
+		)).thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 50), 0));
+		when(showCastingRepository.findAllByShowId(showId)).thenReturn(List.of());
+
+		ShowCastingResponse.Detail result = showCastingService.getCastingSchedules(
+			showId,
+			requestFrom,
+			requestTo,
+			List.of(),
+			0,
+			50
+		);
+
+		assertEquals(requestFrom, result.getRange().getFrom());
+		assertEquals(requestTo, result.getRange().getTo());
 	}
 }

@@ -7,9 +7,7 @@ import java.util.UUID;
 
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
 
-import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.BaseEntity;
-import com.truve.platform.common.support.Preconditions;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -40,6 +38,9 @@ public class Reservation extends BaseEntity {
 	private Long totalAmount;
 
 	@Column(nullable = false)
+	private Long serviceFee;
+
+	@Column(nullable = false)
 	private String gradeSummary;
 
 	@Column(nullable = false)
@@ -50,27 +51,47 @@ public class Reservation extends BaseEntity {
 	private LocalDateTime paidAt;
 
 	@Embedded
+	private VirtualAccount virtualAccount;
+
+	@Column
+	private String paymentMethod;
+
+  @Embedded
+	private ShowInfo showInfo;
+
+	@Embedded
 	private Applicant applicant;
 
 	@OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL)
 	private List<Ticket> tickets = new ArrayList<>();
 
 	@Builder
-	private Reservation(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	private Reservation(UUID userId, String number, Long totalAmount, Long serviceFee, String gradeSummary, ShowInfo showInfo) {
 
 		this.userId = userId;
 		this.number = number;
 		this.totalAmount = totalAmount;
+		this.serviceFee = serviceFee;
 		this.gradeSummary = gradeSummary;
+		this.showInfo = showInfo;
 		this.status = ReservationStatus.CREATED;
 	}
 
-	public static Reservation create(UUID userId, String number, Long totalAmount, String gradeSummary) {
+	public static Reservation create(
+		UUID userId,
+		String number,
+		Long totalAmount,
+    Long serviceFee,
+		String gradeSummary,
+		ShowInfo showInfo
+	) {
 		return Reservation.builder()
 			.userId(userId)
 			.number(number)
 			.totalAmount(totalAmount)
+			.serviceFee(serviceFee)
 			.gradeSummary(gradeSummary)
+			.showInfo(showInfo)
 			.build();
 	}
 
@@ -79,9 +100,28 @@ public class Reservation extends BaseEntity {
 	}
 
 	public void readyForPayment(Applicant applicant) {
-		Preconditions.validate(this.status == ReservationStatus.CREATED, ErrorCode.INVALID_RESERVATION_STATUS);
-
 		this.applicant = applicant;
 		this.status = ReservationStatus.PENDING_PAYMENT;
+	}
+
+	public void confirm(LocalDateTime paidAt, String paymentMethod, VirtualAccount virtualAccount) {
+		this.paidAt = paidAt;
+		this.paymentMethod = paymentMethod;
+
+		if (isVirtualAccountPayment(virtualAccount)) {
+			this.virtualAccount = virtualAccount;
+			this.status = ReservationStatus.PENDING_DEPOSIT;
+		} else {
+			this.status = ReservationStatus.CONFIRMED;
+		}
+	}
+
+	private boolean isVirtualAccountPayment(VirtualAccount virtualAccount) {
+		return virtualAccount != null;
+	}
+
+	public void depositReceive(LocalDateTime paidAt) {
+		this.paidAt = paidAt;
+		this.status = ReservationStatus.CONFIRMED;
 	}
 }
