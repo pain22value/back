@@ -1,5 +1,6 @@
 package org.truve.platform.ticketing.service.booking.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
@@ -98,6 +99,28 @@ public class BookingService {
 			seat.getSeatRow(),
 			seat.getSeatNumber()
 		);
+	}
+
+	@Transactional(readOnly = true)
+	public BookingResponse.Order getOrder(String reservationNumber) {
+		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
+		return BookingResponse.Order.from(reservation);
+	}
+
+	@Transactional(readOnly = true)
+	public BookingResponse.ReservationDetail getDetail(String reservationNumber) {
+		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
+		return BookingResponse.ReservationDetail.from(reservation);
+	}
+
+	@Transactional(readOnly = true)
+	public List<BookingResponse.Summary> getSummaries(UUID userId, LocalDate from, LocalDate to) {
+		LocalDateTime fromDt = from == null ? null : from.atStartOfDay();
+		LocalDateTime toDt = to == null ? null : to.atTime(LocalTime.MAX);
+
+		List<Reservation> reservations = reservationRepository
+			.findByUserIdAndDateRange(userId, fromDt, toDt);
+		return reservations.stream().map(BookingResponse.Summary::from).toList();
 	}
 
 	@Transactional
