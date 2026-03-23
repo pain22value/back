@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.truve.platform.auth.service.security.AuthCookieManager;
 import com.truve.platform.auth.service.security.config.SecurityConfig;
 import com.truve.platform.auth.service.service.AuthService;
+import com.truve.platform.auth.service.domain.dto.response.AuthResponse;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 
@@ -196,6 +197,26 @@ class AuthControllerTest {
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.accessToken").value("new-access-token"));
 		verify(authCookieManager).setRefreshToken(any(HttpServletResponse.class), eq("new-refresh-token"), eq(1209600L));
+	}
+
+	@Test
+	@DisplayName("내 정보 조회에 성공하면 200 OK와 사용자 정보를 반환한다.")
+	void 내정보조회_성공() throws Exception {
+		// given
+		given(authService.getMe("access-token"))
+			.willReturn(new AuthResponse.Me("user@test.com", "tester", false));
+
+		// when
+		ResultActions resultActions = mockMvc.perform(get("/api/auth/me")
+			.header("X-Token", "access-token"));
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"))
+			.andExpect(jsonPath("$.data.email").value("user@test.com"))
+			.andExpect(jsonPath("$.data.nickname").value("tester"))
+			.andExpect(jsonPath("$.data.marketingInfoAgreed").value(false));
+		verify(authService).getMe("access-token");
 	}
 
 	@Test
