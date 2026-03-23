@@ -57,6 +57,12 @@ public class AuthService {
 	}
 
 	@Transactional
+	public void updateEmailNotificationConsent(String accessToken, boolean emailNotificationAgreed) {
+		User user = getUserByAccessToken(accessToken);
+		user.updateEmailNotificationAgreed(emailNotificationAgreed);
+	}
+
+	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
 

@@ -244,6 +244,84 @@ class AuthServiceTest {
 	}
 
 	@Nested
+	@DisplayName("이메일 알림 수신 동의 변경 테스트")
+	class UpdateEmailNotificationConsentTest {
+
+		@Test
+		@DisplayName("이메일 알림 수신 동의 상태를 변경한다.")
+		void 이메일알림수신동의변경_성공() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			authService.updateEmailNotificationConsent(accessToken, true);
+
+			// then
+			assertThat(user.isEmailNotificationAgreed()).isTrue();
+		}
+
+		@Test
+		@DisplayName("이메일 알림 수신 동의를 철회할 수 있다.")
+		void 이메일알림수신동의변경_성공_철회() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+			user.updateEmailNotificationAgreed(true);
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			authService.updateEmailNotificationConsent(accessToken, false);
+
+			// then
+			assertThat(user.isEmailNotificationAgreed()).isFalse();
+		}
+
+		@Test
+		@DisplayName("토큰은 유효하지만 사용자가 없으면 예외가 발생한다.")
+		void 이메일알림수신동의변경_실패_사용자없음() {
+			// given
+			String accessToken = "access-token";
+			UUID userPublicId = UUID.randomUUID();
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(userPublicId);
+			given(userRepository.findByPublicId(userPublicId)).willReturn(java.util.Optional.empty());
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.updateEmailNotificationConsent(accessToken, true)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_USER);
+		}
+
+		@Test
+		@DisplayName("유효하지 않은 액세스 토큰이면 예외가 발생한다.")
+		void 이메일알림수신동의변경_실패_유효하지_않은_토큰() {
+			// given
+			String accessToken = "invalid-access-token";
+			given(jwtService.parsePublicId(accessToken)).willThrow(new JwtException("invalid"));
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.updateEmailNotificationConsent(accessToken, true)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_REFRESH_TOKEN);
+			verify(userRepository, never()).findByPublicId(any());
+		}
+	}
+
+	@Nested
 	@DisplayName("로그인 테스트")
 	class LoginTest {
 
