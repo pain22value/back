@@ -109,6 +109,25 @@ public class AccountController {
 	@ApiResponses({
 		@ApiResponse(
 			responseCode = "200",
+			description = "회원 탈퇴 성공"
+		),
+	})
+	@DeleteMapping("/me")
+	public ApiResult<Void> withdraw(
+		@Parameter(hidden = true)
+		@RequestHeader("X-Token") String accessToken,
+		HttpServletResponse httpServletResponse
+	) {
+		authService.withdraw(accessToken);
+		authCookieManager.clearRefreshToken(httpServletResponse);
+
+		return ApiResult.ok();
+	}
+
+	@Operation(summary = "로그아웃")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
 			description = "로그아웃 성공"
 		),
 	})

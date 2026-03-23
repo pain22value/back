@@ -63,6 +63,22 @@ public class AuthService {
 	}
 
 	@Transactional
+	public void withdraw(String accessToken) {
+		User user = getUserByAccessToken(accessToken);
+
+		try {
+			String jti = jwtService.parseJti(accessToken);
+			var exp = jwtService.parseExpiration(accessToken);
+
+			user.withdraw();
+			refreshTokenService.delete(user.getPublicId());
+			blacklistAccessToken(jti, exp.getTime());
+		} catch (JwtException | IllegalArgumentException e) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+	}
+
+	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
 		validateNotWithdrawn(user);
@@ -120,11 +136,7 @@ public class AuthService {
 			String jti = jwtService.parseJti(accessToken);
 			var exp = jwtService.parseExpiration(accessToken);
 			refreshTokenService.delete(userPublicId);
-
-			long ttlMs = exp.getTime() - System.currentTimeMillis();
-			if (ttlMs > 0) {
-				accessTokenBlacklistService.save(jti, ttlMs);
-			}
+			blacklistAccessToken(jti, exp.getTime());
 		} catch (JwtException | IllegalArgumentException e) {
 			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
 		}
@@ -193,6 +205,13 @@ public class AuthService {
 
 	private void validateNotWithdrawn(User user) {
 		Preconditions.validate(!user.isWithdrawn(), ErrorCode.ALREADY_WITHDRAWN_USER);
+	}
+
+	private void blacklistAccessToken(String jti, long expirationTimeMs) {
+		long ttlMs = expirationTimeMs - System.currentTimeMillis();
+		if (ttlMs > 0) {
+			accessTokenBlacklistService.save(jti, ttlMs);
+		}
 	}
 
 	private void validateNickname(String nickname, String currentNickname) {

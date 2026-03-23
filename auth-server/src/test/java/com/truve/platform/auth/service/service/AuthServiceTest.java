@@ -631,6 +631,68 @@ class AuthServiceTest {
 	}
 
 	@Nested
+	@DisplayName("회원 탈퇴 테스트")
+	class WithdrawTest {
+
+		@Test
+		@DisplayName("유효한 액세스 토큰이면 회원 탈퇴를 처리한다.")
+		void 회원탈퇴_성공() {
+			// given
+			String accessToken = "access-token";
+			String jti = "jti-123";
+			Date exp = new Date(System.currentTimeMillis() + 60_000L);
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+			given(jwtService.parseJti(accessToken)).willReturn(jti);
+			given(jwtService.parseExpiration(accessToken)).willReturn(exp);
+
+			// when
+			authService.withdraw(accessToken);
+
+			// then
+			assertThat(user.isWithdrawn()).isTrue();
+			verify(refreshTokenService).delete(user.getPublicId());
+			verify(accessTokenBlacklistService).save(eq(jti), anyLong());
+		}
+
+		@Test
+		@DisplayName("액세스 토큰 파싱에 실패하면 예외가 발생한다.")
+		void 회원탈퇴_실패_유효하지_않은_토큰() {
+			// given
+			String accessToken = "invalid-access-token";
+			given(jwtService.parsePublicId(accessToken)).willThrow(new JwtException("invalid"));
+
+			// when
+			CustomException exception = assertThrows(CustomException.class, () -> authService.withdraw(accessToken));
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_REFRESH_TOKEN);
+			verify(refreshTokenService, never()).delete(any());
+		}
+
+		@Test
+		@DisplayName("이미 탈퇴한 회원이면 예외가 발생한다.")
+		void 회원탈퇴_실패_이미탈퇴회원() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+			user.withdraw();
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			CustomException exception = assertThrows(CustomException.class, () -> authService.withdraw(accessToken));
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_WITHDRAWN_USER);
+			verify(refreshTokenService, never()).delete(any());
+		}
+	}
+
+	@Nested
 	@DisplayName("회원가입 테스트")
 	class SignUpTest {
 

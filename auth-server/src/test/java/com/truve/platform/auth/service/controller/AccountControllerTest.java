@@ -138,4 +138,18 @@ class AccountControllerTest {
 		verify(authService).logout("access-token");
 		verify(authCookieManager).clearRefreshToken(org.mockito.ArgumentMatchers.any(HttpServletResponse.class));
 	}
+
+	@Test
+	@DisplayName("회원 탈퇴에 성공하면 200 OK를 반환하고 refreshToken 쿠키를 제거한다.")
+	void 회원탈퇴_성공() throws Exception {
+		// when
+		ResultActions resultActions = mockMvc.perform(delete("/api/auth/me")
+			.header("X-Token", "access-token"));
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+		verify(authService).withdraw("access-token");
+		verify(authCookieManager).clearRefreshToken(org.mockito.ArgumentMatchers.any(HttpServletResponse.class));
+	}
 }
