@@ -147,4 +147,8 @@ public class User extends BaseEntity {
 			.over14Agreed(false)
 			.build();
 	}
+
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
 }
