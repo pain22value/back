@@ -65,6 +65,7 @@ public class AuthService {
 	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
+		validateNotWithdrawn(user);
 
 		Preconditions.validate(passwordEncoder.matches(password, user.getPassword()), ErrorCode.NOT_CORRECT_PASSWORD);
 
@@ -96,6 +97,7 @@ public class AuthService {
 
 		User user = userRepository.findByPublicId(userPublicId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+		validateNotWithdrawn(user);
 		var newAccessExp = jwtService.getAccessExpiration();
 		var newRefreshExp = jwtService.getRefreshExpiration();
 
@@ -179,11 +181,18 @@ public class AuthService {
 		try {
 			UUID userPublicId = jwtService.parsePublicId(accessToken);
 
-			return userRepository.findByPublicId(userPublicId)
+			User user = userRepository.findByPublicId(userPublicId)
 				.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+			validateNotWithdrawn(user);
+
+			return user;
 		} catch (JwtException | IllegalArgumentException e) {
 			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
 		}
+	}
+
+	private void validateNotWithdrawn(User user) {
+		Preconditions.validate(!user.isWithdrawn(), ErrorCode.ALREADY_WITHDRAWN_USER);
 	}
 
 	private void validateNickname(String nickname, String currentNickname) {
