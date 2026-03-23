@@ -81,6 +81,28 @@ class AccountControllerTest {
 	}
 
 	@Test
+	@DisplayName("마케팅 정보 수신 동의 변경에 성공하면 200 OK를 반환한다.")
+	void 마케팅수신동의변경_성공() throws Exception {
+		// given
+		String body = """
+			{
+			  "marketingInfoAgreed": true
+			}
+			""";
+
+		// when
+		ResultActions resultActions = mockMvc.perform(patch("/api/auth/me/marketing-consent")
+			.header("X-Token", "access-token")
+			.contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+			.content(body));
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+		verify(authService).updateMarketingConsent("access-token", true);
+	}
+
+	@Test
 	@DisplayName("로그아웃에 성공하면 200 OK를 반환하고 refreshToken 쿠키를 제거한다.")
 	void 로그아웃_성공() throws Exception {
 		// when

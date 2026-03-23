@@ -53,4 +53,12 @@ public class AuthRequest {
 		@NotBlank
 		private String nickname;
 	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestUpdateMarketingConsent", description = "마케팅 정보 수신 동의 변경 요청")
+	public static class UpdateMarketingConsent {
+		private boolean marketingInfoAgreed;
+	}
 }

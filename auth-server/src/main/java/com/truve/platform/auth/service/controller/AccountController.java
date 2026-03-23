@@ -69,6 +69,24 @@ public class AccountController {
 		return ApiResult.ok();
 	}
 
+	@Operation(summary = "마케팅 정보 수신 동의 변경")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "마케팅 정보 수신 동의 변경 성공"
+		)
+	})
+	@PatchMapping("/me/marketing-consent")
+	public ApiResult<Void> updateMarketingConsent(
+		@Parameter(hidden = true)
+		@RequestHeader("X-Token") String accessToken,
+		@RequestBody @Valid AuthRequest.UpdateMarketingConsent request
+	) {
+		authService.updateMarketingConsent(accessToken, request.isMarketingInfoAgreed());
+
+		return ApiResult.ok();
+	}
+
 	@Operation(summary = "로그아웃")
 	@ApiResponses({
 		@ApiResponse(
