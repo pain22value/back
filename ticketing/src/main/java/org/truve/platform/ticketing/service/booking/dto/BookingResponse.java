@@ -258,7 +258,7 @@ public class BookingResponse {
 		@Builder
 		private static class Cancel {
 			private final List<String> seats;
-			private final Long refundFee;
+			private final Long cancelFee;
 			private final Long refundAmount;
 			private final String canceledAt;
 			private final String method;
@@ -269,7 +269,7 @@ public class BookingResponse {
 
 				return Cancel.builder()
 					.seats(reservation.getCanceledSeatDetails())
-					.refundFee(reservation.getRefundFee())
+					.cancelFee(reservation.getCancelFee())
 					.refundAmount(reservation.getRefundAmount())
 					.canceledAt(DateTimeUtil.formatDate(reservation.getCanceledAt(), "yyyy.MM.dd(E) HH:mm:ss"))
 					.method(reservation.getPaymentMethod())

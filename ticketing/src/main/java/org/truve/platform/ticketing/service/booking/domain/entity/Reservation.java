@@ -45,7 +45,7 @@ public class Reservation extends BaseEntity {
 	private Long serviceFee;
 
 	@Column(nullable = false)
-	private Long refundFee;
+	private Long cancelFee;
 
 	@Column(nullable = false)
 	private String gradeSummary;
@@ -86,7 +86,7 @@ public class Reservation extends BaseEntity {
 		this.number = number;
 		this.totalAmount = 0L;
 		this.serviceFee = 0L;
-		this.refundFee = 0L;
+		this.cancelFee = 0L;
 		this.gradeSummary = gradeSummary;
 		this.showInfo = showInfo;
 		this.status = ReservationStatus.CREATED;
@@ -181,7 +181,7 @@ public class Reservation extends BaseEntity {
 
 	public Long getRefundAmount() {
 		Long canceledTicketPrice = getCancelTickets().stream().mapToLong(Ticket::getPriceSnapshot).sum();
-		return canceledTicketPrice - refundFee;
+		return canceledTicketPrice - cancelFee;
 	}
 
 	public LocalDateTime getDeadline() {
