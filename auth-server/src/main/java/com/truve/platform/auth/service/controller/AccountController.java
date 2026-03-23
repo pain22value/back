@@ -105,7 +105,7 @@ public class AccountController {
 		return ApiResult.ok();
 	}
 
-	@Operation(summary = "로그아웃")
+	@Operation(summary = "회원 탈퇴")
 	@ApiResponses({
 		@ApiResponse(
 			responseCode = "200",
