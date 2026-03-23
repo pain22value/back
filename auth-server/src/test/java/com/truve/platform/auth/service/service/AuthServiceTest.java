@@ -56,7 +56,7 @@ class AuthServiceTest {
 	private static final String NICKNAME = "tester";
 
 	private User createUser(Long id, String email, String encodedPassword) {
-		User user = User.createLocalUser(email, NICKNAME, encodedPassword, true, true, true, false, true);
+		User user = User.createLocalUser(email, NICKNAME, encodedPassword, true, true, true, false, false, true);
 		ReflectionTestUtils.setField(user, "id", id);
 		return user;
 	}
@@ -82,6 +82,7 @@ class AuthServiceTest {
 			assertThat(result.getEmail()).isEqualTo(user.getEmail());
 			assertThat(result.getNickname()).isEqualTo(user.getNickname());
 			assertThat(result.isMarketingInfoAgreed()).isEqualTo(user.isMarketingInfoAgreed());
+			assertThat(result.isEmailNotificationAgreed()).isEqualTo(user.isEmailNotificationAgreed());
 		}
 
 		@Test
@@ -292,6 +293,31 @@ class AuthServiceTest {
 			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_CORRECT_PASSWORD);
 			verify(jwtService, never()).issue(any(), anyLong(), anyString(), any(), any(), anyString());
 			verify(refreshTokenService, never()).save(any(), anyString(), anyLong());
+		}
+	}
+
+	@Nested
+	@DisplayName("이메일 알림 수신 동의 기본값 테스트")
+	class EmailNotificationConsentDefaultTest {
+
+		@Test
+		@DisplayName("로컬 회원가입 유저의 이메일 알림 수신 동의 기본값은 false다.")
+		void 로컬회원_이메일알림기본값_false() {
+			User user = User.createLocalUser("user@test.com", NICKNAME, "encoded", true, true, true, false, false, true);
+
+			assertThat(user.isEmailNotificationAgreed()).isFalse();
+		}
+
+		@Test
+		@DisplayName("OAuth 회원의 이메일 알림 수신 동의 기본값은 false다.")
+		void OAuth회원_이메일알림기본값_false() {
+			User user = User.createOAuthUser("user@test.com",
+				com.truve.platform.common.constants.AuthProvider.KAKAO,
+				"oauth-user-id",
+				"oauth-access-token",
+				"oauth-refresh-token");
+
+			assertThat(user.isEmailNotificationAgreed()).isFalse();
 		}
 	}
 

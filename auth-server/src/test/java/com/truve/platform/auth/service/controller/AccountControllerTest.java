@@ -43,7 +43,7 @@ class AccountControllerTest {
 	void 내정보조회_성공() throws Exception {
 		// given
 		given(authService.getMe("access-token"))
-			.willReturn(new AuthResponse.Me("user@test.com", "tester", false));
+			.willReturn(new AuthResponse.Me("user@test.com", "tester", false, false));
 
 		// when
 		ResultActions resultActions = mockMvc.perform(get("/api/auth/me")
@@ -54,7 +54,8 @@ class AccountControllerTest {
 			.andExpect(jsonPath("$.code").value("ok"))
 			.andExpect(jsonPath("$.data.email").value("user@test.com"))
 			.andExpect(jsonPath("$.data.nickname").value("tester"))
-			.andExpect(jsonPath("$.data.marketingInfoAgreed").value(false));
+			.andExpect(jsonPath("$.data.marketingInfoAgreed").value(false))
+			.andExpect(jsonPath("$.data.emailNotificationAgreed").value(false));
 		verify(authService).getMe("access-token");
 	}
 

@@ -29,7 +29,7 @@ class UserTest {
 		@DisplayName("createLocalUser 호출 시 LOCAL/MEMBER 권한으로 사용자를 생성한다.")
 		void createLocalUser_success() {
 			// when
-			User user = User.createLocalUser(EMAIL, NICKNAME, PASSWORD, true, true, true, false, true);
+			User user = User.createLocalUser(EMAIL, NICKNAME, PASSWORD, true, true, true, false, false, true);
 
 			// then
 			assertAll(
@@ -43,6 +43,7 @@ class UserTest {
 				() -> assertThat(user.isElectronicFinanceTermsAgreed()).isTrue(),
 				() -> assertThat(user.isPrivacyCollectionAgreed()).isTrue(),
 				() -> assertThat(user.isMarketingInfoAgreed()).isFalse(),
+				() -> assertThat(user.isEmailNotificationAgreed()).isFalse(),
 				() -> assertThat(user.isOver14Agreed()).isTrue(),
 				() -> assertThat(user.getOAuthUserId()).isNull(),
 				() -> assertThat(user.getOAuthAccessToken()).isNull(),
@@ -79,6 +80,7 @@ class UserTest {
 				() -> assertThat(user.isElectronicFinanceTermsAgreed()).isFalse(),
 				() -> assertThat(user.isPrivacyCollectionAgreed()).isFalse(),
 				() -> assertThat(user.isMarketingInfoAgreed()).isFalse(),
+				() -> assertThat(user.isEmailNotificationAgreed()).isFalse(),
 				() -> assertThat(user.isOver14Agreed()).isFalse(),
 				() -> assertThat(user.getOAuthUserId()).isEqualTo(OAUTH_USER_ID),
 				() -> assertThat(user.getOAuthAccessToken()).isEqualTo(OAUTH_ACCESS_TOKEN),
