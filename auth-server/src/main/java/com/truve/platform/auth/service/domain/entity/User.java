@@ -163,4 +163,8 @@ public class User extends BaseEntity {
 	public void updateMarketingInfoAgreed(boolean marketingInfoAgreed) {
 		this.marketingInfoAgreed = marketingInfoAgreed;
 	}
+
+	public void updateEmailNotificationAgreed(boolean emailNotificationAgreed) {
+		this.emailNotificationAgreed = emailNotificationAgreed;
+	}
 }
