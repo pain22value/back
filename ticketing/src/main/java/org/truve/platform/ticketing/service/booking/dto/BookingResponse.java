@@ -119,6 +119,55 @@ public class BookingResponse {
 		}
 	}
 
+	@Getter
+	@AllArgsConstructor
+	@Builder
+	public static class Cancel {
+		private final Detail.RefundInfo refundInfo;
+		private final List<TicketInfo> tickets;
+
+		public static Cancel from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
+			Detail.RefundInfo refundInfo = ticketIds == null
+				? Detail.RefundInfo.from(reservation, canceledAt)
+				: Detail.RefundInfo.from(reservation, ticketIds, canceledAt);
+			return build(reservation, refundInfo);
+		}
+
+		private static Cancel build(Reservation reservation, Detail.RefundInfo refundInfo) {
+			String title = formatTitle(reservation.getShowInfo());
+			return Cancel.builder()
+				.refundInfo(refundInfo)
+				.tickets(getTicketInfos(reservation.getTickets(), title))
+				.build();
+		}
+
+		private static String formatTitle(ShowInfo showInfo) {
+			String date = DateTimeUtil.formatDate(showInfo.getStartAt(), "yyyy.MM.dd.(E)");
+			return showInfo.getTitle() + " " + date;
+		}
+
+		private static List<TicketInfo> getTicketInfos(List<Ticket> tickets, String title) {
+			return tickets.stream().map(t -> TicketInfo.from(t, title)).toList();
+		}
+
+		@Getter
+		@AllArgsConstructor
+		@Builder
+		private static class TicketInfo {
+			private final Long ticketId;
+			private final String title;
+			private final String seatDetail;
+
+			public static TicketInfo from(Ticket ticket, String title) {
+				return TicketInfo.builder()
+					.ticketId(ticket.getId())
+					.title(title)
+					.seatDetail(ticket.getSeatDetail())
+					.build();
+			}
+		}
+	}
+
 	private static class Detail {
 
 		@Getter
@@ -273,6 +322,28 @@ public class BookingResponse {
 					.refundAmount(reservation.getRefundAmount())
 					.canceledAt(DateTimeUtil.formatDate(reservation.getCanceledAt(), "yyyy.MM.dd(E) HH:mm:ss"))
 					.method(reservation.getPaymentMethod())
+					.build();
+			}
+		}
+
+		@Getter
+		@AllArgsConstructor
+		@Builder
+		private static class RefundInfo {
+			private final Long cancelFee;
+			private final Long refundAmount;
+
+			private static RefundInfo from(Reservation reservation, LocalDateTime canceledAt) {
+				return RefundInfo.builder()
+					.cancelFee(reservation.calculateCancelFee(canceledAt))
+					.refundAmount(reservation.calculateRefundAmount(canceledAt))
+					.build();
+			}
+
+			private static RefundInfo from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
+				return RefundInfo.builder()
+					.cancelFee(reservation.calculateCancelFee(canceledAt, ticketIds))
+					.refundAmount(reservation.calculateRefundAmount(canceledAt, ticketIds))
 					.build();
 			}
 		}

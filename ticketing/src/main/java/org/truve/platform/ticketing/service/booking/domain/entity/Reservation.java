@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
+import org.truve.platform.ticketing.service.booking.domain.policy.CancellationPolicy;
 
 import com.truve.platform.common.support.BaseEntity;
 
@@ -190,5 +191,29 @@ public class Reservation extends BaseEntity {
 		if (isWaitingDeposit())
 			return virtualAccount.getDueDate();
 		return null;
+	}
+
+	public Long calculateCancelFee(LocalDateTime canceledAt) {
+		return CancellationPolicy.calculate(this, canceledAt);
+	}
+
+	public Long calculateCancelFee(LocalDateTime canceledAt, List<Long> ticketIds) {
+		return CancellationPolicy.calculate(this, getTicketsByIds(ticketIds), canceledAt);
+	}
+
+	public Long calculateRefundAmount(LocalDateTime canceledAt) {
+		return this.totalAmount - serviceFee - calculateCancelFee(canceledAt);
+	}
+
+	public Long calculateRefundAmount(LocalDateTime canceledAt, List<Long> ticketIds) {
+		return getTicketAmount(ticketIds) - calculateCancelFee(canceledAt, ticketIds);
+	}
+
+	private List<Ticket> getTicketsByIds(List<Long> ticketIds) {
+		return tickets.stream().filter(t -> ticketIds.contains(t.getId())).toList();
+	}
+
+	private Long getTicketAmount(List<Long> ticketIds) {
+		return getTicketsByIds(ticketIds).stream().mapToLong(Ticket::getPriceSnapshot).sum();
 	}
 }
