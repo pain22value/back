@@ -44,4 +44,13 @@ public class AuthRequest {
 		@NotBlank
 		private String password;
 	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestChangeNickname", description = "닉네임 변경 요청")
+	public static class ChangeNickname {
+		@NotBlank
+		private String nickname;
+	}
 }

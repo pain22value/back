@@ -4,6 +4,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,6 +56,28 @@ class AccountControllerTest {
 			.andExpect(jsonPath("$.data.nickname").value("tester"))
 			.andExpect(jsonPath("$.data.marketingInfoAgreed").value(false));
 		verify(authService).getMe("access-token");
+	}
+
+	@Test
+	@DisplayName("닉네임 변경에 성공하면 200 OK를 반환한다.")
+	void 닉네임변경_성공() throws Exception {
+		// given
+		String body = """
+			{
+			  "nickname": "newtester"
+			}
+			""";
+
+		// when
+		ResultActions resultActions = mockMvc.perform(patch("/api/auth/me/nickname")
+			.header("X-Token", "access-token")
+			.contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+			.content(body));
+
+		// then
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+		verify(authService).changeNickname("access-token", "newtester");
 	}
 
 	@Test
