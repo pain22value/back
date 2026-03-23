@@ -3,11 +3,8 @@ package com.truve.platform.auth.service.controller;
 import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,11 +14,9 @@ import com.truve.platform.auth.service.domain.dto.response.AuthResponse;
 import com.truve.platform.auth.service.security.AuthCookieManager;
 import com.truve.platform.auth.service.service.AuthService;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -116,44 +111,4 @@ public class AuthController {
 
 		return ApiResult.ok(response);
 	}
-
-	@Operation(summary = "내 정보 조회")
-	@ApiResponses({
-		@ApiResponse(
-			responseCode = "200",
-			description = "내 정보 조회 성공",
-			content = @Content(
-				schema = @Schema(implementation = AuthResponse.Me.class)
-			)
-		)
-	})
-	@GetMapping("/me")
-	public ApiResult<AuthResponse.Me> getMe(
-		@Parameter(hidden = true)
-		@RequestHeader("X-Token") String accessToken
-	) {
-		return ApiResult.ok(authService.getMe(accessToken));
-	}
-
-	@Operation(summary = "로그아웃")
-	@ApiResponses({
-		@ApiResponse(
-			responseCode = "200",
-			description = "로그아웃 성공"
-		),
-	})
-	@DeleteMapping("/logout")
-	public ApiResult<Void> logout(
-		@RequestHeader("X-Token") String accessToken,
-		HttpServletResponse httpServletResponse
-	) {
-
-		authService.logout(accessToken);
-
-		authCookieManager.clearRefreshToken(httpServletResponse);
-
-		return ApiResult.ok();
-	}
-
-
 }
