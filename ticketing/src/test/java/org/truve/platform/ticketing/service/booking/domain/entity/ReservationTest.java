@@ -10,6 +10,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
 
 public class ReservationTest {
@@ -91,6 +92,40 @@ public class ReservationTest {
 
 		// then
 		assertThat(deadline).isEqualTo(virtualAccount.getDueDate());
+	}
+	
+	@Test
+	@DisplayName("전체 취소 시 환불 금액은 총 금액 - 서비스 수수료 - 환불 수수료로 계산된다.")
+	void 환불금액_계산_전체() {
+		// given
+		Reservation reservation = createReservation();
+		List<Ticket> tickets = createTickets(reservation, 2);
+		reservation.addTickets(tickets);
+		reservation.confirm(LocalDateTime.now(), LocalDateTime.now(), "카드", null);
+
+		// when
+		Long refundAmount = reservation.calculateRefundAmount(LocalDateTime.now());
+
+		// then
+		assertThat(refundAmount).isEqualTo(20000L);
+	}
+
+	@Test
+	@DisplayName("부분 취소 시 환불 금액은 취소 티켓 가격 총액 - 환불 수수료로 계산된다.")
+	void 환불금액_계산_부분() {
+		// given
+		Reservation reservation = createReservation();
+		List<Ticket> tickets = createTickets(reservation, 2);
+		ReflectionTestUtils.setField(tickets.getFirst(), "id", 1L);
+		ReflectionTestUtils.setField(tickets.getLast(), "id", 2L);
+		reservation.addTickets(tickets);
+		reservation.confirm(LocalDateTime.now(), LocalDateTime.now(), "카드", null);
+
+		// when
+		Long refundAmount = reservation.calculateRefundAmount(LocalDateTime.now(), List.of(1L));
+
+		// then
+		assertThat(refundAmount).isEqualTo(10000L);
 	}
 
 	private Reservation createReservation() {
