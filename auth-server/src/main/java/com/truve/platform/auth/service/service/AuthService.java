@@ -51,6 +51,12 @@ public class AuthService {
 	}
 
 	@Transactional
+	public void updateMarketingConsent(String accessToken, boolean marketingInfoAgreed) {
+		User user = getUserByAccessToken(accessToken);
+		user.updateMarketingInfoAgreed(marketingInfoAgreed);
+	}
+
+	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
 

@@ -203,6 +203,46 @@ class AuthServiceTest {
 	}
 
 	@Nested
+	@DisplayName("마케팅 정보 수신 동의 변경 테스트")
+	class UpdateMarketingConsentTest {
+
+		@Test
+		@DisplayName("마케팅 정보 수신 동의 상태를 변경한다.")
+		void 마케팅수신동의변경_성공() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			authService.updateMarketingConsent(accessToken, true);
+
+			// then
+			assertThat(user.isMarketingInfoAgreed()).isTrue();
+		}
+
+		@Test
+		@DisplayName("마케팅 정보 수신 동의를 철회할 수 있다.")
+		void 마케팅수신동의변경_성공_철회() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+			user.updateMarketingInfoAgreed(true);
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			authService.updateMarketingConsent(accessToken, false);
+
+			// then
+			assertThat(user.isMarketingInfoAgreed()).isFalse();
+		}
+	}
+
+	@Nested
 	@DisplayName("로그인 테스트")
 	class LoginTest {
 
