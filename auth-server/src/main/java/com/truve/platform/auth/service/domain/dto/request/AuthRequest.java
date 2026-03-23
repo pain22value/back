@@ -61,4 +61,12 @@ public class AuthRequest {
 	public static class UpdateMarketingConsent {
 		private boolean marketingInfoAgreed;
 	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestUpdateEmailNotificationConsent", description = "이메일 알림 수신 동의 변경 요청")
+	public static class UpdateEmailNotificationConsent {
+		private boolean emailNotificationAgreed;
+	}
 }

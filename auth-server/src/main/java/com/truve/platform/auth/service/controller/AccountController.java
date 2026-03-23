@@ -87,6 +87,24 @@ public class AccountController {
 		return ApiResult.ok();
 	}
 
+	@Operation(summary = "이메일 알림 수신 동의 변경")
+	@ApiResponses({
+		@ApiResponse(
+			responseCode = "200",
+			description = "이메일 알림 수신 동의 변경 성공"
+		)
+	})
+	@PatchMapping("/me/email-notification")
+	public ApiResult<Void> updateEmailNotificationConsent(
+		@Parameter(hidden = true)
+		@RequestHeader("X-Token") String accessToken,
+		@RequestBody @Valid AuthRequest.UpdateEmailNotificationConsent request
+	) {
+		authService.updateEmailNotificationConsent(accessToken, request.isEmailNotificationAgreed());
+
+		return ApiResult.ok();
+	}
+
 	@Operation(summary = "로그아웃")
 	@ApiResponses({
 		@ApiResponse(
