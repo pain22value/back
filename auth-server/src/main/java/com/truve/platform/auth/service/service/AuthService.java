@@ -43,6 +43,14 @@ public class AuthService {
 	}
 
 	@Transactional
+	public void changeNickname(String accessToken, String nickname) {
+		User user = getUserByAccessToken(accessToken);
+
+		validateNickname(nickname, user.getNickname());
+		user.updateNickname(nickname);
+	}
+
+	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
 
@@ -128,17 +136,11 @@ public class AuthService {
 			ErrorCode.ALREADY_EXISTS_EMAIL
 		);
 		Preconditions.validate(
-			nickname != null && NICKNAME_PATTERN.matcher(nickname).matches(),
-			ErrorCode.INVALID_NICKNAME
-		);
-		Preconditions.validate(
-			!userRepository.existsByNickname(nickname),
-			ErrorCode.ALREADY_EXISTS_NICKNAME
-		);
-		Preconditions.validate(
 			serviceTermsAgreed && electronicFinanceTermsAgreed && privacyCollectionAgreed && over14Agreed,
 			ErrorCode.REQUIRED_TERMS_NOT_AGREED
 		);
+
+		validateNickname(nickname, null);
 
 		String encodedPassword = passwordEncoder.encode(password);
 
@@ -169,6 +171,22 @@ public class AuthService {
 		} catch (JwtException | IllegalArgumentException e) {
 			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
 		}
+	}
+
+	private void validateNickname(String nickname, String currentNickname) {
+		Preconditions.validate(
+			nickname != null && NICKNAME_PATTERN.matcher(nickname).matches(),
+			ErrorCode.INVALID_NICKNAME
+		);
+
+		if (nickname.equals(currentNickname)) {
+			return;
+		}
+
+		Preconditions.validate(
+			!userRepository.existsByNickname(nickname),
+			ErrorCode.ALREADY_EXISTS_NICKNAME
+		);
 	}
 
 }

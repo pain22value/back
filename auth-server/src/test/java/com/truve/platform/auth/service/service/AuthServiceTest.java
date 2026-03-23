@@ -118,6 +118,91 @@ class AuthServiceTest {
 	}
 
 	@Nested
+	@DisplayName("닉네임 변경 테스트")
+	class ChangeNicknameTest {
+
+		@Test
+		@DisplayName("유효한 닉네임이면 변경한다.")
+		void 닉네임변경_성공() {
+			// given
+			String accessToken = "access-token";
+			String newNickname = "newtester";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+			given(userRepository.existsByNickname(newNickname)).willReturn(false);
+
+			// when
+			authService.changeNickname(accessToken, newNickname);
+
+			// then
+			assertThat(user.getNickname()).isEqualTo(newNickname);
+		}
+
+		@Test
+		@DisplayName("현재 닉네임과 같으면 중복 조회 없이 유지한다.")
+		void 닉네임변경_성공_동일닉네임() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			authService.changeNickname(accessToken, user.getNickname());
+
+			// then
+			assertThat(user.getNickname()).isEqualTo(NICKNAME);
+			verify(userRepository, never()).existsByNickname(anyString());
+		}
+
+		@Test
+		@DisplayName("닉네임 형식이 유효하지 않으면 예외가 발생한다.")
+		void 닉네임변경_실패_형식오류() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.changeNickname(accessToken, "a b")
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_NICKNAME);
+			verify(userRepository, never()).existsByNickname(anyString());
+		}
+
+		@Test
+		@DisplayName("이미 사용 중인 닉네임이면 예외가 발생한다.")
+		void 닉네임변경_실패_중복닉네임() {
+			// given
+			String accessToken = "access-token";
+			String newNickname = "dupname";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+			given(userRepository.existsByNickname(newNickname)).willReturn(true);
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.changeNickname(accessToken, newNickname)
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_EXISTS_NICKNAME);
+		}
+	}
+
+	@Nested
 	@DisplayName("로그인 테스트")
 	class LoginTest {
 
@@ -384,7 +469,6 @@ class AuthServiceTest {
 
 			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
 			given(userRepository.existsByEmail(email)).willReturn(false);
-			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
 
 			// when
 			CustomException exception = assertThrows(
