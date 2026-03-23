@@ -1,5 +1,6 @@
 package com.truve.platform.auth.service.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.truve.platform.common.constants.AuthProvider;
@@ -64,6 +65,8 @@ public class User extends BaseEntity {
 
 	@Column(nullable = false)
 	private boolean emailNotificationAgreed;
+
+	private LocalDateTime withdrawnAt;
 
 	@Column(nullable = false)
 	private boolean over14Agreed;
@@ -166,5 +169,13 @@ public class User extends BaseEntity {
 
 	public void updateEmailNotificationAgreed(boolean emailNotificationAgreed) {
 		this.emailNotificationAgreed = emailNotificationAgreed;
+	}
+
+	public void withdraw() {
+		this.withdrawnAt = LocalDateTime.now();
+	}
+
+	public boolean isWithdrawn() {
+		return withdrawnAt != null;
 	}
 }

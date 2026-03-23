@@ -88,4 +88,33 @@ class UserTest {
 			);
 		}
 	}
+
+	@Nested
+	@DisplayName("회원 탈퇴 상태 테스트")
+	class WithdrawTest {
+
+		@Test
+		@DisplayName("신규 회원은 탈퇴 상태가 아니다.")
+		void 신규회원_탈퇴상태아님() {
+			User user = User.createLocalUser(EMAIL, NICKNAME, PASSWORD, true, true, true, false, false, true);
+
+			assertAll(
+				() -> assertThat(user.getWithdrawnAt()).isNull(),
+				() -> assertThat(user.isWithdrawn()).isFalse()
+			);
+		}
+
+		@Test
+		@DisplayName("withdraw 호출 시 탈퇴 시각이 기록되고 탈퇴 상태가 된다.")
+		void withdraw_성공() {
+			User user = User.createLocalUser(EMAIL, NICKNAME, PASSWORD, true, true, true, false, false, true);
+
+			user.withdraw();
+
+			assertAll(
+				() -> assertThat(user.getWithdrawnAt()).isNotNull(),
+				() -> assertThat(user.isWithdrawn()).isTrue()
+			);
+		}
+	}
 }
