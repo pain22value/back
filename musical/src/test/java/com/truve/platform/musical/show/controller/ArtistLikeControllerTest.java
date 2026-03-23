@@ -19,10 +19,9 @@ import java.util.UUID;
 
 import com.truve.platform.common.exception.ApiAdvice;
 import com.truve.platform.musical.MusicalApplication;
-import com.truve.platform.musical.show.controller.ArtistLikeController;
 import com.truve.platform.musical.show.service.ArtistService;
 
-@WebMvcTest(controllers = ArtistLikeController.class)
+@WebMvcTest(controllers = ArtistController.class)
 @org.springframework.context.annotation.Import(ApiAdvice.class)
 @ContextConfiguration(classes = MusicalApplication.class)
 class ArtistLikeControllerTest {
