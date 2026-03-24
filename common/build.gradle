@@ -19,4 +19,7 @@ dependencies {
 
     // [OpenApi]
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api'
+
+    // [Observability - Logging]
+    api 'net.logstash.logback:logstash-logback-encoder:8.0'
 }
