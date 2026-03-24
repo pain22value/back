@@ -25,15 +25,15 @@ public class BookingResponse {
 	@Builder
 	public static class Order {
 		private final String reservationNumber;
-		private final Detail.Show show;
-		private final Detail.Price price;
+		private final BookingDetail.Show show;
+		private final BookingDetail.Price price;
 		private final List<GradeSeat> gradeSeats;
 
 		public static Order from(Reservation reservation) {
 			return Order.builder()
 				.reservationNumber(reservation.getNumber())
-				.show(Detail.Show.from(reservation.getShowInfo()))
-				.price(Detail.Price.from(reservation))
+				.show(BookingDetail.Show.from(reservation.getShowInfo()))
+				.price(BookingDetail.Price.from(reservation))
 				.gradeSeats(getGradeSeats(reservation))
 				.build();
 		}
@@ -71,8 +71,8 @@ public class BookingResponse {
 	public static class Summary {
 		private final String reservationNumber;
 		private final String reservationDate;
-		private final Detail.Status status;
-		private final Detail.Show show;
+		private final BookingDetail.Status status;
+		private final BookingDetail.Show show;
 		private final String gradeSummary;
 		private final Long showId;
 		private final boolean canCancel;
@@ -83,8 +83,8 @@ public class BookingResponse {
 			return Summary.builder()
 				.reservationNumber(reservation.getNumber())
 				.reservationDate(DateTimeUtil.formatDate(reservation.getBookedAt(), "yyyy.MM.dd"))
-				.status(Detail.Status.from(reservation))
-				.show(Detail.Show.from(reservation.getShowInfo()))
+				.status(BookingDetail.Status.from(reservation))
+				.show(BookingDetail.Show.from(reservation.getShowInfo()))
 				.gradeSummary(reservation.getGradeSummary())
 				.showId(reservation.getShowInfo().getShowId())
 				.canCancel(reservation.isCancelable())
@@ -99,22 +99,22 @@ public class BookingResponse {
 	@Builder
 	public static class ReservationDetail {
 		private final String reservationNumber;
-		private final Detail.Status status;
-		private final Detail.Show show;
+		private final BookingDetail.Status status;
+		private final BookingDetail.Show show;
 		private final String gradeSummary;
-		private final Detail.Price price;
-		private final Detail.Payment payment;
-		private final Detail.Cancel cancel;
+		private final BookingDetail.Price price;
+		private final BookingDetail.Payment payment;
+		private final BookingDetail.Cancel cancel;
 
 		public static ReservationDetail from(Reservation reservation) {
 			return ReservationDetail.builder()
 				.reservationNumber(reservation.getNumber())
-				.status(Detail.Status.from(reservation))
-				.show(Detail.Show.from(reservation.getShowInfo()))
+				.status(BookingDetail.Status.from(reservation))
+				.show(BookingDetail.Show.from(reservation.getShowInfo()))
 				.gradeSummary(reservation.getGradeSummary())
-				.price(Detail.Price.from(reservation))
-				.payment(Detail.Payment.from(reservation))
-				.cancel(Detail.Cancel.from(reservation))
+				.price(BookingDetail.Price.from(reservation))
+				.payment(BookingDetail.Payment.from(reservation))
+				.cancel(BookingDetail.Cancel.from(reservation))
 				.build();
 		}
 	}
@@ -123,17 +123,17 @@ public class BookingResponse {
 	@AllArgsConstructor
 	@Builder
 	public static class Cancel {
-		private final Detail.RefundInfo refundInfo;
+		private final BookingDetail.RefundInfo refundInfo;
 		private final List<TicketInfo> tickets;
 
 		public static Cancel from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
-			Detail.RefundInfo refundInfo = ticketIds == null
-				? Detail.RefundInfo.from(reservation, canceledAt)
-				: Detail.RefundInfo.from(reservation, ticketIds, canceledAt);
+			BookingDetail.RefundInfo refundInfo = ticketIds == null
+				? BookingDetail.RefundInfo.from(reservation, canceledAt)
+				: BookingDetail.RefundInfo.from(reservation, ticketIds, canceledAt);
 			return build(reservation, refundInfo);
 		}
 
-		private static Cancel build(Reservation reservation, Detail.RefundInfo refundInfo) {
+		private static Cancel build(Reservation reservation, BookingDetail.RefundInfo refundInfo) {
 			String title = formatTitle(reservation.getShowInfo());
 			return Cancel.builder()
 				.refundInfo(refundInfo)
@@ -163,193 +163,6 @@ public class BookingResponse {
 					.ticketId(ticket.getId())
 					.title(title)
 					.seatDetail(ticket.getSeatDetail())
-					.build();
-			}
-		}
-	}
-
-	private static class Detail {
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class Show {
-			private final String posterUrl;
-			private final String title;
-			private final String showDate;
-			private final String showTime;
-			private final String venueName;
-
-			private static Show from(ShowInfo showInfo) {
-				return Show.builder()
-					.posterUrl(showInfo.getPosterImg())
-					.title(showInfo.getTitle())
-					.showDate(DateTimeUtil.formatDate(showInfo.getStartAt(), "yyyy.MM.dd(E)"))
-					.showTime(DateTimeUtil.formatDate(showInfo.getStartAt(), "a h:mm"))
-					.venueName(showInfo.getVenueName())
-					.build();
-			}
-		}
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class Status {
-			private final String label;
-			private final String subText;
-
-			private static Status from(Reservation reservation) {
-				return Status.builder()
-					.label(reservation.getStatus().getDescription())
-					.subText(getSubText(reservation))
-					.build();
-			}
-
-			private static String getSubText(Reservation reservation) {
-				LocalDateTime deadline = reservation.getDeadline();
-				if (deadline == null)
-					return null;
-
-				if (reservation.isWaitingDeposit())
-					return DateTimeUtil.formatDuration(LocalDateTime.now(), deadline, "입금 마감 ", "전");
-				else
-					return DateTimeUtil.formatDuration(LocalDateTime.now(), deadline, "입장까지 ", "남음");
-			}
-		}
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class Price {
-			private final List<Long> ticketUnitPrices;
-			private final Long serviceFee;
-			private final Long totalPrice;
-			private final List<GradePrice> gradePrices;
-
-			private static Price from(Reservation reservation) {
-				return Price.builder()
-					.ticketUnitPrices(reservation.getTicketPrices())
-					.serviceFee(reservation.getServiceFee())
-					.totalPrice(reservation.getTotalAmount())
-					.gradePrices(getGradePrices(reservation))
-					.build();
-			}
-
-			private static List<GradePrice> getGradePrices(Reservation reservation) {
-				return reservation.getTicketsGroupedByGrade()
-					.entrySet().stream()
-					.map(entry -> GradePrice.from(entry.getKey(), entry.getValue()))
-					.toList();
-			}
-
-			@Getter
-			@AllArgsConstructor
-			@Builder
-			private static class GradePrice {
-				private final String grade;
-				private final int count;
-				private final Long totalPrice;
-
-				private static GradePrice from(String grade, List<Ticket> tickets) {
-					return GradePrice.builder()
-						.grade(grade)
-						.count(tickets.size())
-						.totalPrice(tickets.stream().mapToLong(Ticket::getPriceSnapshot).sum())
-						.build();
-				}
-			}
-		}
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class Payment {
-			private final String paymentMethod;
-			private final String paidAt;
-			private final VirtualAccount virtualAccount;
-
-			private static Payment from(Reservation reservation) {
-				return Payment.builder()
-					.paymentMethod(reservation.getPaymentMethod())
-					.paidAt(reservation.getPaidAt() == null ? null :
-						DateTimeUtil.formatDate(reservation.getPaidAt(), "yyyy.MM.dd(E) HH:mm:ss"))
-					.virtualAccount(VirtualAccount.from(reservation))
-					.build();
-			}
-
-			@Getter
-			@AllArgsConstructor
-			@Builder
-			private static class VirtualAccount {
-				private final String accountNumber;
-				private final String bank;
-				private final String customerName;
-				private final String dueDate;
-
-				private static VirtualAccount from(Reservation reservation) {
-					if (reservation.getVirtualAccount() == null)
-						return null;
-
-					org.truve.platform.ticketing.service.booking.domain.entity.VirtualAccount virtualAccount = reservation.getVirtualAccount();
-
-					return VirtualAccount.builder()
-						.accountNumber(virtualAccount.getAccountNumber())
-						.bank(virtualAccount.getBank())
-						.customerName(virtualAccount.getCustomerName())
-						.dueDate(DateTimeUtil.formatDate(virtualAccount.getDueDate(), "yyyy.MM.dd(E) HH:mm까지"))
-						.build();
-				}
-			}
-		}
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class Cancel {
-			private final List<String> seats;
-			private final Long cancelFee;
-			private final Long refundAmount;
-			private final String canceledAt;
-			private final String method;
-
-			private static Cancel from(Reservation reservation) {
-				if (!reservation.isCanceled())
-					return null;
-
-				return Cancel.builder()
-					.seats(reservation.getCanceledSeatDetails())
-					.cancelFee(reservation.getCancelFee())
-					.refundAmount(reservation.getRefundAmount())
-					.canceledAt(DateTimeUtil.formatDate(reservation.getCanceledAt(), "yyyy.MM.dd(E) HH:mm:ss"))
-					.method(reservation.getPaymentMethod())
-					.build();
-			}
-		}
-
-		@Getter
-		@AllArgsConstructor
-		@Builder
-		private static class RefundInfo {
-			private final String method;
-			private final Long paidAmount;
-			private final Long cancelFee;
-			private final Long refundAmount;
-
-			private static RefundInfo from(Reservation reservation, LocalDateTime canceledAt) {
-				return RefundInfo.builder()
-					.method(reservation.getPaymentMethod())
-					.paidAmount(reservation.getTotalAmount())
-					.cancelFee(reservation.calculateCancelFee(canceledAt))
-					.refundAmount(reservation.calculateRefundAmount(canceledAt))
-					.build();
-			}
-
-			private static RefundInfo from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
-				return RefundInfo.builder()
-					.method(reservation.getPaymentMethod())
-					.paidAmount(reservation.getTicketTotalAmount(ticketIds))
-					.cancelFee(reservation.calculateCancelFee(canceledAt, ticketIds))
-					.refundAmount(reservation.calculateRefundAmount(canceledAt, ticketIds))
 					.build();
 			}
 		}
