@@ -156,7 +156,7 @@ public class BookingService {
 		List<Long> resolvedTicketIds = ticketIds != null ? ticketIds
 			: reservation.getTickets().stream().map(Ticket::getId).toList();
 
-		reservation.validateTicketId(ticketIds);
+		reservation.validateTicketId(resolvedTicketIds);
 
 		return BookingResponse.Cancel.from(reservation, resolvedTicketIds, LocalDateTime.now());
 	}
