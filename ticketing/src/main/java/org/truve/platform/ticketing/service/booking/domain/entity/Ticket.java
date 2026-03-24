@@ -46,6 +46,9 @@ public class Ticket extends BaseEntity {
 	private TicketStatus status;
 
 	@Column
+	private LocalDateTime canceledAt;
+
+	@Column
 	private LocalDateTime usedAt;
 
 	@Builder
@@ -75,5 +78,10 @@ public class Ticket extends BaseEntity {
 
 	public boolean isCanceled() {
 		return status == TicketStatus.CANCELED;
+	}
+
+	public void cancel(LocalDateTime canceledAt) {
+		this.status = TicketStatus.CANCELED;
+		this.canceledAt = canceledAt;
 	}
 }
