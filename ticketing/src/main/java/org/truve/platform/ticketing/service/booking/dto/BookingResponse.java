@@ -330,11 +330,13 @@ public class BookingResponse {
 		@AllArgsConstructor
 		@Builder
 		private static class RefundInfo {
+			private final String method;
 			private final Long cancelFee;
 			private final Long refundAmount;
 
 			private static RefundInfo from(Reservation reservation, LocalDateTime canceledAt) {
 				return RefundInfo.builder()
+					.method(reservation.getPaymentMethod())
 					.cancelFee(reservation.calculateCancelFee(canceledAt))
 					.refundAmount(reservation.calculateRefundAmount(canceledAt))
 					.build();
@@ -342,6 +344,7 @@ public class BookingResponse {
 
 			private static RefundInfo from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
 				return RefundInfo.builder()
+					.method(reservation.getPaymentMethod())
 					.cancelFee(reservation.calculateCancelFee(canceledAt, ticketIds))
 					.refundAmount(reservation.calculateRefundAmount(canceledAt, ticketIds))
 					.build();
