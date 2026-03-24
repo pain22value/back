@@ -1,6 +1,7 @@
 package com.truve.platform.auth.service.service;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.springframework.data.util.Pair;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.truve.platform.auth.service.event.UserSignedUpEvent;
+import com.truve.platform.auth.service.domain.dto.response.AuthResponse;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.support.Preconditions;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9가-힣]{2,10}$");
 
 	private final UserRepository userRepository;
 	private final EmailVerificationRepository emailVerificationRepository;
@@ -32,9 +35,53 @@ public class AuthService {
 	private final AccessTokenBlacklistService accessTokenBlacklistService;
 	private final UserSignedUpEventPublisher  userSignedUpEventPublisher;
 
+	@Transactional(readOnly = true)
+	public AuthResponse.Me getMe(String accessToken) {
+		User user = getUserByAccessToken(accessToken);
+
+		return AuthResponse.Me.from(user);
+	}
+
+	@Transactional
+	public void changeNickname(String accessToken, String nickname) {
+		User user = getUserByAccessToken(accessToken);
+
+		validateNickname(nickname, user.getNickname());
+		user.updateNickname(nickname);
+	}
+
+	@Transactional
+	public void updateMarketingConsent(String accessToken, boolean marketingInfoAgreed) {
+		User user = getUserByAccessToken(accessToken);
+		user.updateMarketingInfoAgreed(marketingInfoAgreed);
+	}
+
+	@Transactional
+	public void updateEmailNotificationConsent(String accessToken, boolean emailNotificationAgreed) {
+		User user = getUserByAccessToken(accessToken);
+		user.updateEmailNotificationAgreed(emailNotificationAgreed);
+	}
+
+	@Transactional
+	public void withdraw(String accessToken) {
+		User user = getUserByAccessToken(accessToken);
+
+		try {
+			String jti = jwtService.parseJti(accessToken);
+			var exp = jwtService.parseExpiration(accessToken);
+
+			user.withdraw();
+			refreshTokenService.delete(user.getPublicId());
+			blacklistAccessToken(jti, exp.getTime());
+		} catch (JwtException | IllegalArgumentException e) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+	}
+
 	@Transactional
 	public Pair<String, String> login(String email, String password) {
 		User user = userRepository.findByEmailOrThrow(email);
+		validateNotWithdrawn(user);
 
 		Preconditions.validate(passwordEncoder.matches(password, user.getPassword()), ErrorCode.NOT_CORRECT_PASSWORD);
 
@@ -66,6 +113,7 @@ public class AuthService {
 
 		User user = userRepository.findByPublicId(userPublicId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+		validateNotWithdrawn(user);
 		var newAccessExp = jwtService.getAccessExpiration();
 		var newRefreshExp = jwtService.getRefreshExpiration();
 
@@ -88,36 +136,99 @@ public class AuthService {
 			String jti = jwtService.parseJti(accessToken);
 			var exp = jwtService.parseExpiration(accessToken);
 			refreshTokenService.delete(userPublicId);
-
-			long ttlMs = exp.getTime() - System.currentTimeMillis();
-			if (ttlMs > 0) {
-				accessTokenBlacklistService.save(jti, ttlMs);
-			}
+			blacklistAccessToken(jti, exp.getTime());
 		} catch (JwtException | IllegalArgumentException e) {
 			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
 		}
 	}
 
 	@Transactional
-	public void signUp(String email, String password) {
+	public void signUp(
+		String email,
+		String nickname,
+		String password,
+		boolean serviceTermsAgreed,
+		boolean electronicFinanceTermsAgreed,
+		boolean privacyCollectionAgreed,
+		boolean marketingInfoAgreed,
+		boolean over14Agreed
+	) {
 
-		String verifiedAt = emailVerificationRepository.isVerifiedEmail(email);
-		Preconditions.validate(!(verifiedAt == null || verifiedAt.isBlank()), ErrorCode.NOT_VERIFIED_EMAIL);
+		// TODO: 프론트 연동 이후 이메일 인증 검증 로직 주석 해제
+		// String verifiedAt = emailVerificationRepository.isVerifiedEmail(email);
+		// Preconditions.validate(!(verifiedAt == null || verifiedAt.isBlank()), ErrorCode.NOT_VERIFIED_EMAIL);
 
 		Preconditions.validate(
 			!userRepository.existsByEmail(email),
 			ErrorCode.ALREADY_EXISTS_EMAIL
 		);
+		Preconditions.validate(
+			serviceTermsAgreed && electronicFinanceTermsAgreed && privacyCollectionAgreed && over14Agreed,
+			ErrorCode.REQUIRED_TERMS_NOT_AGREED
+		);
+
+		validateNickname(nickname, null);
 
 		String encodedPassword = passwordEncoder.encode(password);
 
-		User user = User.createLocalUser(email, encodedPassword);
+		User user = User.createLocalUser(
+			email,
+			nickname,
+			encodedPassword,
+			serviceTermsAgreed,
+			electronicFinanceTermsAgreed,
+			privacyCollectionAgreed,
+			marketingInfoAgreed,
+			false,
+			over14Agreed
+		);
 
 		userRepository.save(user);
 		emailVerificationRepository.deleteVerifiedEmail(email);
 
 		UserSignedUpEvent event = UserSignedUpEvent.from(user);
 		userSignedUpEventPublisher.publish(user.getPublicId().toString(), event);
+	}
+
+	private User getUserByAccessToken(String accessToken) {
+		try {
+			UUID userPublicId = jwtService.parsePublicId(accessToken);
+
+			User user = userRepository.findByPublicId(userPublicId)
+				.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+			validateNotWithdrawn(user);
+
+			return user;
+		} catch (JwtException | IllegalArgumentException e) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+	}
+
+	private void validateNotWithdrawn(User user) {
+		Preconditions.validate(!user.isWithdrawn(), ErrorCode.ALREADY_WITHDRAWN_USER);
+	}
+
+	private void blacklistAccessToken(String jti, long expirationTimeMs) {
+		long ttlMs = expirationTimeMs - System.currentTimeMillis();
+		if (ttlMs > 0) {
+			accessTokenBlacklistService.save(jti, ttlMs);
+		}
+	}
+
+	private void validateNickname(String nickname, String currentNickname) {
+		Preconditions.validate(
+			nickname != null && NICKNAME_PATTERN.matcher(nickname).matches(),
+			ErrorCode.INVALID_NICKNAME
+		);
+
+		if (nickname.equals(currentNickname)) {
+			return;
+		}
+
+		Preconditions.validate(
+			!userRepository.existsByNickname(nickname),
+			ErrorCode.ALREADY_EXISTS_NICKNAME
+		);
 	}
 
 }

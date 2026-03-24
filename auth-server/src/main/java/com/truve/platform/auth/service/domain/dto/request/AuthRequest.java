@@ -18,6 +18,19 @@ public class AuthRequest {
 
 		@NotBlank
 		private String password;
+
+		@NotBlank
+		private String nickname;
+
+		private boolean serviceTermsAgreed;
+
+		private boolean electronicFinanceTermsAgreed;
+
+		private boolean privacyCollectionAgreed;
+
+		private boolean marketingInfoAgreed;
+
+		private boolean over14Agreed;
 	}
 
 	@Getter
@@ -30,5 +43,30 @@ public class AuthRequest {
 
 		@NotBlank
 		private String password;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestChangeNickname", description = "닉네임 변경 요청")
+	public static class ChangeNickname {
+		@NotBlank
+		private String nickname;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestUpdateMarketingConsent", description = "마케팅 정보 수신 동의 변경 요청")
+	public static class UpdateMarketingConsent {
+		private boolean marketingInfoAgreed;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@NoArgsConstructor
+	@Schema(name = "AuthRequestUpdateEmailNotificationConsent", description = "이메일 알림 수신 동의 변경 요청")
+	public static class UpdateEmailNotificationConsent {
+		private boolean emailNotificationAgreed;
 	}
 }

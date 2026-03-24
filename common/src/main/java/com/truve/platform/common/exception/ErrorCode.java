@@ -18,6 +18,10 @@ public enum ErrorCode {
 	ALREADY_VERIFIED_EMAIL(HttpStatus.BAD_REQUEST, "이미 인증된 이메일입니다.", "A07"),
 	INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "리프레시 토큰이 올바르지 않습니다.", "A08"),
 	KAKAO_USERINFO_FAILED(HttpStatus.BAD_REQUEST, "카카오 사용자 정보를 가져오지 못했습니다.", "A09"),
+	REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "필수 약관 동의가 필요합니다.", "A10"),
+	INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "유효하지 않은 닉네임입니다.", "A11"),
+	ALREADY_EXISTS_NICKNAME(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다.", "A12"),
+	ALREADY_WITHDRAWN_USER(HttpStatus.BAD_REQUEST, "이미 탈퇴한 회원입니다.", "A13"),
 
 	NOT_FOUND_PAYMENT(HttpStatus.BAD_REQUEST, "존재하지 않는 결제입니다.", "P01"),
 	INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 금액입니다.", "P02"),
@@ -49,6 +53,7 @@ public enum ErrorCode {
 	INVALID_HOLD_SEAT(HttpStatus.BAD_REQUEST, "타인이 점유한 좌석입니다.", "T11"),
 
 	INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 예약 상태입니다.", "B01"),
+	CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "관람일 당일에는 취소가 불가능합니다.", "B02"),
 
 	NOT_FOUND_SHOW(HttpStatus.NOT_FOUND, "존재하지 않는 공연입니다.", "M01"),
 	NOT_FOUND_ARTIST(HttpStatus.NOT_FOUND, "존재하지 않는 배우입니다.", "M02"),

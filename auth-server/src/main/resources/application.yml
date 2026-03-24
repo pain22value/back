@@ -2,6 +2,12 @@ server:
   port: ${SERVER_PORT:8081}
 
 spring:
+  application:
+    name: auth-server
+
+  config:
+    import: "classpath:application-observability.yml"
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
 
@@ -13,7 +19,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
 
   kafka:
