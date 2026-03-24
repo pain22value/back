@@ -1,6 +1,7 @@
 package org.truve.platform.ticketing.service.booking.domain.entity;
 
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
+
+import com.truve.platform.common.exception.CustomException;
 
 public class ReservationTest {
 
@@ -117,6 +120,22 @@ public class ReservationTest {
 
 		// then
 		assertThat(refundAmount).isEqualTo(expectedRefundAmount);
+	}
+
+	@Test
+	@DisplayName("유효하지 않은 티켓 ID를 입력받으면 예외를 반환한다.")
+	void 유효하지_않은_티켓_ID() {
+		// given
+		Reservation reservation = createReservation();
+		List<Ticket> tickets = createTickets(reservation, 2);
+		ReflectionTestUtils.setField(tickets.getFirst(), "id", 1L);
+		ReflectionTestUtils.setField(tickets.getLast(), "id", 2L);
+		reservation.addTickets(tickets);
+		List<Long> ticketId = List.of(3L);
+
+		// when & then
+		assertThatThrownBy(() -> reservation.validateTicketId(ticketId))
+			.isInstanceOf(CustomException.class);
 	}
 
 	private Reservation createReservation() {
