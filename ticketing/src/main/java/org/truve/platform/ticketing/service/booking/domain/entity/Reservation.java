@@ -208,8 +208,7 @@ public class Reservation extends BaseEntity {
 
 	public Long calculateRefundAmount(LocalDateTime canceledAt, List<Long> ticketIds) {
 		boolean isBookedDay = bookedAt.toLocalDate().isEqual(canceledAt.toLocalDate());
-		return getTicketAmount(ticketIds)
-			+ (isBookedDay ? TICKET_SERVICE_FEE * ticketIds.size() : 0L)
+		return (isBookedDay ? getTicketTotalAmount(ticketIds) : getTicketAmount(ticketIds))
 			- calculateCancelFee(canceledAt, ticketIds);
 	}
 
@@ -219,5 +218,9 @@ public class Reservation extends BaseEntity {
 
 	private Long getTicketAmount(List<Long> ticketIds) {
 		return getTicketsByIds(ticketIds).stream().mapToLong(Ticket::getPriceSnapshot).sum();
+	}
+
+	public Long getTicketTotalAmount(List<Long> ticketIds) {
+		return getTicketAmount(ticketIds) + TICKET_SERVICE_FEE * ticketIds.size();
 	}
 }

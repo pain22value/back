@@ -331,12 +331,14 @@ public class BookingResponse {
 		@Builder
 		private static class RefundInfo {
 			private final String method;
+			private final Long paidAmount;
 			private final Long cancelFee;
 			private final Long refundAmount;
 
 			private static RefundInfo from(Reservation reservation, LocalDateTime canceledAt) {
 				return RefundInfo.builder()
 					.method(reservation.getPaymentMethod())
+					.paidAmount(reservation.getTotalAmount())
 					.cancelFee(reservation.calculateCancelFee(canceledAt))
 					.refundAmount(reservation.calculateRefundAmount(canceledAt))
 					.build();
@@ -345,6 +347,7 @@ public class BookingResponse {
 			private static RefundInfo from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
 				return RefundInfo.builder()
 					.method(reservation.getPaymentMethod())
+					.paidAmount(reservation.getTicketTotalAmount(ticketIds))
 					.cancelFee(reservation.calculateCancelFee(canceledAt, ticketIds))
 					.refundAmount(reservation.calculateRefundAmount(canceledAt, ticketIds))
 					.build();
