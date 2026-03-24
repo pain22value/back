@@ -178,15 +178,6 @@ public class BookingDetail {
 		private final Long cancelFee;
 		private final Long refundAmount;
 
-		public static RefundInfo from(Reservation reservation, LocalDateTime canceledAt) {
-			return RefundInfo.builder()
-				.method(reservation.getPaymentMethod())
-				.paidAmount(reservation.getTotalAmount())
-				.cancelFee(reservation.calculateCancelFee(canceledAt))
-				.refundAmount(reservation.calculateRefundAmount(canceledAt))
-				.build();
-		}
-
 		public static RefundInfo from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
 			return RefundInfo.builder()
 				.method(reservation.getPaymentMethod())

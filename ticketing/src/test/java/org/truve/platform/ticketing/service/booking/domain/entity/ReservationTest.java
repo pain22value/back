@@ -97,28 +97,7 @@ public class ReservationTest {
 	}
 
 	@ParameterizedTest
-	@DisplayName("전체 취소 시 환불 금액은 총 금액 - 취소 수수료 - 서비스 수수료로 계산된다. 이때, 예매 당일일 경우 서비스 수수료를 차감하지 않는다.")
-	@CsvSource({
-		"5, 20000", // 24000 - 0 - 4000
-		"0, 24000" // 24000 - 0 - 0
-	})
-	void 환불금액_계산_전체(int daysSinceBooked, long expectedRefundAmount) {
-		// given
-		Reservation reservation = createReservation();
-		List<Ticket> tickets = createTickets(reservation, 2);
-		reservation.addTickets(tickets);
-		reservation.confirm(LocalDateTime.now(), LocalDateTime.now(), "카드", null);
-		LocalDateTime canceledAt = reservation.getBookedAt().plusDays(daysSinceBooked);
-
-		// when
-		Long refundAmount = reservation.calculateRefundAmount(canceledAt);
-
-		// then
-		assertThat(refundAmount).isEqualTo(expectedRefundAmount);
-	}
-
-	@ParameterizedTest
-	@DisplayName("부분 취소 시 환불 금액은 티켓 총 금액 - 환불 수수료로 계산된다. 이때, 예매 당일일 경우 티켓 당 서비스 수수료를 더한다.")
+	@DisplayName("취소 시 환불 금액은 티켓 총 금액 - 환불 수수료로 계산된다. 이때, 예매 당일일 경우 티켓 당 서비스 수수료를 더한다.")
 	@CsvSource({
 		"5, 10000", // 10000 - 0
 		"0, 12000" // 10000 - 0 + (2000 * 1)

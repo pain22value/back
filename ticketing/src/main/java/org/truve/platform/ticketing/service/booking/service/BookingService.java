@@ -152,6 +152,10 @@ public class BookingService {
 	@Transactional
 	public BookingResponse.Cancel getCancel(String reservationNumber, List<Long> ticketIds) {
 		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
-		return BookingResponse.Cancel.from(reservation, ticketIds, LocalDateTime.now());
+
+		List<Long> resolvedTicketIds = ticketIds != null ? ticketIds
+			: reservation.getTickets().stream().map(Ticket::getId).toList();
+
+		return BookingResponse.Cancel.from(reservation, resolvedTicketIds, LocalDateTime.now());
 	}
 }

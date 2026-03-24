@@ -127,16 +127,9 @@ public class BookingResponse {
 		private final List<TicketInfo> tickets;
 
 		public static Cancel from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
-			BookingDetail.RefundInfo refundInfo = ticketIds == null
-				? BookingDetail.RefundInfo.from(reservation, canceledAt)
-				: BookingDetail.RefundInfo.from(reservation, ticketIds, canceledAt);
-			return build(reservation, refundInfo);
-		}
-
-		private static Cancel build(Reservation reservation, BookingDetail.RefundInfo refundInfo) {
 			String title = formatTitle(reservation.getShowInfo());
 			return Cancel.builder()
-				.refundInfo(refundInfo)
+				.refundInfo(BookingDetail.RefundInfo.from(reservation, ticketIds, canceledAt))
 				.tickets(getTicketInfos(reservation.getTickets(), title))
 				.build();
 		}
