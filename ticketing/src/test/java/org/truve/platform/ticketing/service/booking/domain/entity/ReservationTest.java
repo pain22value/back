@@ -10,6 +10,8 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.truve.platform.ticketing.service.booking.domain.constant.ReservationStatus;
 
@@ -93,26 +95,35 @@ public class ReservationTest {
 		// then
 		assertThat(deadline).isEqualTo(virtualAccount.getDueDate());
 	}
-	
-	@Test
-	@DisplayName("전체 취소 시 환불 금액은 총 금액 - 서비스 수수료 - 환불 수수료로 계산된다.")
-	void 환불금액_계산_전체() {
+
+	@ParameterizedTest
+	@DisplayName("전체 취소 시 환불 금액은 총 금액 - 취소 수수료 - 서비스 수수료로 계산된다. 이때, 예매 당일일 경우 서비스 수수료를 차감하지 않는다.")
+	@CsvSource({
+		"5, 20000", // 24000 - 0 - 4000
+		"0, 24000" // 24000 - 0 - 0
+	})
+	void 환불금액_계산_전체(int daysSinceBooked, long expectedRefundAmount) {
 		// given
 		Reservation reservation = createReservation();
 		List<Ticket> tickets = createTickets(reservation, 2);
 		reservation.addTickets(tickets);
 		reservation.confirm(LocalDateTime.now(), LocalDateTime.now(), "카드", null);
+		LocalDateTime canceledAt = reservation.getBookedAt().plusDays(daysSinceBooked);
 
 		// when
-		Long refundAmount = reservation.calculateRefundAmount(LocalDateTime.now());
+		Long refundAmount = reservation.calculateRefundAmount(canceledAt);
 
 		// then
-		assertThat(refundAmount).isEqualTo(20000L);
+		assertThat(refundAmount).isEqualTo(expectedRefundAmount);
 	}
 
-	@Test
-	@DisplayName("부분 취소 시 환불 금액은 취소 티켓 가격 총액 - 환불 수수료로 계산된다.")
-	void 환불금액_계산_부분() {
+	@ParameterizedTest
+	@DisplayName("부분 취소 시 환불 금액은 티켓 총 금액 - 환불 수수료로 계산된다. 이때, 예매 당일일 경우 티켓 당 서비스 수수료를 더한다.")
+	@CsvSource({
+		"5, 10000", // 10000 - 0
+		"0, 12000" // 10000 - 0 + (2000 * 1)
+	})
+	void 환불금액_계산_부분(int daysSinceBooked, long expectedRefundAmount) {
 		// given
 		Reservation reservation = createReservation();
 		List<Ticket> tickets = createTickets(reservation, 2);
@@ -120,12 +131,13 @@ public class ReservationTest {
 		ReflectionTestUtils.setField(tickets.getLast(), "id", 2L);
 		reservation.addTickets(tickets);
 		reservation.confirm(LocalDateTime.now(), LocalDateTime.now(), "카드", null);
+		LocalDateTime canceledAt = reservation.getBookedAt().plusDays(daysSinceBooked);
 
 		// when
-		Long refundAmount = reservation.calculateRefundAmount(LocalDateTime.now(), List.of(1L));
+		Long refundAmount = reservation.calculateRefundAmount(canceledAt, List.of(1L));
 
 		// then
-		assertThat(refundAmount).isEqualTo(10000L);
+		assertThat(refundAmount).isEqualTo(expectedRefundAmount);
 	}
 
 	private Reservation createReservation() {

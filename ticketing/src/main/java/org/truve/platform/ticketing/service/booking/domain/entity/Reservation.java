@@ -202,11 +202,15 @@ public class Reservation extends BaseEntity {
 	}
 
 	public Long calculateRefundAmount(LocalDateTime canceledAt) {
-		return this.totalAmount - serviceFee - calculateCancelFee(canceledAt);
+		boolean isBookedDay = bookedAt.toLocalDate().isEqual(canceledAt.toLocalDate());
+		return this.totalAmount - (isBookedDay ? 0L : serviceFee) - calculateCancelFee(canceledAt);
 	}
 
 	public Long calculateRefundAmount(LocalDateTime canceledAt, List<Long> ticketIds) {
-		return getTicketAmount(ticketIds) - calculateCancelFee(canceledAt, ticketIds);
+		boolean isBookedDay = bookedAt.toLocalDate().isEqual(canceledAt.toLocalDate());
+		return getTicketAmount(ticketIds)
+			+ (isBookedDay ? TICKET_SERVICE_FEE * ticketIds.size() : 0L)
+			- calculateCancelFee(canceledAt, ticketIds);
 	}
 
 	private List<Ticket> getTicketsByIds(List<Long> ticketIds) {
