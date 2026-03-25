@@ -58,7 +58,9 @@ public class TicketingService {
 		long activeWindowMs = ticketingProperties.getActiveWindowMs();
 		ticketingRedisRepository.removeInactiveTicketingUsers(showScheduleId, nowMs - activeWindowMs);
 
-		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
+		// TODO: 프론트 연동 이후 세션 만료시간 설정값 기반 갱신 로직 주석 해제
+		// boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
+		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, Duration.ofMinutes(60).toSeconds());
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
 	}
 
