@@ -45,8 +45,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ env.ECR_REPOSITORY }}:${{ matrix.service }}-latest
-            ${{ env.ECR_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
+            ${{ env.ECR_REPO }}:${{ matrix.service }}-latest
+            ${{ env.ECR_REPO }}:${{ matrix.service }}-${{ github.sha }}
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
           cache-from: type=gha
