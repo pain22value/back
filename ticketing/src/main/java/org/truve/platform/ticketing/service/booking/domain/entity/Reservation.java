@@ -218,8 +218,25 @@ public class Reservation extends BaseEntity {
 		return getTicketAmount(ticketIds) + TICKET_SERVICE_FEE * ticketIds.size();
 	}
 
+	public void cancel(List<Long> ticketIds, LocalDateTime canceledAt) {
+		validateTicketId(ticketIds);
+		validateCancelStatus();
+
+		this.status = ticketIds.size() == tickets.size() ? ReservationStatus.CANCELED : ReservationStatus.PARTIAL_CANCELED;
+		this.canceledAt = canceledAt;
+
+		tickets.stream()
+			.filter(ticket -> ticketIds.contains(ticket.getId()))
+			.forEach(ticket -> ticket.cancel(canceledAt));
+	}
+
 	public void validateTicketId(List<Long> ticketIds) {
 		Set<Long> validIds = tickets.stream().map(Ticket::getId).collect(Collectors.toSet());
 		Preconditions.validate(validIds.containsAll(ticketIds), ErrorCode.INVALID_TICKET_ID);
+	}
+
+	private void validateCancelStatus() {
+		Preconditions.validate(status != ReservationStatus.CANCELED && status != ReservationStatus.COMPLETED,
+			ErrorCode.ALREADY_CANCELED_OR_COMPLETED);
 	}
 }
