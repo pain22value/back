@@ -41,8 +41,8 @@ public class TicketingService {
 
 		String sessionToken = UUID.randomUUID().toString();
 
-		// TODO: 만료시간 기획측과 논의
-		ticketingRedisRepository.saveSessionToken(sessionToken, userId, showScheduleId, Duration.ofMinutes(5));
+		// TODO: 만료시간 기획측과 논의, 현재 60분으로 연동 편의성 확보
+		ticketingRedisRepository.saveSessionToken(sessionToken, userId, showScheduleId, Duration.ofMinutes(60));
 		ticketingRedisRepository.addActiveTicketingUser(showScheduleId, sessionToken);
 		long sessionTokenTtl = ticketingRedisRepository.getSessionTokenTtl(sessionToken);
 
@@ -58,21 +58,23 @@ public class TicketingService {
 		long activeWindowMs = ticketingProperties.getActiveWindowMs();
 		ticketingRedisRepository.removeInactiveTicketingUsers(showScheduleId, nowMs - activeWindowMs);
 
-		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
+		// TODO: 프론트 연동 이후 세션 만료시간 설정값 기반 갱신 로직 주석 해제
+		// boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, ticketingProperties.getSessionTtlSec());
+		boolean extended = ticketingRedisRepository.refreshSessionTokenTtl(sessionToken, Duration.ofMinutes(60).toSeconds());
 		Preconditions.validate(extended, ErrorCode.INVALID_SESSION_TOKEN);
 	}
 
-	public void holdSeat(Long showScheduleId, UUID userId, String sessionToken, List<Long> seatIds) {
+	public void holdSeat(Long showScheduleId, UUID userId, String sessionToken, List<Long> scheduledSeatIds) {
 		heartbeat(showScheduleId, userId, sessionToken);
 
-		Preconditions.validate(seatIds.size() <= 4, ErrorCode.EXCEEDED_MAX_TICKET_COUNT);
+		Preconditions.validate(scheduledSeatIds.size() <= 4, ErrorCode.EXCEEDED_MAX_TICKET_COUNT);
 
 		ShowScheduled showScheduled = showScheduledRepository.findById(showScheduleId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE));
 
-		List<ScheduledSeat> seats = scheduledSeatRepository.findAllById(seatIds);
+		List<ScheduledSeat> seats = scheduledSeatRepository.findAllById(scheduledSeatIds);
 
-		Preconditions.validate(seatIds.size() == seats.size(), ErrorCode.NOT_CORRECT_SEAT);
+		Preconditions.validate(scheduledSeatIds.size() == seats.size(), ErrorCode.NOT_CORRECT_SEAT);
 
 		for(ScheduledSeat seat: seats) {
 
@@ -102,11 +104,21 @@ public class TicketingService {
 
 	}
 
-	public void cancelHoldSeat(Long showScheduleId, UUID userId, String sessionToken,List<Long> seatIds) {
+	public void cancelHoldSeat(Long showScheduleId, UUID userId, String sessionToken, List<Long> scheduledSeatIds) {
 
 		heartbeat(showScheduleId, userId, sessionToken);
 
-		for (Long seatId : seatIds) {
+		List<ScheduledSeat> seats = scheduledSeatRepository.findAllById(scheduledSeatIds);
+
+		Preconditions.validate(scheduledSeatIds.size() == seats.size(), ErrorCode.NOT_CORRECT_SEAT);
+
+		for (ScheduledSeat seat : seats) {
+			Preconditions.validate(
+				seat.getShowScheduleId().equals(showScheduleId),
+				ErrorCode.NOT_CORRECT_SEAT
+			);
+
+			Long seatId = seat.getSeat().getId();
 			String savedSessionToken = ticketingRedisRepository.getHoldSeatSessionToken(showScheduleId, seatId);
 			Preconditions.validate(sessionToken.equals(savedSessionToken), ErrorCode.INVALID_HOLD_SEAT);
 			ticketingRedisRepository.deleteHoldSeat(showScheduleId, seatId);
