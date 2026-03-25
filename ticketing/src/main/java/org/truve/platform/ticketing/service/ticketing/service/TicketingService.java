@@ -41,8 +41,8 @@ public class TicketingService {
 
 		String sessionToken = UUID.randomUUID().toString();
 
-		// TODO: 만료시간 기획측과 논의
-		ticketingRedisRepository.saveSessionToken(sessionToken, userId, showScheduleId, Duration.ofMinutes(5));
+		// TODO: 만료시간 기획측과 논의, 현재 60분으로 연동 편의성 확보
+		ticketingRedisRepository.saveSessionToken(sessionToken, userId, showScheduleId, Duration.ofMinutes(60));
 		ticketingRedisRepository.addActiveTicketingUser(showScheduleId, sessionToken);
 		long sessionTokenTtl = ticketingRedisRepository.getSessionTokenTtl(sessionToken);
 
