@@ -7,6 +7,12 @@ import lombok.Getter;
 
 public class TicketingInternalResponse {
 
+	public interface FlatRemainingSeatInfo {
+		String getGradeName();
+		Long getRemainingSeatCount();
+		Long getTotalCount();
+	}
+
 	@Getter
 	@AllArgsConstructor
 	public static class RemainingSeats {
