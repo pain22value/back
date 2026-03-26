@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -702,10 +703,7 @@ class AuthServiceTest {
 			// given
 			String email = "new@test.com";
 			String password = "plain";
-			String verifiedAt = "1700000000000";
-
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn(verifiedAt);
-			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
 			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
 			given(passwordEncoder.encode(password)).willReturn("encoded");
 			given(userRepository.save(any(User.class))).willAnswer(invocation -> {
@@ -746,19 +744,16 @@ class AuthServiceTest {
 			// given
 			String email = "new@test.com";
 			String password = "plain";
-
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("");
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
+			given(passwordEncoder.encode(password)).willReturn("encoded");
+			given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 
 			// when
-			CustomException exception = assertThrows(
-				CustomException.class,
-				() -> authService.signUp(email, NICKNAME, password, true, true, true, false, true)
-			);
+			authService.signUp(email, NICKNAME, password, true, true, true, false, true);
 
 			// then
-			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_VERIFIED_EMAIL);
-			verify(userRepository, never()).save(any(User.class));
-			verify(userSignedUpEventPublisher, never()).publish(anyString(), any());
+			verify(userRepository).save(any(User.class));
 		}
 
 		@Test
@@ -767,9 +762,18 @@ class AuthServiceTest {
 			// given
 			String email = "dup@test.com";
 			String password = "plain";
-
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
-			given(userRepository.existsByEmail(email)).willReturn(true);
+			User existingUser = User.createLocalUser(
+				email,
+				"existing",
+				"encoded-old",
+				true,
+				true,
+				true,
+				false,
+				false,
+				true
+			);
+			given(userRepository.findByEmail(email)).willReturn(Optional.of(existingUser));
 
 			// when
 			CustomException exception = assertThrows(
@@ -785,14 +789,54 @@ class AuthServiceTest {
 		}
 
 		@Test
+		@DisplayName("탈퇴한 유저는 즉시 재가입 처리된다.")
+		void 회원가입_성공_탈퇴유저_재가입() {
+			// given
+			String email = "withdrawn@test.com";
+			String password = "plain";
+			User withdrawnUser = User.createLocalUser(
+				email,
+				"oldnick",
+				"old-password",
+				true,
+				true,
+				true,
+				false,
+				false,
+				true
+			);
+			withdrawnUser.withdraw();
+
+			given(userRepository.findByEmail(email)).willReturn(Optional.of(withdrawnUser));
+			given(userRepository.existsByNickname(NICKNAME)).willReturn(false);
+			given(passwordEncoder.encode(password)).willReturn("encoded");
+
+			// when
+			authService.signUp(email, NICKNAME, password, true, true, true, false, true);
+
+			// then
+			assertAll(
+				() -> assertThat(withdrawnUser.isWithdrawn()).isFalse(),
+				() -> assertThat(withdrawnUser.getNickname()).isEqualTo(NICKNAME),
+				() -> assertThat(withdrawnUser.getPassword()).isEqualTo("encoded"),
+				() -> assertThat(withdrawnUser.isServiceTermsAgreed()).isTrue(),
+				() -> assertThat(withdrawnUser.isElectronicFinanceTermsAgreed()).isTrue(),
+				() -> assertThat(withdrawnUser.isPrivacyCollectionAgreed()).isTrue(),
+				() -> assertThat(withdrawnUser.isOver14Agreed()).isTrue()
+			);
+			verify(userRepository, never()).save(any(User.class));
+			verify(emailVerificationRepository).deleteVerifiedEmail(email);
+			verify(userSignedUpEventPublisher, never()).publish(anyString(), any());
+		}
+
+		@Test
 		@DisplayName("필수 약관에 동의하지 않으면 예외가 발생한다.")
 		void 회원가입_실패_필수_약관_미동의() {
 			// given
 			String email = "new@test.com";
 			String password = "plain";
 
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
-			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
 
 			// when
 			CustomException exception = assertThrows(
@@ -815,8 +859,7 @@ class AuthServiceTest {
 			String email = "new@test.com";
 			String password = "plain";
 
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
-			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
 
 			// when
 			CustomException exception = assertThrows(
@@ -836,8 +879,7 @@ class AuthServiceTest {
 			String email = "new@test.com";
 			String password = "plain";
 
-			given(emailVerificationRepository.isVerifiedEmail(email)).willReturn("1700000000000");
-			given(userRepository.existsByEmail(email)).willReturn(false);
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
 			given(userRepository.existsByNickname(NICKNAME)).willReturn(true);
 
 			// when
