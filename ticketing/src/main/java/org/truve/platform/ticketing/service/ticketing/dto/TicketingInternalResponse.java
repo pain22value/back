@@ -16,7 +16,7 @@ public class TicketingInternalResponse {
 	@Getter
 	@AllArgsConstructor
 	public static class RemainingSeats {
-		private Long ShowScheduleId;
+		private Long showScheduleId;
 		private List<GradeRemaining> grades;
 
 		public static RemainingSeats of(Long showScheduleId, List<GradeRemaining> grades) {
