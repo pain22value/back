@@ -61,13 +61,14 @@ public interface ScheduledSeatRepository extends JpaRepository<ScheduledSeat, Lo
 	@Query("""
 	select
 		sc.gradeName as gradeName,
-		sum(case when ss.status = :status then 1L else 0L end) as remainingSeatCount
+		sum(case when ss.status = :status then 1L else 0L end) as remainingSeatCount,
+		count(ss) as totalCount
 	from ScheduledSeat ss
 	join ss.seat s
 	join s.seatSection sc
 	where ss.showScheduleId = :showScheduleId
 	group by sc.gradeName
-	order by sc.price asc
+	order by sc.gradeName asc
 	""")
 	List<TicketingInternalResponse.FlatRemainingSeatInfo> findGradeRemainingSeats(
 		@Param("showScheduleId") Long showScheduleId,
