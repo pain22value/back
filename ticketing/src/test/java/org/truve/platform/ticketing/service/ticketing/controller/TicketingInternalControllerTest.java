@@ -55,7 +55,7 @@ class TicketingInternalControllerTest {
 		given(ticketingInternalService.getRemainingSeats(showScheduleId)).willReturn(response);
 
 		// when
-		ResultActions resultActions = mockMvc.perform(get("/api/internal/ticketing/{showScheduleId}/remaining", showScheduleId));
+		ResultActions resultActions = mockMvc.perform(get("/api/ticketing/internal/{showScheduleId}/remaining", showScheduleId));
 
 		// then
 		resultActions.andExpect(status().isOk())

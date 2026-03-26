@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/internal/ticketing")
+@RequestMapping("/api/ticketing/internal")
 @Tag(name = "Internal Ticketing", description = "백엔드 내부 통신 용 API")
 
 // TODO: 내부 서비스 간 통신 시 보안 방식 검토
