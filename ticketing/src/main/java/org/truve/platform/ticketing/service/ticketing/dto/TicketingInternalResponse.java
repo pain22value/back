@@ -26,9 +26,17 @@ public class TicketingInternalResponse {
 
 	@Getter
 	@AllArgsConstructor
-	private static class GradeRemaining {
+	public static class GradeRemaining {
 		private String gradeName;
 		private Long remainingSeatCount;
 		private Long totalCount;
+
+		public static  GradeRemaining from(FlatRemainingSeatInfo flatRemainingSeatInfo) {
+			return new GradeRemaining(
+				flatRemainingSeatInfo.getGradeName(),
+				flatRemainingSeatInfo.getRemainingSeatCount(),
+				flatRemainingSeatInfo.getTotalCount()
+			);
+		}
 	}
 }
