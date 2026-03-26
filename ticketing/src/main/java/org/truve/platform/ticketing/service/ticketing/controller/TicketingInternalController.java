@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.truve.platform.ticketing.service.ticketing.dto.TicketingInternalResponse;
 import org.truve.platform.ticketing.service.ticketing.service.TicketingInternalService;
 
 import com.truve.platform.common.response.ApiResult;
@@ -17,10 +18,9 @@ public class TicketingInternalController {
 	private final TicketingInternalService ticketingInternalService;
 
 	@GetMapping("/{showScheduleId/remaining")
-	public ApiResult<Void> getRemainingSeats(
+	public ApiResult<TicketingInternalResponse.RemainingSeats> getRemainingSeats(
 		@PathVariable Long showScheduleId
 	) {
-		ticketingInternalService.getRemainingSeats(showScheduleId);
-		return ApiResult.ok();
+		return ApiResult.ok(ticketingInternalService.getRemainingSeats(showScheduleId));
 	}
 }
