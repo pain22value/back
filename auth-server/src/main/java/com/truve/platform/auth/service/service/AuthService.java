@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9가-힣]{2,10}$");
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^(?:[가-힣]{2,10}|[a-zA-Z]{2,16})$");
 
 	private final UserRepository userRepository;
 	private final EmailVerificationRepository emailVerificationRepository;

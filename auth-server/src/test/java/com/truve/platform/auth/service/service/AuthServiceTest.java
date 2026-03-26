@@ -161,6 +161,25 @@ class AuthServiceTest {
 		}
 
 		@Test
+		@DisplayName("영문 16자 닉네임이면 변경한다.")
+		void 닉네임변경_성공_영문16자() {
+			// given
+			String accessToken = "access-token";
+			String newNickname = "abcdefghijklmnop";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+			given(userRepository.existsByNickname(newNickname)).willReturn(false);
+
+			// when
+			authService.changeNickname(accessToken, newNickname);
+
+			// then
+			assertThat(user.getNickname()).isEqualTo(newNickname);
+		}
+
+		@Test
 		@DisplayName("현재 닉네임과 같으면 중복 조회 없이 유지한다.")
 		void 닉네임변경_성공_동일닉네임() {
 			// given
@@ -192,6 +211,27 @@ class AuthServiceTest {
 			CustomException exception = assertThrows(
 				CustomException.class,
 				() -> authService.changeNickname(accessToken, "a b")
+			);
+
+			// then
+			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_NICKNAME);
+			verify(userRepository, never()).existsByNickname(anyString());
+		}
+
+		@Test
+		@DisplayName("영문 17자 닉네임이면 예외가 발생한다.")
+		void 닉네임변경_실패_영문17자() {
+			// given
+			String accessToken = "access-token";
+			User user = createUser(1L, "user@test.com", "encoded");
+
+			given(jwtService.parsePublicId(accessToken)).willReturn(user.getPublicId());
+			given(userRepository.findByPublicId(user.getPublicId())).willReturn(java.util.Optional.of(user));
+
+			// when
+			CustomException exception = assertThrows(
+				CustomException.class,
+				() -> authService.changeNickname(accessToken, "abcdefghijklmnopq")
 			);
 
 			// then
@@ -870,6 +910,31 @@ class AuthServiceTest {
 			// then
 			assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_NICKNAME);
 			verify(userRepository, never()).save(any(User.class));
+		}
+
+		@Test
+		@DisplayName("영문 16자 닉네임이면 회원가입에 성공한다.")
+		void 회원가입_성공_영문16자_닉네임() {
+			// given
+			String email = "english@test.com";
+			String password = "plain";
+			String englishNickname = "abcdefghijklmnop";
+
+			given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+			given(userRepository.existsByNickname(englishNickname)).willReturn(false);
+			given(passwordEncoder.encode(password)).willReturn("encoded");
+			given(userRepository.save(any(User.class))).willAnswer(invocation -> {
+				User savedUser = invocation.getArgument(0);
+				ReflectionTestUtils.setField(savedUser, "id", 2L);
+				return savedUser;
+			});
+
+			// when
+			authService.signUp(email, englishNickname, password, true, true, true, false, true);
+
+			// then
+			verify(userRepository).save(any(User.class));
+			verify(userSignedUpEventPublisher).publish(anyString(), any());
 		}
 
 		@Test
