@@ -9,15 +9,17 @@ import org.truve.platform.ticketing.service.ticketing.service.TicketingInternalS
 
 import com.truve.platform.common.response.ApiResult;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/internal/ticketing")
+@RequestMapping("/api/internal/ticketing")
+@Tag(name = "Internal Ticketing", description = "백엔드 내부 통신 용 API")
 public class TicketingInternalController {
 	private final TicketingInternalService ticketingInternalService;
 
-	@GetMapping("/{showScheduleId/remaining")
+	@GetMapping("/{showScheduleId}/remaining")
 	public ApiResult<TicketingInternalResponse.RemainingSeats> getRemainingSeats(
 		@PathVariable Long showScheduleId
 	) {
