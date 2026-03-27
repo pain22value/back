@@ -209,6 +209,7 @@ services:
       - MUSICAL_MYSQL_URL=jdbc:mysql://db:3306/musical_db
       - MUSICAL_MYSQL_USERNAME=root
       - MUSICAL_MYSQL_PASSWORD=1234
+      - TICKETING_SERVER_URI=http://ticketing:8084
       - AWS_S3_BUCKET=truve-media
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY=test
