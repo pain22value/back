@@ -76,8 +76,8 @@ class ShowServiceTest {
 	private ShowCastingService showCastingService;
 
 	@Test
-	@DisplayName("공연 상세는 조회된 공연 전체 캐스팅을 응답한다.")
-	void 공연_상세_공연전체_캐스팅_응답_성공() {
+	@DisplayName("공연 상세는 동일한 배우와 역할 조합의 중복 캐스팅을 제거해 응답한다.")
+	void 공연_상세_중복_캐스팅_제거_응답_성공() {
 		Long showId = 1L;
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
@@ -125,6 +125,7 @@ class ShowServiceTest {
 		when(artistC.getName()).thenReturn("배우C");
 
 		ShowCasting castOrder1 = org.mockito.Mockito.mock(ShowCasting.class);
+		ShowCasting castOrder1Duplicate = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrder2 = org.mockito.Mockito.mock(ShowCasting.class);
 		ShowCasting castOrderNull = org.mockito.Mockito.mock(ShowCasting.class);
 		when(castOrder1.getId()).thenReturn(5001L);
@@ -133,6 +134,8 @@ class ShowServiceTest {
 		when(castOrder1.getCastingOrder()).thenReturn(1);
 		when(castOrder1.getProfileImg()).thenReturn("show-casting-artistA.jpg");
 		when(s3Service.getImageUrl("show-casting-artistA.jpg")).thenReturn("https://img.example/show-casting-artistA.jpg");
+		when(castOrder1Duplicate.getArtist()).thenReturn(artistA);
+		when(castOrder1Duplicate.getRoleName()).thenReturn("주연");
 		when(castOrder2.getId()).thenReturn(5002L);
 		when(castOrder2.getArtist()).thenReturn(artistB);
 		when(castOrder2.getRoleName()).thenReturn("조연");
@@ -153,7 +156,7 @@ class ShowServiceTest {
 		when(venueRepository.findById(10L)).thenReturn(Optional.of(venue));
 		when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1, schedule2));
 		when(showCastingRepository.findAllByShowId(showId))
-			.thenReturn(List.of(castOrder1, castOrder2, castOrderNull));
+			.thenReturn(List.of(castOrder1, castOrder1Duplicate, castOrder2, castOrderNull));
 		when(artistLikeRepository.findLikedArtistIds(userId, List.of(101L, 102L, 103L)))
 			.thenReturn(List.of(101L));
 		when(showSeatGradeRepository.findSeatPrices(showId)).thenReturn(List.of(seat));
