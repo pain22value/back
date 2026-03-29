@@ -100,6 +100,10 @@ public class PaymentService {
 	@Transactional
 	public void cancel(String orderId, String idempotencyKey, PaymentRequest.Cancel request) {
 		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
+
+		if (paymentCancelRepository.existsByIdempotencyKey(idempotencyKey))
+			return;
+
 		payment.validateCancel(request.getCancelAmount());
 
 		TossResponse.Cancel response = tossClient.cancel(
@@ -107,17 +111,15 @@ public class PaymentService {
 			idempotencyKey,
 			TossRequest.Cancel.from(request));
 
-		// TODO: 멱등성 키 기반 검증으로 변경
-		paymentCancelRepository.findByTransactionKey(response.getTransactionKey())
-			.orElseGet(() -> payment.applyCancel(toCancelCommand(response)));
+		payment.applyCancel(toCancelCommand(response, idempotencyKey));
 	}
 
-	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel) {
+	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel, String idempotencyKey) {
 		return CancelCommand.builder()
 			.amount(latestCancel.getCancelAmount())
 			.reason(latestCancel.getCancelReason())
 			.canceledAt(parseTime(latestCancel.getCanceledAt()))
-			.transactionKey(latestCancel.getTransactionKey())
+			.idempotencyKey(idempotencyKey)
 			.status(latestCancel.getCancelStatus())
 			.build();
 	}

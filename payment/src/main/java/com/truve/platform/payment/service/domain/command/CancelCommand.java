@@ -14,6 +14,6 @@ public class CancelCommand {
 	private final Long amount;
 	private final String reason;
 	private final LocalDateTime canceledAt;
-	private final String transactionKey;
+	private final String idempotencyKey;
 	private final String status;
 }
