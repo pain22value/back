@@ -160,4 +160,17 @@ public class BookingService {
 
 		return BookingResponse.Cancel.from(reservation, resolvedTicketIds, LocalDateTime.now());
 	}
+
+	@Transactional
+	public BookingResponse.CanceledTickets cancel(String reservationNumber, BookingRequest.TicketIds request) {
+		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
+		List<Long> requestedTicketIds = request.getTicketIds();
+
+		// TODO: 결제서버 취소 API 동기 호출
+		// TODO: canceledAt -> 결제 서버 응답으로 온 취소 시간으로 변경
+
+		reservation.cancel(requestedTicketIds, LocalDateTime.now());
+
+		return new BookingResponse.CanceledTickets(requestedTicketIds);
+	}
 }
