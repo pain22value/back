@@ -183,7 +183,6 @@ class PaymentServiceTest {
 			given(tossClient.cancel(any(), any(), any())).willReturn(tossResponse);
 
 			PaymentCancel existingCancel = mock(PaymentCancel.class);
-			given(existingCancel.getCancelStatus()).willReturn("DONE");
 			given(paymentCancelRepository.findByTransactionKey(transactionKey))
 				.willReturn(Optional.of(existingCancel));
 

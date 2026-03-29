@@ -142,7 +142,6 @@ class PaymentTest {
 		@BeforeEach
 		void setUp() {
 			commandBuilder = CancelCommand.builder()
-				.fee(0L)
 				.reason("테스트 취소 사유")
 				.canceledAt(now)
 				.transactionKey("테스트 트랜잭션 키")

@@ -12,7 +12,6 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CancelCommand {
 	private final Long amount;
-	private final Long fee;
 	private final String reason;
 	private final LocalDateTime canceledAt;
 	private final String transactionKey;

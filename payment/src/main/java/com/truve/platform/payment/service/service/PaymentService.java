@@ -16,7 +16,6 @@ import com.truve.platform.payment.service.domain.command.CancelCommand;
 import com.truve.platform.payment.service.domain.constant.Bank;
 import com.truve.platform.payment.service.domain.constant.PaymentStatus;
 import com.truve.platform.payment.service.domain.entity.Payment;
-import com.truve.platform.payment.service.domain.entity.PaymentCancel;
 import com.truve.platform.payment.service.dto.PaymentRequest;
 import com.truve.platform.payment.service.dto.PaymentResponse;
 import com.truve.platform.payment.service.event.PaymentUpdated;
@@ -40,12 +39,6 @@ public class PaymentService {
 	private final PaymentCancelRepository paymentCancelRepository;
 	private final TossClient tossClient;
 	private final ApplicationEventPublisher eventPublisher;
-
-	@Transactional(readOnly = true)
-	public PaymentResponse.Details details(String orderId) {
-		Payment payment = paymentRepository.getByOrderId(orderId);
-		return PaymentResponse.Details.from(payment);
-	}
 
 	@Transactional
 	public void create(PaymentEventCommand.Create request) {
@@ -105,29 +98,23 @@ public class PaymentService {
 	}
 
 	@Transactional
-	public PaymentResponse.Cancel cancel(String orderId, String idempotencyKey, PaymentRequest.Cancel request) {
+	public void cancel(String orderId, String idempotencyKey, PaymentRequest.Cancel request) {
 		Payment payment = paymentRepository.getByOrderIdWithLock(orderId);
 		payment.validateCancel(request.getCancelAmount());
-
-		Long refundFee = 0L; // TODO: 환불 수수료 계산 구현 후 추가
 
 		TossResponse.Cancel response = tossClient.cancel(
 			payment.getPaymentKey(),
 			idempotencyKey,
-			TossRequest.Cancel.from(request, refundFee));
+			TossRequest.Cancel.from(request));
 
-		return paymentCancelRepository.findByTransactionKey(response.getTransactionKey())
-			.map(PaymentResponse.Cancel::from)
-			.orElseGet(() -> {
-				PaymentCancel cancel = payment.applyCancel(toCancelCommand(response, 0L));
-				return PaymentResponse.Cancel.from(cancel);
-			});
+		// TODO: 멱등성 키 기반 검증으로 변경
+		paymentCancelRepository.findByTransactionKey(response.getTransactionKey())
+			.orElseGet(() -> payment.applyCancel(toCancelCommand(response)));
 	}
 
-	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel, Long refundFee) {
+	private CancelCommand toCancelCommand(TossResponse.Cancel latestCancel) {
 		return CancelCommand.builder()
 			.amount(latestCancel.getCancelAmount())
-			.fee(refundFee)
 			.reason(latestCancel.getCancelReason())
 			.canceledAt(parseTime(latestCancel.getCanceledAt()))
 			.transactionKey(latestCancel.getTransactionKey())
