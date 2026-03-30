@@ -44,7 +44,9 @@ public class BookingRequest {
 
 	@Getter
 	@AllArgsConstructor
-	public static class TicketIds {
+	public static class Cancel {
+		@NotEmpty
+		private String cancelReason;
 		@NotEmpty
 		private List<Long> ticketIds;
 	}

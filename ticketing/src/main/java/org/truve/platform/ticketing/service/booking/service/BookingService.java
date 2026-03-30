@@ -162,7 +162,7 @@ public class BookingService {
 	}
 
 	@Transactional
-	public BookingResponse.CanceledTickets cancel(String reservationNumber, BookingRequest.TicketIds request) {
+	public BookingResponse.CanceledTickets cancel(String reservationNumber, BookingRequest.Cancel request) {
 		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
 		List<Long> requestedTicketIds = request.getTicketIds();
 
