@@ -220,9 +220,6 @@ public class Reservation extends BaseEntity {
 	}
 
 	public void cancel(List<Long> ticketIds, LocalDateTime canceledAt) {
-		validateTicketId(ticketIds);
-		validateCancelStatus();
-
 		this.status = new HashSet<>(ticketIds).size() == tickets.size() ? ReservationStatus.CANCELED :
 			ReservationStatus.PARTIAL_CANCELED;
 		this.canceledAt = canceledAt;
@@ -237,7 +234,7 @@ public class Reservation extends BaseEntity {
 		Preconditions.validate(validIds.containsAll(ticketIds), ErrorCode.INVALID_TICKET_ID);
 	}
 
-	private void validateCancelStatus() {
+	public void validateCancelStatus() {
 		Preconditions.validate(status != ReservationStatus.CANCELED && status != ReservationStatus.COMPLETED,
 			ErrorCode.ALREADY_CANCELED_OR_COMPLETED);
 	}

@@ -148,7 +148,7 @@ public class ReservationTest {
 		ReflectionTestUtils.setField(reservation, "status", status);
 
 		// when & then
-		assertThatThrownBy(() -> reservation.cancel(List.of(1L), LocalDateTime.now()))
+		assertThatThrownBy(reservation::validateCancelStatus)
 			.isInstanceOf(CustomException.class);
 	}
 
