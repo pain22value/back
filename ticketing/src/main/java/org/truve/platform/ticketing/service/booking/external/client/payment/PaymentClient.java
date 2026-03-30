@@ -5,8 +5,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.truve.platform.ticketing.service.booking.config.PaymentFeignConfig;
 
-@FeignClient(name = "payment-service")
+@FeignClient(name = "payment-service", configuration = PaymentFeignConfig.class)
 public interface PaymentClient {
 
 	@PostMapping("/api/payments/{orderId}/cancel")
