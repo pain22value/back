@@ -2,7 +2,7 @@ package org.truve.platform.ticketing.service.booking.dto;
 
 import java.util.List;
 
-import org.truve.platform.ticketing.service.booking.domain.entity.Applicant;
+import org.truve.platform.ticketing.service.booking.domain.entity.embedded.Applicant;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
