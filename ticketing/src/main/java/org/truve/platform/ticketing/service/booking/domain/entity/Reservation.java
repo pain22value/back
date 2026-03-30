@@ -3,6 +3,7 @@ package org.truve.platform.ticketing.service.booking.domain.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -222,7 +223,8 @@ public class Reservation extends BaseEntity {
 		validateTicketId(ticketIds);
 		validateCancelStatus();
 
-		this.status = ticketIds.size() == tickets.size() ? ReservationStatus.CANCELED : ReservationStatus.PARTIAL_CANCELED;
+		this.status = new HashSet<>(ticketIds).size() == tickets.size() ? ReservationStatus.CANCELED :
+			ReservationStatus.PARTIAL_CANCELED;
 		this.canceledAt = canceledAt;
 
 		tickets.stream()
