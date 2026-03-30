@@ -125,12 +125,14 @@ public class BookingResponse {
 	public static class Cancel {
 		private final BookingDetail.RefundInfo refundInfo;
 		private final List<TicketInfo> tickets;
+		private final String status;
 
 		public static Cancel from(Reservation reservation, List<Long> ticketIds, LocalDateTime canceledAt) {
 			String title = formatTitle(reservation.getShowInfo());
 			return Cancel.builder()
 				.refundInfo(BookingDetail.RefundInfo.from(reservation, ticketIds, canceledAt))
 				.tickets(getTicketInfos(reservation.getTickets(), title))
+				.status("환불 완료")
 				.build();
 		}
 
