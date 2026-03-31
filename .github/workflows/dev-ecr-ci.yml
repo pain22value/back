@@ -10,7 +10,6 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPO: ${{ secrets.ECR_REPO }}
 
 jobs:
   build-and-push:
@@ -31,6 +30,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up Docker Buildx
@@ -44,10 +44,13 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64
           tags: |
-            ${{ env.ECR_REPO }}:${{ matrix.service }}-latest
-            ${{ env.ECR_REPO }}:${{ matrix.service }}-${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/truve/${{ matrix.service }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/truve/${{ matrix.service }}-${{ github.sha }}
           build-args: |
             SERVICE_NAME=${{ matrix.service }}
+          provenance: false
+          sbom: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
