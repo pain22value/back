@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     chmod +x ./gradlew && \
     ./gradlew :${SERVICE_NAME}:bootJar -x test --no-daemon --stacktrace
 
-FROM eclipse-temurin:21-jre-slim
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 RUN useradd -ms /bin/bash appuser
