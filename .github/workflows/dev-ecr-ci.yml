@@ -30,7 +30,6 @@ jobs:
           filters: |
             api-gateway:
               - 'api-gateway/**'
-              - 'common/**'
               - 'common-observability/**'
               - 'Dockerfile'
               - 'build.gradle'
@@ -54,7 +53,6 @@ jobs:
               - '.github/workflows/dev-ecr-ci.yml'
             queue:
               - 'queue/**'
-              - 'common/**'
               - 'common-observability/**'
               - 'Dockerfile'
               - 'build.gradle'
