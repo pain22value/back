@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class LoggingFilter implements WebFilter, Ordered {
 
-	private static final String TOPIC = "gateway-log";
+	private static final String TOPIC = "raw.gateway";
 	private final KafkaTemplate<String, String> kafkaTemplate;
 
 	private static final List<String> EXCLUDE_PATHS = List.of(
