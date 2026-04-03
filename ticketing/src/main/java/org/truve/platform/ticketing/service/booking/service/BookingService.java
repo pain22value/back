@@ -11,13 +11,15 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.truve.platform.ticketing.service.booking.domain.entity.Reservation;
-import org.truve.platform.ticketing.service.booking.domain.entity.ShowInfo;
 import org.truve.platform.ticketing.service.booking.domain.entity.Ticket;
-import org.truve.platform.ticketing.service.booking.domain.entity.VirtualAccount;
+import org.truve.platform.ticketing.service.booking.domain.entity.embedded.ShowInfo;
+import org.truve.platform.ticketing.service.booking.domain.entity.embedded.VirtualAccount;
 import org.truve.platform.ticketing.service.booking.dto.BookingRequest;
 import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
-import org.truve.platform.ticketing.service.booking.external.client.TicketingClient;
-import org.truve.platform.ticketing.service.booking.external.client.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.external.client.payment.PaymentClient;
+import org.truve.platform.ticketing.service.booking.external.client.payment.PaymentRequest;
+import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingClient;
+import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingResponse;
 import org.truve.platform.ticketing.service.booking.external.kafka.BookingEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
@@ -36,6 +38,7 @@ public class BookingService {
 	private final ReservationRepository reservationRepository;
 	private final TicketingClient ticketingClient;
 	private final PaymentPublisher paymentPublisher;
+	private final PaymentClient paymentClient;
 
 	@Transactional
 	public BookingResponse.Create create(UUID userId, BookingRequest.Create request) {
@@ -149,13 +152,37 @@ public class BookingService {
 		reservation.depositReceive(event.getPaidAt());
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public BookingResponse.Cancel getCancel(String reservationNumber, List<Long> ticketIds) {
 		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
 
 		List<Long> resolvedTicketIds = ticketIds != null ? ticketIds
 			: reservation.getTickets().stream().map(Ticket::getId).toList();
 
+		reservation.validateTicketId(resolvedTicketIds);
+
 		return BookingResponse.Cancel.from(reservation, resolvedTicketIds, LocalDateTime.now());
+	}
+
+	@Transactional
+	public BookingResponse.CanceledTickets cancel(String reservationNumber, BookingRequest.Cancel request) {
+		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
+
+		List<Long> ticketIds = request.getTicketIds();
+		LocalDateTime canceledAt = LocalDateTime.now();
+
+		reservation.validateTicketId(ticketIds);
+		reservation.validateCancelStatus();
+
+		Long refundAmount = reservation.calculateRefundAmount(canceledAt, ticketIds);
+		paymentClient.cancel(
+			reservationNumber,
+			NumberGenerator.generateIdempotencyKey(reservationNumber, ticketIds),
+			PaymentRequest.Cancel.of(request.getCancelReason(), refundAmount)
+		);
+
+		reservation.cancel(ticketIds, canceledAt);
+
+		return new BookingResponse.CanceledTickets(ticketIds);
 	}
 }
