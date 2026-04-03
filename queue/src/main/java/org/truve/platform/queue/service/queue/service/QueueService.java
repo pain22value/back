@@ -86,7 +86,7 @@ public class QueueService {
 	}
 
 
-	private void validateIds(String userId, String showId) {
+	private void validateIds(String showId, String userId) {
 		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
 		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
 	}

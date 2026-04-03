@@ -76,7 +76,7 @@ public class QueueRedisRepository {
 	}
 
 	public void removeQueueMember(String showId, String userId) {
-		redisSupport.zRem(showId, userId);
+		redisSupport.zRem(waitKey(showId), userId);
 	}
 
 	private static String waitKey(String showId) {
