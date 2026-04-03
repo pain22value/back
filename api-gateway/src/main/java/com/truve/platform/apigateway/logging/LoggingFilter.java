@@ -9,22 +9,30 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class LoggingFilter implements WebFilter, Ordered {
+
+	private static final String TOPIC = "gateway-log";
+	private final KafkaTemplate<String, String> kafkaTemplate;
+
 	private static final List<String> EXCLUDE_PATHS = List.of(
 		"/api/auth",
 		"/api/musical",
 		"/swagger-ui",
+		"/v3/api-docs",
 		"/api/auth/v3/api-docs",
 		"/api/payments/v3/api-docs",
 		"/api/queue/v3/api-docs",
@@ -76,15 +84,18 @@ public class LoggingFilter implements WebFilter, Ordered {
 
 	private void saveLog(RequestContext ctx) {
 		if (ctx.path.startsWith("/telemetry")) {
-			log.info("[TELEMETRY]",
+			log.info("",
+				kv("type", "TELEMETRY"),
 				kv("tsServer", ctx.tsServer),
 				kv("userId", ctx.userId),
 				raw("requestBody", ctx.requestBody)
 			);
+			sendToKafka(ctx);
 			return;
 		}
 
-		log.info("[REQUEST]",
+		log.info("",
+			kv("type", "REQUEST"),
 			kv("tsServer", ctx.tsServer),
 			kv("method", ctx.method),
 			kv("path", ctx.path),
@@ -94,6 +105,11 @@ public class LoggingFilter implements WebFilter, Ordered {
 			kv("statusCode", ctx.statusCode),
 			raw("requestBody", ctx.requestBody)
 		);
+		sendToKafka(ctx);
+	}
+
+	private void sendToKafka(RequestContext ctx) {
+		kafkaTemplate.send(TOPIC, ctx.toJson());
 	}
 
 	@Override
