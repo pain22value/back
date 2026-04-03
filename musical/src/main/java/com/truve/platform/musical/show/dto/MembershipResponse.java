@@ -1,5 +1,7 @@
 package com.truve.platform.musical.show.dto;
 
+import java.time.LocalDateTime;
+
 import com.truve.platform.musical.show.domain.entity.ArtistMembership;
 
 public class MembershipResponse {
@@ -61,6 +63,66 @@ public class MembershipResponse {
 
 		public String getPaymentMethod() {
 			return paymentMethod;
+		}
+	}
+
+	public static class Complete {
+		private Long artistId;
+		private String artistName;
+		private String planName;
+		private Long amount;
+		private LocalDateTime joinedAt;
+		private LocalDateTime nextBillingAt;
+
+		public Complete(
+			Long artistId,
+			String artistName,
+			String planName,
+			Long amount,
+			LocalDateTime joinedAt,
+			LocalDateTime nextBillingAt
+		) {
+			this.artistId = artistId;
+			this.artistName = artistName;
+			this.planName = planName;
+			this.amount = amount;
+			this.joinedAt = joinedAt;
+			this.nextBillingAt = nextBillingAt;
+		}
+
+		public static Complete of(Long artistId, String artistName, ArtistMembership membership) {
+			return new Complete(
+				artistId,
+				artistName,
+				"월간 멤버십",
+				membership.getMonthlyAmount(),
+				membership.getJoinedAt(),
+				membership.getNextBillingAt()
+			);
+		}
+
+		public Long getArtistId() {
+			return artistId;
+		}
+
+		public String getArtistName() {
+			return artistName;
+		}
+
+		public String getPlanName() {
+			return planName;
+		}
+
+		public Long getAmount() {
+			return amount;
+		}
+
+		public LocalDateTime getJoinedAt() {
+			return joinedAt;
+		}
+
+		public LocalDateTime getNextBillingAt() {
+			return nextBillingAt;
 		}
 	}
 }

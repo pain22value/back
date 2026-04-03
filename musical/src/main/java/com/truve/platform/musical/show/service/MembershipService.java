@@ -68,4 +68,32 @@ public class MembershipService {
 
 		return MembershipResponse.CreatePayment.of(artistId, artistDetail.getArtistName(), savedMembership);
 	}
+
+	@Transactional(readOnly = true)
+	public MembershipResponse.Complete complete(Long artistId, UUID userId) {
+		ArtistRepository.ArtistDetailProjection artistDetail = artistRepository.findDetailById(artistId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ARTIST));
+
+		ArtistMembership membership = artistMembershipRepository.findByUserIdAndArtistId(userId, artistId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ARTIST_MEMBERSHIP));
+
+		Preconditions.validate(membership.hasActiveEntitlement(), ErrorCode.MEMBERSHIP_PAYMENT_NOT_COMPLETED);
+
+		return MembershipResponse.Complete.of(artistId, artistDetail.getArtistName(), membership);
+	}
+
+	@Transactional
+	public void confirm(String orderId) {
+		activate(orderId);
+	}
+
+	@Transactional
+	public void depositReceive(String orderId) {
+		activate(orderId);
+	}
+
+	private void activate(String orderId) {
+		artistMembershipRepository.findByOrderId(orderId)
+			.ifPresent(ArtistMembership::confirm);
+	}
 }
