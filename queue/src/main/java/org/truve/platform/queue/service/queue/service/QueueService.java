@@ -25,6 +25,11 @@ public class QueueService {
 	private final JwtService jwtService;
 	private final QueuePollingPolicy queuePollingPolicy;
 
+	public void cancel(String showId, String userId) {
+		validateIds(showId, userId);
+		queueRedisRepository.removeQueueMember(showId, userId);
+	}
+
 	public void enter(String showId, String userId) {
 
 		validateIds(showId, userId);
