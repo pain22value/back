@@ -27,8 +27,7 @@ public class QueueService {
 
 	public void enter(String showId, String userId) {
 
-		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
-		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
+		validateIds(showId, userId);
 
 		long now = System.currentTimeMillis();
 		queueRedisRepository.registerShow(showId);
@@ -37,8 +36,7 @@ public class QueueService {
 
 	public QueueResponse.Status status(String showId, String userId) {
 
-		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
-		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
+		validateIds(showId, userId);
 
 		var readyToken = queueRedisRepository.getReadyToken(showId, userId);
 		Long waitingUserCount = queueRedisRepository.getWaitingUserCount(showId);
@@ -80,6 +78,12 @@ public class QueueService {
 			queueRedisRepository.saveReadyToken(showId, userId, admissionToken, queueProperties.getReadyTtlSec());
 		}
 		return users.size();
+	}
+
+
+	private void validateIds(String userId, String showId) {
+		Preconditions.validate(StringUtils.hasText(showId), ErrorCode.INVALID_REQUEST_SHOW_ID);
+		Preconditions.validate(StringUtils.hasText(userId), ErrorCode.INVALID_REQUEST_USER_ID);
 	}
 
 }
