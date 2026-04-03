@@ -1,11 +1,10 @@
 package com.truve.platform.apigateway.logging;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.web.server.ServerWebExchange;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Builder;
@@ -23,8 +22,7 @@ public class RequestContext {
 	String userId;
 	String sessionTicket;
 	Map<String, String> queryParams;
-	@JsonRawValue
-	String requestBody;
+	JsonNode requestBody;
 	Integer statusCode;
 
 	public static RequestContext from(ServerWebExchange exchange, byte[] body) {
@@ -47,11 +45,12 @@ public class RequestContext {
 		}
 	}
 
-	private static String parseBody(byte[] body) {
-		if (body.length == 0)
-			return "{}";
-		return new String(body, StandardCharsets.UTF_8)
-			.replaceAll("\\s+", " ")
-			.trim();
+	private static JsonNode parseBody(byte[] body) {
+		try {
+			if (body.length == 0) return MAPPER.createObjectNode();
+			return MAPPER.readTree(body);
+		} catch (Exception e) {
+			return MAPPER.createObjectNode();
+		}
 	}
 }

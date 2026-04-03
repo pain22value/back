@@ -88,7 +88,7 @@ public class LoggingFilter implements WebFilter, Ordered {
 				kv("type", "TELEMETRY"),
 				kv("tsServer", ctx.tsServer),
 				kv("userId", ctx.userId),
-				raw("requestBody", ctx.requestBody)
+				kv("requestBody", ctx.requestBody)
 			);
 			sendToKafka(ctx);
 			return;
@@ -103,7 +103,7 @@ public class LoggingFilter implements WebFilter, Ordered {
 			kv("sessionTicket", ctx.sessionTicket),
 			kv("queryParams", ctx.queryParams),
 			kv("statusCode", ctx.statusCode),
-			raw("requestBody", ctx.requestBody)
+			kv("requestBody", ctx.requestBody)
 		);
 		sendToKafka(ctx);
 	}
