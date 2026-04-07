@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -53,6 +54,8 @@ class SocialLoginServiceTest {
 	private RefreshTokenService refreshTokenService;
 	@Mock
 	private SocialRegistrationRepository socialRegistrationRepository;
+	@Mock
+	private UserSignedUpEventPublisher userSignedUpEventPublisher;
 
 	@InjectMocks
 	private SocialLoginService socialLoginService;
@@ -124,6 +127,7 @@ class SocialLoginServiceTest {
 		verify(emailVerificationRepository).deleteVerifiedEmail(email);
 		verify(socialRegistrationRepository).delete(registrationToken);
 		verify(refreshTokenService).save(any(UUID.class), eq("refresh-token"), any(Long.class));
+		verify(userSignedUpEventPublisher).publish(anyString(), any());
 	}
 
 	@Test

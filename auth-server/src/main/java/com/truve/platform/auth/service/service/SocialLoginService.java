@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.truve.platform.auth.service.domain.dto.request.AuthRequest;
 import com.truve.platform.auth.service.domain.entity.User;
+import com.truve.platform.auth.service.event.UserSignedUpEvent;
 import com.truve.platform.auth.service.repository.EmailVerificationRepository;
 import com.truve.platform.auth.service.repository.SocialRegistrationRepository;
 import com.truve.platform.auth.service.repository.UserRepository;
@@ -43,6 +44,7 @@ public class SocialLoginService {
 	private final JwtService jwtService;
 	private final RefreshTokenService refreshTokenService;
 	private final SocialRegistrationRepository socialRegistrationRepository;
+	private final UserSignedUpEventPublisher userSignedUpEventPublisher;
 	private Map<AuthProvider, OAuthProviderClient> providerClients;
 
 	@PostConstruct
@@ -124,6 +126,8 @@ public class SocialLoginService {
 		);
 
 		userRepository.save(user);
+		UserSignedUpEvent event = UserSignedUpEvent.from(user);
+		userSignedUpEventPublisher.publish(user.getPublicId().toString(), event);
 		emailVerificationRepository.deleteVerifiedEmail(request.getEmail());
 		socialRegistrationRepository.delete(request.getRegistrationToken());
 
