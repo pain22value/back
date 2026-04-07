@@ -3,6 +3,7 @@ package com.truve.platform.auth.service.repository;
 import java.time.Duration;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +38,7 @@ public class SocialRegistrationRepository {
 		try {
 			String key = SOCIAL_REGISTRATION_PREFIX + registrationToken;
 			String value = redisSupport.getValue(key);
-			if (value == null || value.isBlank()) {
+			if (!StringUtils.hasText(value)) {
 				return null;
 			}
 			return objectMapper.readValue(value, SocialRegistrationInfo.class);

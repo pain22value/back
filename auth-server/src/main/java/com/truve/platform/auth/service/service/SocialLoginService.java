@@ -5,13 +5,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.truve.platform.auth.service.domain.dto.request.AuthRequest;
 import com.truve.platform.auth.service.domain.entity.User;
+import com.truve.platform.auth.service.repository.EmailVerificationRepository;
 import com.truve.platform.auth.service.repository.SocialRegistrationRepository;
 import com.truve.platform.auth.service.repository.UserRepository;
 import com.truve.platform.auth.service.security.JwtService;
@@ -31,9 +35,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class SocialLoginService {
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^(?:[가-힣]{2,10}|[a-zA-Z]{2,16})$");
 
 	private final List<OAuthProviderClient> oauthProviderClients;
 	private final UserRepository userRepository;
+	private final EmailVerificationRepository emailVerificationRepository;
 	private final JwtService jwtService;
 	private final RefreshTokenService refreshTokenService;
 	private final SocialRegistrationRepository socialRegistrationRepository;
@@ -77,7 +83,59 @@ public class SocialLoginService {
 		return SocialLoginResult.signUpRequired(registrationToken, userInfo.getEmail(), provider);
 	}
 
+	@Transactional
+	public Pair<String, String> completeSignUp(AuthRequest.CompleteSocialSignUp request) {
+		SocialRegistrationInfo registrationInfo = socialRegistrationRepository.find(request.getRegistrationToken());
+
+		Preconditions.validate(registrationInfo != null, ErrorCode.INVALID_SOCIAL_REGISTRATION_TOKEN);
+		Preconditions.validate(
+			request.getEmail().equals(registrationInfo.email()),
+			ErrorCode.INVALID_SOCIAL_REGISTRATION_TOKEN
+		);
+
+		String verifiedAt = emailVerificationRepository.isVerifiedEmail(request.getEmail());
+		Preconditions.validate(!(verifiedAt == null || verifiedAt.isBlank()), ErrorCode.NOT_VERIFIED_EMAIL);
+
+		Preconditions.validate(
+			request.isServiceTermsAgreed()
+				&& request.isElectronicFinanceTermsAgreed()
+				&& request.isPrivacyCollectionAgreed()
+				&& request.isOver14Agreed(),
+			ErrorCode.REQUIRED_TERMS_NOT_AGREED
+		);
+
+		validateNickname(request.getNickname());
+		Preconditions.validate(!userRepository.existsByEmail(request.getEmail()), ErrorCode.ALREADY_EXISTS_EMAIL);
+		Preconditions.validate(!userRepository.existsByNickname(request.getNickname()), ErrorCode.ALREADY_EXISTS_NICKNAME);
+
+		User user = User.createOAuthUser(
+			request.getEmail(),
+			request.getNickname(),
+			registrationInfo.provider(),
+			registrationInfo.providerUserId(),
+			registrationInfo.oAuthAccessToken(),
+			registrationInfo.oAuthRefreshToken(),
+			request.isServiceTermsAgreed(),
+			request.isElectronicFinanceTermsAgreed(),
+			request.isPrivacyCollectionAgreed(),
+			request.isMarketingInfoAgreed(),
+			false,
+			request.isOver14Agreed()
+		);
+
+		userRepository.save(user);
+		emailVerificationRepository.deleteVerifiedEmail(request.getEmail());
+		socialRegistrationRepository.delete(request.getRegistrationToken());
+
+		return issueTokens(user);
+	}
+
 	private SocialLoginResult issueLoginResult(User user) {
+		Pair<String, String> tokens = issueTokens(user);
+		return SocialLoginResult.loginSuccess(tokens.getFirst(), tokens.getSecond(), user.getProvider());
+	}
+
+	private Pair<String, String> issueTokens(User user) {
 		Date accessExp = jwtService.getAccessExpiration();
 		Date refreshExp = jwtService.getRefreshExpiration();
 
@@ -102,12 +160,19 @@ public class SocialLoginService {
 		long refreshTtlMs = refreshExp.getTime() - System.currentTimeMillis();
 		refreshTokenService.save(user.getPublicId(), refreshToken, refreshTtlMs);
 
-		return SocialLoginResult.loginSuccess(accessToken, refreshToken, user.getProvider());
+		return Pair.of(accessToken, refreshToken);
 	}
 
 	private void validateNotWithdrawn(User user) {
 		if (user.isWithdrawn()) {
 			throw new CustomException(ErrorCode.ALREADY_WITHDRAWN_USER);
 		}
+	}
+
+	private void validateNickname(String nickname) {
+		Preconditions.validate(
+			nickname != null && NICKNAME_PATTERN.matcher(nickname).matches(),
+			ErrorCode.INVALID_NICKNAME
+		);
 	}
 }
