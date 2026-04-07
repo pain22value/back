@@ -30,7 +30,6 @@ public class LoggingFilter implements WebFilter, Ordered {
 
 	private static final List<String> EXCLUDE_PATHS = List.of(
 		"/api/auth",
-		"/api/musical",
 		"/swagger-ui",
 		"/v3/api-docs",
 		"/api/auth/v3/api-docs",
