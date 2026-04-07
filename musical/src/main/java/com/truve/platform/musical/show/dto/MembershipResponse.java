@@ -1,9 +1,5 @@
 package com.truve.platform.musical.show.dto;
 
-import java.time.LocalDateTime;
-
-import com.truve.platform.musical.show.domain.entity.ArtistMembership;
-
 public class MembershipResponse {
 
 	public static class CreatePayment {
@@ -30,14 +26,14 @@ public class MembershipResponse {
 			this.paymentMethod = paymentMethod;
 		}
 
-		public static CreatePayment of(Long artistId, String artistName, ArtistMembership membership) {
+		public static CreatePayment of(Long artistId, String artistName, Long amount, String orderId, String paymentMethod) {
 			return new CreatePayment(
 				artistId,
 				artistName,
 				"월간 멤버십",
-				membership.getMonthlyAmount(),
-				membership.getOrderId(),
-				membership.getPaymentMethod().getDisplayName()
+				amount,
+				orderId,
+				paymentMethod
 			);
 		}
 
@@ -71,16 +67,16 @@ public class MembershipResponse {
 		private String artistName;
 		private String planName;
 		private Long amount;
-		private LocalDateTime joinedAt;
-		private LocalDateTime nextBillingAt;
+		private String joinedAt;
+		private String nextBillingAt;
 
 		public Complete(
 			Long artistId,
 			String artistName,
 			String planName,
 			Long amount,
-			LocalDateTime joinedAt,
-			LocalDateTime nextBillingAt
+			String joinedAt,
+			String nextBillingAt
 		) {
 			this.artistId = artistId;
 			this.artistName = artistName;
@@ -90,14 +86,20 @@ public class MembershipResponse {
 			this.nextBillingAt = nextBillingAt;
 		}
 
-		public static Complete of(Long artistId, String artistName, ArtistMembership membership) {
+		public static Complete of(
+			Long artistId,
+			String artistName,
+			Long amount,
+			String joinedAt,
+			String nextBillingAt
+		) {
 			return new Complete(
 				artistId,
 				artistName,
 				"월간 멤버십",
-				membership.getMonthlyAmount(),
-				membership.getJoinedAt(),
-				membership.getNextBillingAt()
+				amount,
+				joinedAt,
+				nextBillingAt
 			);
 		}
 
@@ -117,11 +119,11 @@ public class MembershipResponse {
 			return amount;
 		}
 
-		public LocalDateTime getJoinedAt() {
+		public String getJoinedAt() {
 			return joinedAt;
 		}
 
-		public LocalDateTime getNextBillingAt() {
+		public String getNextBillingAt() {
 			return nextBillingAt;
 		}
 	}

@@ -1,5 +1,7 @@
 package com.truve.platform.musical.show.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,6 +24,7 @@ import com.truve.platform.musical.show.util.MembershipOrderIdGenerator;
 @Service
 public class MembershipService {
 	private static final long MONTHLY_MEMBERSHIP_AMOUNT = 5_000L;
+	private static final DateTimeFormatter COMPLETE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd.");
 
 	private final ArtistRepository artistRepository;
 	private final ArtistMembershipRepository artistMembershipRepository;
@@ -66,7 +69,13 @@ public class MembershipService {
 
 		paymentPublisher.publish(PaymentEventCommand.Create.of(savedMembership));
 
-		return MembershipResponse.CreatePayment.of(artistId, artistDetail.getArtistName(), savedMembership);
+		return MembershipResponse.CreatePayment.of(
+			artistId,
+			artistDetail.getArtistName(),
+			savedMembership.getMonthlyAmount(),
+			savedMembership.getOrderId(),
+			savedMembership.getPaymentMethod().getDisplayName()
+		);
 	}
 
 	@Transactional(readOnly = true)
@@ -79,7 +88,13 @@ public class MembershipService {
 
 		Preconditions.validate(membership.hasActiveEntitlement(), ErrorCode.MEMBERSHIP_PAYMENT_NOT_COMPLETED);
 
-		return MembershipResponse.Complete.of(artistId, artistDetail.getArtistName(), membership);
+		return MembershipResponse.Complete.of(
+			artistId,
+			artistDetail.getArtistName(),
+			membership.getMonthlyAmount(),
+			formatCompleteDate(membership.getJoinedAt()),
+			formatCompleteDate(membership.getNextBillingAt())
+		);
 	}
 
 	@Transactional
@@ -95,5 +110,9 @@ public class MembershipService {
 	private void activate(String orderId) {
 		artistMembershipRepository.findByOrderId(orderId)
 			.ifPresent(ArtistMembership::confirm);
+	}
+
+	private String formatCompleteDate(LocalDateTime value) {
+		return value == null ? null : value.format(COMPLETE_DATE_FORMATTER);
 	}
 }

@@ -159,8 +159,8 @@ class MembershipControllerTest {
 			"고은성",
 			"월간 멤버십",
 			5_000L,
-			java.time.LocalDateTime.of(2026, 4, 3, 10, 0),
-			java.time.LocalDateTime.of(2026, 5, 3, 10, 0)
+			"2026. 4. 3.",
+			"2026. 5. 3."
 		);
 
 		given(membershipService.complete(101L, userId)).willReturn(response);
@@ -172,7 +172,9 @@ class MembershipControllerTest {
 			.andExpect(jsonPath("$.data.artistId").value(101L))
 			.andExpect(jsonPath("$.data.artistName").value("고은성"))
 			.andExpect(jsonPath("$.data.planName").value("월간 멤버십"))
-			.andExpect(jsonPath("$.data.amount").value(5000L));
+			.andExpect(jsonPath("$.data.amount").value(5000L))
+			.andExpect(jsonPath("$.data.joinedAt").value("2026. 4. 3."))
+			.andExpect(jsonPath("$.data.nextBillingAt").value("2026. 5. 3."));
 	}
 
 	@Test

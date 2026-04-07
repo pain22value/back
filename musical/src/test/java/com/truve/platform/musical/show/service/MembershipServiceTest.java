@@ -251,8 +251,8 @@ class MembershipServiceTest {
 		assertThat(response.getArtistName()).isEqualTo("고은성");
 		assertThat(response.getPlanName()).isEqualTo("월간 멤버십");
 		assertThat(response.getAmount()).isEqualTo(5_000L);
-		assertNotNull(response.getJoinedAt());
-		assertNotNull(response.getNextBillingAt());
+		assertThat(response.getJoinedAt()).matches("\\d{4}\\. \\d{1,2}\\. \\d{1,2}\\.");
+		assertThat(response.getNextBillingAt()).matches("\\d{4}\\. \\d{1,2}\\. \\d{1,2}\\.");
 	}
 
 	@Test
