@@ -89,7 +89,7 @@ public class LoggingFilter implements WebFilter, Ordered {
 				kv("userId", ctx.userId),
 				kv("requestBody", ctx.requestBody)
 			);
-			sendToKafka(ctx);
+			//sendToKafka(ctx);
 			return;
 		}
 
@@ -104,9 +104,10 @@ public class LoggingFilter implements WebFilter, Ordered {
 			kv("statusCode", ctx.statusCode),
 			kv("requestBody", ctx.requestBody)
 		);
-		sendToKafka(ctx);
+		//sendToKafka(ctx);
 	}
 
+	@Deprecated
 	private void sendToKafka(RequestContext ctx) {
 		kafkaTemplate.send(TOPIC, ctx.toJson());
 	}
