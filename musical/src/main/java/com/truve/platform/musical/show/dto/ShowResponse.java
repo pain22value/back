@@ -48,6 +48,7 @@ public class ShowResponse {
 		private Long scheduleId;
 		private LocalDateTime showTime;
 		private String status;
+		private List<RemainingSeat> remainingSeats;
 	}
 
 	@Getter
@@ -81,5 +82,13 @@ public class ShowResponse {
 		private String gradeName;
 		private String colorCode;
 		private Long price;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
+	public static class RemainingSeat {
+		private String gradeName;
+		private Long remainingSeatCount;
 	}
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.seat.domain.entity.Venue;
@@ -22,6 +23,8 @@ import com.truve.platform.musical.show.domain.entity.ShowCasting;
 import com.truve.platform.musical.show.domain.entity.ShowSchedule;
 import com.truve.platform.musical.show.domain.entity.ShowSectionGrade;
 import com.truve.platform.musical.show.dto.ShowResponse;
+import com.truve.platform.musical.show.external.client.TicketingInternalClient;
+import com.truve.platform.musical.show.external.client.TicketingInternalClientResponse;
 import com.truve.platform.musical.show.repository.ArtistLikeRepository;
 import com.truve.platform.musical.show.repository.ShowCastingRepository;
 import com.truve.platform.musical.show.repository.ShowRepository;
@@ -29,8 +32,10 @@ import com.truve.platform.musical.show.repository.ShowScheduleRepository;
 import com.truve.platform.musical.show.repository.ShowSeatGradeRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ShowDetailService {
 	private static final DateTimeFormatter DATE_LABEL_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
@@ -43,14 +48,21 @@ public class ShowDetailService {
 	private final ArtistLikeRepository artistLikeRepository;
 	private final ShowSeatGradeRepository showSeatGradeRepository;
 	private final S3Service s3Service;
+	private final TicketingInternalClient ticketingInternalClient;
 
 	@Transactional(readOnly = true)
 	public ShowResponse.Detail getDetail(Long showId, UUID userId) {
 		Show show = showRepository.findByIdOrThrow(showId);
 
 		List<ShowSchedule> schedules = showScheduleRepository.findSchedules(showId);
+		Map<Long, List<ShowResponse.RemainingSeat>> remainingSeatsByScheduleId = schedules.isEmpty()
+			? Map.of()
+			: buildRemainingSeatsByScheduleId(schedules.stream().map(ShowSchedule::getId).toList());
 		List<ShowResponse.SimpleSchedule> scheduleResponses = schedules.stream()
-			.map(this::toSimpleScheduleResponse)
+			.map(schedule -> toSimpleScheduleResponse(
+				schedule,
+				remainingSeatsByScheduleId.getOrDefault(schedule.getId(), List.of())
+			))
 			.toList();
 
 		List<ShowCasting> showCastings = showCastingRepository.findAllByShowId(showId);
@@ -128,11 +140,43 @@ public class ShowDetailService {
 			.build();
 	}
 
-	private ShowResponse.SimpleSchedule toSimpleScheduleResponse(ShowSchedule schedule) {
+	private ShowResponse.SimpleSchedule toSimpleScheduleResponse(
+		ShowSchedule schedule,
+		List<ShowResponse.RemainingSeat> remainingSeats
+	) {
 		return ShowResponse.SimpleSchedule.builder()
 			.scheduleId(schedule.getId())
 			.showTime(schedule.getShowTime())
 			.status(schedule.getStatus().name())
+			.remainingSeats(remainingSeats)
+			.build();
+	}
+
+	private Map<Long, List<ShowResponse.RemainingSeat>> buildRemainingSeatsByScheduleId(List<Long> scheduleIds) {
+		Map<Long, List<ShowResponse.RemainingSeat>> remainingSeatsByScheduleId = new LinkedHashMap<>();
+
+		for (Long scheduleId : scheduleIds) {
+			remainingSeatsByScheduleId.put(scheduleId, fetchRemainingSeats(scheduleId));
+		}
+
+		return remainingSeatsByScheduleId;
+	}
+
+	private List<ShowResponse.RemainingSeat> fetchRemainingSeats(Long scheduleId) {
+		try {
+			return ticketingInternalClient.getRemainingSeats(scheduleId).stream()
+				.map(this::toGradeRemaining)
+				.toList();
+		} catch (RestClientException e) {
+			log.warn("Failed to fetch remaining seats from ticketing for scheduleId={}", scheduleId);
+			return List.of();
+		}
+	}
+
+	private ShowResponse.RemainingSeat toGradeRemaining(TicketingInternalClientResponse.GradeRemaining gradeRemaining) {
+		return ShowResponse.RemainingSeat.builder()
+			.gradeName(gradeRemaining.getGradeName())
+			.remainingSeatCount(gradeRemaining.getRemainingSeatCount())
 			.build();
 	}
 
