@@ -84,16 +84,24 @@ class ShowControllerTest {
 					.scheduleId(1L)
 					.showTime(LocalDateTime.of(2026, 3, 2, 19, 30))
 					.status(ShowScheduleStatus.OPEN.name())
+					.remainingSeats(List.of(
+						ShowResponse.RemainingSeat.builder()
+							.gradeName("VIP")
+							.remainingSeatCount(10L)
+							.build()
+					))
 					.build(),
 				ShowResponse.SimpleSchedule.builder()
 					.scheduleId(2L)
 					.showTime(LocalDateTime.of(2026, 3, 3, 19, 30))
 					.status(ShowScheduleStatus.CLOSED.name())
+					.remainingSeats(List.of())
 					.build(),
 				ShowResponse.SimpleSchedule.builder()
 					.scheduleId(3L)
 					.showTime(LocalDateTime.of(2026, 3, 4, 19, 30))
 					.status(ShowScheduleStatus.CANCELLED.name())
+					.remainingSeats(List.of())
 					.build()
 			))
 			.seatGrades(List.of(
@@ -114,6 +122,8 @@ class ShowControllerTest {
 			.andExpect(jsonPath("$.data.showId").value(1))
 			.andExpect(jsonPath("$.data.noticeImgs[0]").value("https://img/notice.jpg"))
 			.andExpect(jsonPath("$.data.detailImgs[0]").value("https://img/detail-1.jpg"))
+			.andExpect(jsonPath("$.data.schedules[0].remainingSeats[0].gradeName").value("VIP"))
+			.andExpect(jsonPath("$.data.schedules[0].remainingSeats[0].remainingSeatCount").value(10))
 			.andExpect(jsonPath("$.data.schedules[1].status").value(ShowScheduleStatus.CLOSED.name()))
 			.andExpect(jsonPath("$.data.schedules[2].status").value(ShowScheduleStatus.CANCELLED.name()))
 			.andExpect(jsonPath("$.data.castings[0].artistName").value("배우A"))
@@ -213,13 +223,6 @@ class ShowControllerTest {
 								.artistName("강홍석")
 								.build()
 						))
-					.remainingSeats(List.of(
-						ShowCastingResponse.GradeRemaining.builder()
-							.gradeName("VIP")
-							.remainingSeatCount(10L)
-							.totalCount(20L)
-							.build()
-					))
 					.build()
 			))
 			.build();
@@ -244,11 +247,9 @@ class ShowControllerTest {
 			.andExpect(jsonPath("$.data.showId").value(1))
 			.andExpect(jsonPath("$.data.range.from").value("2025-12-17"))
 			.andExpect(jsonPath("$.data.roles[0].roleName").value("찰리"))
-				.andExpect(jsonPath("$.data.page.currentPage").value(0))
-				.andExpect(jsonPath("$.data.rows[0].scheduleId").value(101))
-				.andExpect(jsonPath("$.data.rows[0].casts.찰리.artistName").value("김호영"))
-				.andExpect(jsonPath("$.data.rows[0].casts.찰리.profileImageUrl").doesNotExist())
-				.andExpect(jsonPath("$.data.rows[0].remainingSeats[0].gradeName").value("VIP"))
-				.andExpect(jsonPath("$.data.rows[0].remainingSeats[0].remainingSeatCount").value(10));
+			.andExpect(jsonPath("$.data.page.currentPage").value(0))
+			.andExpect(jsonPath("$.data.rows[0].scheduleId").value(101))
+			.andExpect(jsonPath("$.data.rows[0].casts.찰리.artistName").value("김호영"))
+			.andExpect(jsonPath("$.data.rows[0].casts.찰리.profileImageUrl").doesNotExist());
 	}
 }

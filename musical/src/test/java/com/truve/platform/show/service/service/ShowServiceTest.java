@@ -152,6 +152,10 @@ class ShowServiceTest {
 		when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1, schedule2));
 		when(showCastingRepository.findAllByShowId(showId))
 			.thenReturn(List.of(castOrder1, castOrder1Duplicate, castOrder2, castOrderNull));
+		when(ticketingInternalClient.getRemainingSeats(2001L)).thenReturn(List.of(
+			new TicketingInternalClientResponse.GradeRemaining("VIP", 10L, 20L)
+		));
+		when(ticketingInternalClient.getRemainingSeats(2002L)).thenReturn(List.of());
 		when(artistLikeRepository.findLikedArtistIds(userId, List.of(101L, 102L, 103L)))
 			.thenReturn(List.of(101L));
 		when(showSeatGradeRepository.findSeatPrices(showId)).thenReturn(List.of(seat));
@@ -166,6 +170,9 @@ class ShowServiceTest {
 		assertEquals(2, result.getSchedules().size());
 		assertEquals("OPEN", result.getSchedules().get(0).getStatus());
 		assertEquals("CANCELLED", result.getSchedules().get(1).getStatus());
+		assertEquals(1, result.getSchedules().get(0).getRemainingSeats().size());
+		assertEquals("VIP", result.getSchedules().get(0).getRemainingSeats().get(0).getGradeName());
+		assertTrue(result.getSchedules().get(1).getRemainingSeats().isEmpty());
 
 		List<ShowResponse.Casting> castings = result.getCastings();
 		assertEquals(3, castings.size());
@@ -232,11 +239,6 @@ class ShowServiceTest {
 		)).thenReturn(new PageImpl<>(List.of(schedule1), PageRequest.of(0, 50), 1));
 		when(showCastingRepository.findAllByShowId(showId)).thenReturn(List.of(charlieCasting, lolaCasting));
 		when(showScheduleCastingRepository.findAllByScheduleIds(List.of(101L))).thenReturn(List.of(sc1, sc2));
-		when(ticketingInternalClient.getRemainingSeats(101L)).thenReturn(List.of(
-			new TicketingInternalClientResponse.GradeRemaining("VIP", 10L, 20L),
-			new TicketingInternalClientResponse.GradeRemaining("R", 30L, 40L)
-		));
-
 		ShowCastingResponse.Detail result = showCastingService.getCastingSchedules(
 			showId,
 			LocalDate.of(2025, 12, 17),
@@ -258,9 +260,6 @@ class ShowServiceTest {
 		assertEquals("오후 7:00", result.getRows().get(0).getShowTimeLabel());
 		assertEquals("김호영", result.getRows().get(0).getCasts().get("찰리").getArtistName());
 		assertEquals("강홍석", result.getRows().get(0).getCasts().get("롤라").getArtistName());
-		assertEquals(2, result.getRows().get(0).getRemainingSeats().size());
-		assertEquals("VIP", result.getRows().get(0).getRemainingSeats().get(0).getGradeName());
-		assertEquals(10L, result.getRows().get(0).getRemainingSeats().get(0).getRemainingSeatCount());
 		assertEquals(0, result.getPage().getCurrentPage());
 		assertEquals(50, result.getPage().getSize());
 		assertEquals(1, result.getPage().getTotalElements());
@@ -362,8 +361,6 @@ class ShowServiceTest {
 		when(showCastingRepository.findAllByShowId(showId))
 			.thenReturn(List.of(charlieCasting, lolaCasting, laurenCasting));
 		when(showScheduleCastingRepository.findAllByScheduleIds(List.of(101L))).thenReturn(List.of(sc1, sc2));
-		when(ticketingInternalClient.getRemainingSeats(101L)).thenReturn(List.of());
-
 		ShowCastingResponse.Detail result = showCastingService.getCastingSchedules(
 			showId,
 			LocalDate.of(2025, 12, 17),
@@ -423,8 +420,8 @@ class ShowServiceTest {
 	}
 
 	@Test
-	@DisplayName("캐스팅 일정 조회는 ticketing 조회 실패 시 잔여 좌석을 빈 목록으로 응답한다.")
-	void 캐스팅_일정_조회_ticketing_실패시_잔여좌석은_빈목록() {
+	@DisplayName("공연 상세 조회는 ticketing 조회 실패 시 회차별 잔여 좌석을 빈 목록으로 응답한다.")
+	void 공연_상세_조회_ticketing_실패시_잔여좌석은_빈목록() {
 		Long showId = 1L;
 		Show show = org.mockito.Mockito.mock(Show.class);
 		when(show.getId()).thenReturn(showId);
@@ -432,6 +429,7 @@ class ShowServiceTest {
 		ShowSchedule schedule1 = org.mockito.Mockito.mock(ShowSchedule.class);
 		when(schedule1.getId()).thenReturn(101L);
 		when(schedule1.getShowTime()).thenReturn(LocalDateTime.of(2026, 1, 2, 19, 0));
+		when(schedule1.getStatus()).thenReturn(ShowScheduleStatus.OPEN);
 
 		Artist artistCharlie = org.mockito.Mockito.mock(Artist.class);
 		when(artistCharlie.getId()).thenReturn(1L);
@@ -442,33 +440,15 @@ class ShowServiceTest {
 		when(charlieCasting.getCastingOrder()).thenReturn(1);
 		when(charlieCasting.getArtist()).thenReturn(artistCharlie);
 
-		ShowScheduleCasting sc1 = org.mockito.Mockito.mock(ShowScheduleCasting.class);
-		when(sc1.getShowSchedule()).thenReturn(schedule1);
-		when(sc1.getShowCasting()).thenReturn(charlieCasting);
-
 		when(showRepository.findByIdOrThrow(showId)).thenReturn(show);
-		when(showScheduleRepository.findCastingSchedules(
-			org.mockito.ArgumentMatchers.eq(showId),
-			org.mockito.ArgumentMatchers.any(),
-			org.mockito.ArgumentMatchers.any(),
-			org.mockito.ArgumentMatchers.eq(true),
-			org.mockito.ArgumentMatchers.anyList(),
-			org.mockito.ArgumentMatchers.any(PageRequest.class)
-		)).thenReturn(new PageImpl<>(List.of(schedule1), PageRequest.of(0, 50), 1));
+		when(showScheduleRepository.findSchedules(showId)).thenReturn(List.of(schedule1));
 		when(showCastingRepository.findAllByShowId(showId)).thenReturn(List.of(charlieCasting));
-		when(showScheduleCastingRepository.findAllByScheduleIds(List.of(101L))).thenReturn(List.of(sc1));
 		when(ticketingInternalClient.getRemainingSeats(101L))
 			.thenThrow(new RestClientException("ticketing unavailable"));
+		when(showSeatGradeRepository.findSeatPrices(showId)).thenReturn(List.of());
 
-		ShowCastingResponse.Detail result = showCastingService.getCastingSchedules(
-			showId,
-			LocalDate.of(2025, 12, 17),
-			LocalDate.of(2026, 3, 29),
-			List.of(),
-			0,
-			50
-		);
+		ShowResponse.Detail result = showDetailService.getDetail(showId, null);
 
-		assertTrue(result.getRows().get(0).getRemainingSeats().isEmpty());
+		assertTrue(result.getSchedules().get(0).getRemainingSeats().isEmpty());
 	}
 }
