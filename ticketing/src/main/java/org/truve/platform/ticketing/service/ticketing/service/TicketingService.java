@@ -74,11 +74,11 @@ public class TicketingService {
 		ShowScheduled showScheduled = showScheduledRepository.findById(showScheduleId)
 			.orElseThrow(() -> new CustomException(ErrorCode.INVALID_SHOW_SCHEDULE));
 
-		List<ScheduledSeat> seats = scheduledSeatRepository.findAllById(scheduledSeatIds);
+		List<ScheduledSeat> scheduledSeats = scheduledSeatRepository.findAllById(scheduledSeatIds);
 
-		Preconditions.validate(scheduledSeatIds.size() == seats.size(), ErrorCode.NOT_CORRECT_SEAT);
+		Preconditions.validate(scheduledSeatIds.size() == scheduledSeats.size(), ErrorCode.NOT_CORRECT_SEAT);
 
-		for(ScheduledSeat seat: seats) {
+		for(ScheduledSeat seat: scheduledSeats) {
 
 			Preconditions.validate(
 				showScheduled.getId().equals(seat.getShowScheduleId()),
