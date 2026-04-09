@@ -68,9 +68,14 @@ public class TicketingRedisRepository {
 	public String getHoldSeatSessionToken(Long showScheduleId, Long seatId) {
 		return redisSupport.getValue(seatHoldKey(showScheduleId, seatId));
 	}
-	public void findMacro(String sessionTicket) {
+	public String validateMacro(String sessionTicket) {
 		String key = secureKey(sessionTicket);
-		Preconditions.validate(!StringUtils.hasText(redisSupport.getValue(key)), ErrorCode.SUSPECTED_MACRO_ACTIVITY);
+		return redisSupport.getValue(key);
+	}
+
+	public void expireSessionToken(String sessionToken) {
+		String key = sessionTokenKey(sessionToken);
+		redisSupport.expireSeconds(key, 0);
 	}
 
 	private String seatHoldKey(Long showScheduleId, Long seatId) {
