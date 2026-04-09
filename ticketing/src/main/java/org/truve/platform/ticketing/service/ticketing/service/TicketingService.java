@@ -148,6 +148,12 @@ public class TicketingService {
 		return TicketingResponse.Seats.from(flatSeats);
 	}
 
+	public void exitTicketing(Long showScheduleId, UUID userId, String sessionToken) {
+		isCorrectSessionToken(showScheduleId, userId, sessionToken);
+		ticketingRedisRepository.expireSessionToken(sessionToken);
+		ticketingRedisRepository.exitTicketing(showScheduleId, sessionToken);
+
+	}
 
 	private void isCorrectSessionToken(Long showScheduleId, UUID userId, String sessionToken) {
 		Preconditions.validate(sessionToken != null && !sessionToken.isBlank(), ErrorCode.INVALID_SESSION_TOKEN);
