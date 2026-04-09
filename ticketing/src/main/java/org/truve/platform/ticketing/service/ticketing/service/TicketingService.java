@@ -32,6 +32,7 @@ public class TicketingService {
 	private final TicketingProperties ticketingProperties;
 	private final ScheduledSeatRepository scheduledSeatRepository;
 	private final ShowScheduledRepository showScheduledRepository;
+	private final TicketingSecurityService  ticketingSecurityService;
 
 	public TicketingResponse.Enter enter(Long showScheduleId, UUID userId, String admissionToken) {
 		AdmissionTokenClaimsDTO claims = admissionTokenService.parseAdmissionToken(admissionToken, showScheduleId, userId);
@@ -65,6 +66,7 @@ public class TicketingService {
 	}
 
 	public void holdSeat(Long showScheduleId, UUID userId, String sessionToken, List<Long> scheduledSeatIds) {
+		ticketingSecurityService.findMacro(sessionToken);
 		heartbeat(showScheduleId, userId, sessionToken);
 
 		Preconditions.validate(scheduledSeatIds.size() <= 4, ErrorCode.EXCEEDED_MAX_TICKET_COUNT);
