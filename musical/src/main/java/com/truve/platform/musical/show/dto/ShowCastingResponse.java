@@ -76,16 +76,6 @@ public class ShowCastingResponse {
 		private String showDateLabel;
 		private String showTimeLabel;
 		private Map<String, CastArtist> casts;
-		private List<GradeRemaining> remainingSeats;
-	}
-
-	@Getter
-	@AllArgsConstructor
-	@Builder
-	public static class GradeRemaining {
-		private String gradeName;
-		private Long remainingSeatCount;
-		private Long totalCount;
 	}
 
 	@Getter
