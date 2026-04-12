@@ -3,8 +3,10 @@ package com.truve.platform.musical.board.controller;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,10 +23,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truve.platform.common.exception.ApiAdvice;
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.musical.MusicalApplication;
+import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentFilter;
+import com.truve.platform.musical.board.dto.BoardRequest;
 import com.truve.platform.musical.board.dto.BoardResponse;
 import com.truve.platform.musical.board.service.ArtistBoardService;
 
@@ -41,6 +46,8 @@ class ArtistBoardControllerTest {
 
 	@MockitoBean
 	private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Test
 	@DisplayName("게시판 게시글 조회에 성공하면 200 OK와 게시글 목록을 응답한다.")
@@ -98,5 +105,86 @@ class ArtistBoardControllerTest {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M02"));
+	}
+
+	@Test
+	@DisplayName("게시글 댓글 조회에 성공하면 200 OK와 댓글 목록을 응답한다.")
+	void 게시글_댓글_조회_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		BoardResponse.CommentList response = BoardResponse.CommentList.builder()
+			.summary(BoardResponse.CommentSummary.builder()
+				.totalCount(4L)
+				.myCount(2L)
+				.artistCount(1L)
+				.build())
+			.comments(List.of(
+				BoardResponse.CommentItem.builder()
+					.commentId(101L)
+					.createdAt(LocalDateTime.of(2026, 4, 12, 13, 0))
+					.authorName("멤버닉네임")
+					.authorThumbnailUrl(null)
+					.content("댓글 내용")
+					.isMine(true)
+					.isArtist(false)
+					.build()
+			))
+			.build();
+
+		given(artistBoardService.getComments(1L, 10L, userId, ArtistBoardCommentFilter.ALL)).willReturn(response);
+
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+				.header("X-User-Id", userId)
+				.param("filter", "ALL"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"))
+			.andExpect(jsonPath("$.data.summary.totalCount").value(4))
+			.andExpect(jsonPath("$.data.summary.myCount").value(2))
+			.andExpect(jsonPath("$.data.summary.artistCount").value(1))
+			.andExpect(jsonPath("$.data.comments[0].commentId").value(101))
+			.andExpect(jsonPath("$.data.comments[0].authorName").value("멤버닉네임"))
+			.andExpect(jsonPath("$.data.comments[0].isMine").value(true))
+			.andExpect(jsonPath("$.data.comments[0].isArtist").value(false));
+	}
+
+	@Test
+	@DisplayName("게시글 댓글 작성에 성공하면 200 OK를 응답한다.")
+	void 게시글_댓글_작성_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		BoardRequest.CreateComment request = new BoardRequest.CreateComment("댓글 작성");
+
+		willDoNothing().given(artistBoardService).createComment(1L, 10L, userId, request);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+				.header("X-User-Id", userId)
+				.contentType("application/json")
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+	}
+
+	@Test
+	@DisplayName("빈 댓글 내용으로 작성하면 400(C02)을 응답한다.")
+	void 게시글_댓글_작성_검증_실패() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		BoardRequest.CreateComment request = new BoardRequest.CreateComment(" ");
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+				.header("X-User-Id", userId)
+				.contentType("application/json")
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("C02"));
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 게시글 댓글 조회는 404를 응답한다.")
+	void 게시글_댓글_조회_게시글없음_실패() throws Exception {
+		willThrow(new CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST))
+			.given(artistBoardService).getComments(anyLong(), anyLong(), nullable(UUID.class), org.mockito.ArgumentMatchers.any());
+
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 999L))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
+			.andExpect(jsonPath("$.code").value("M06"));
 	}
 }

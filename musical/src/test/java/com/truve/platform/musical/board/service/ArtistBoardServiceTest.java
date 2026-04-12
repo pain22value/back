@@ -3,6 +3,7 @@ package com.truve.platform.musical.board.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,15 +23,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
+import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentAuthorType;
+import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentFilter;
+import com.truve.platform.musical.board.domain.entity.ArtistBoardComment;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardPost;
+import com.truve.platform.musical.board.dto.BoardRequest;
 import com.truve.platform.musical.board.dto.BoardResponse;
 import com.truve.platform.musical.board.repository.ArtistBoardCommentRepository;
 import com.truve.platform.musical.board.repository.ArtistBoardPostLikeRepository;
 import com.truve.platform.musical.board.repository.ArtistBoardPostRepository;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.show.domain.entity.Artist;
+import com.truve.platform.musical.show.repository.ArtistRepository;
 import com.truve.platform.musical.show.dto.ArtistResponse;
 import com.truve.platform.musical.show.service.ArtistService;
+import com.truve.platform.musical.user.domain.entity.User;
+import com.truve.platform.musical.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ArtistBoardServiceTest {
@@ -47,6 +55,10 @@ class ArtistBoardServiceTest {
 	private ArtistService artistService;
 	@Mock
 	private S3Service s3Service;
+	@Mock
+	private UserRepository userRepository;
+	@Mock
+	private ArtistRepository artistRepository;
 
 	@InjectMocks
 	private ArtistBoardService artistBoardService;
@@ -126,5 +138,102 @@ class ArtistBoardServiceTest {
 
 		assertEquals(ErrorCode.FORBIDDEN_ARTIST_BOARD_ACCESS, exception.getErrorCode());
 		verifyNoInteractions(artistBoardPostRepository, artistBoardPostLikeRepository, artistBoardCommentRepository);
+	}
+
+	@Test
+	@DisplayName("댓글 조회는 필터와 카운트를 함께 응답한다.")
+	void 댓글_조회_성공() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+		Artist boardArtist = mock(Artist.class);
+		ArtistBoardComment memberComment = mock(ArtistBoardComment.class);
+		ArtistBoardComment artistComment = mock(ArtistBoardComment.class);
+		User user = User.builder()
+			.userId(USER_ID)
+			.nickname("멤버닉네임")
+			.build();
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+		when(post.getId()).thenReturn(10L);
+		when(boardArtist.getId()).thenReturn(1L);
+		when(boardArtist.getName()).thenReturn("이재환");
+		when(boardArtist.getProfileImg()).thenReturn("artists/lee.png");
+		when(artistBoardCommentRepository.findByPostIdOrderByCreatedAtDescIdDesc(10L))
+			.thenReturn(List.of(memberComment, artistComment));
+		when(artistBoardCommentRepository.countByPostId(10L)).thenReturn(4L);
+		when(artistBoardCommentRepository.countByPostIdAndUserId(10L, USER_ID)).thenReturn(2L);
+		when(artistBoardCommentRepository.countByPostIdAndAuthorType(10L, ArtistBoardCommentAuthorType.ARTIST)).thenReturn(1L);
+		when(userRepository.findByUserIdIn(List.of(USER_ID))).thenReturn(List.of(user));
+		when(artistRepository.findAllById(List.of(1L))).thenReturn(List.of(boardArtist));
+		when(s3Service.getImageUrl("artists/lee.png")).thenReturn("https://img.example/artists/lee.png");
+
+		when(memberComment.getId()).thenReturn(101L);
+		when(memberComment.getCreatedAt()).thenReturn(LocalDateTime.of(2026, 4, 12, 13, 0));
+		when(memberComment.getAuthorType()).thenReturn(ArtistBoardCommentAuthorType.MEMBER);
+		when(memberComment.getUserId()).thenReturn(USER_ID);
+		when(memberComment.getContent()).thenReturn("내 댓글");
+
+		when(artistComment.getId()).thenReturn(102L);
+		when(artistComment.getCreatedAt()).thenReturn(LocalDateTime.of(2026, 4, 12, 12, 0));
+		when(artistComment.getAuthorType()).thenReturn(ArtistBoardCommentAuthorType.ARTIST);
+		when(artistComment.getUserId()).thenReturn(null);
+		when(artistComment.getArtistId()).thenReturn(1L);
+		when(artistComment.getContent()).thenReturn("아티스트 댓글");
+
+		BoardResponse.CommentList response = artistBoardService.getComments(1L, 10L, USER_ID, ArtistBoardCommentFilter.ALL);
+
+		assertThat(response.getSummary().getTotalCount()).isEqualTo(4L);
+		assertThat(response.getSummary().getMyCount()).isEqualTo(2L);
+		assertThat(response.getSummary().getArtistCount()).isEqualTo(1L);
+		assertThat(response.getComments()).hasSize(2);
+		assertThat(response.getComments().get(0).getAuthorName()).isEqualTo("멤버닉네임");
+		assertThat(response.getComments().get(0).isMine()).isTrue();
+		assertThat(response.getComments().get(0).isArtist()).isFalse();
+		assertThat(response.getComments().get(1).getAuthorName()).isEqualTo("이재환");
+		assertThat(response.getComments().get(1).getAuthorThumbnailUrl()).isEqualTo("https://img.example/artists/lee.png");
+		assertThat(response.getComments().get(1).isMine()).isFalse();
+		assertThat(response.getComments().get(1).isArtist()).isTrue();
+	}
+
+	@Test
+	@DisplayName("댓글 작성은 멤버 댓글로 저장한다.")
+	void 댓글_작성_성공() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+
+		artistBoardService.createComment(1L, 10L, USER_ID, new BoardRequest.CreateComment(" 댓글입니다. "));
+
+		verify(artistBoardCommentRepository).save(any(ArtistBoardComment.class));
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 게시글에 댓글을 조회하면 예외가 발생한다.")
+	void 댓글_조회_게시글없음_실패() {
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(999L, 1L)).thenReturn(java.util.Optional.empty());
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> artistBoardService.getComments(1L, 999L, USER_ID, ArtistBoardCommentFilter.ALL)
+		);
+
+		assertEquals(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST, exception.getErrorCode());
 	}
 }
