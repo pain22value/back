@@ -38,4 +38,8 @@ public interface ArtistBoardPostLikeRepository extends JpaRepository<ArtistBoard
 		@Param("userId") UUID userId,
 		@Param("postIds") Collection<Long> postIds
 	);
+
+	boolean existsByUserIdAndPostId(UUID userId, Long postId);
+
+	void deleteByUserIdAndPostId(UUID userId, Long postId);
 }

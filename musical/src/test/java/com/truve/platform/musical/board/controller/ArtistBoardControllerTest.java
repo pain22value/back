@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -186,5 +187,43 @@ class ArtistBoardControllerTest {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M06"));
+	}
+
+	@Test
+	@DisplayName("게시글 좋아요 등록에 성공하면 200 OK를 응답한다.")
+	void 게시글_좋아요_등록_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willDoNothing().given(artistBoardService).likePost(1L, 10L, userId);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+	}
+
+	@Test
+	@DisplayName("이미 좋아요한 게시글은 400을 응답한다.")
+	void 게시글_좋아요_등록_중복_실패() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willThrow(new CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST))
+			.given(artistBoardService).likePost(1L, 10L, userId);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
+			.andExpect(jsonPath("$.code").value("M07"));
+	}
+
+	@Test
+	@DisplayName("게시글 좋아요 취소에 성공하면 200 OK를 응답한다.")
+	void 게시글_좋아요_취소_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willDoNothing().given(artistBoardService).unlikePost(1L, 10L, userId);
+
+		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
 	}
 }

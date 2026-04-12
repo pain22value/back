@@ -2,6 +2,7 @@ package com.truve.platform.musical.board.controller;
 
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,6 +58,28 @@ public class ArtistBoardController {
 		@RequestBody @Valid BoardRequest.CreateComment request
 	) {
 		artistBoardService.createComment(artistId, postId, userId, request);
+		return ApiResult.ok();
+	}
+
+	@Operation(summary = "아티스트 게시판 게시글 좋아요", description = "멤버십 가입 사용자가 아티스트 게시글에 좋아요를 등록합니다.")
+	@PostMapping("/{postId}/likes")
+	public ApiResult<Void> likePost(
+		@PathVariable Long artistId,
+		@PathVariable Long postId,
+		@RequestHeader(name = "X-User-Id") UUID userId
+	) {
+		artistBoardService.likePost(artistId, postId, userId);
+		return ApiResult.ok();
+	}
+
+	@Operation(summary = "아티스트 게시판 게시글 좋아요 취소", description = "멤버십 가입 사용자가 아티스트 게시글 좋아요를 취소합니다.")
+	@DeleteMapping("/{postId}/likes")
+	public ApiResult<Void> unlikePost(
+		@PathVariable Long artistId,
+		@PathVariable Long postId,
+		@RequestHeader(name = "X-User-Id") UUID userId
+	) {
+		artistBoardService.unlikePost(artistId, postId, userId);
 		return ApiResult.ok();
 	}
 }

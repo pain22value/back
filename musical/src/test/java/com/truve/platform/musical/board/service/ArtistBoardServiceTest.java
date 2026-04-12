@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.truve.platform.common.exception.CustomException;
 import com.truve.platform.common.exception.ErrorCode;
@@ -219,6 +220,90 @@ class ArtistBoardServiceTest {
 	}
 
 	@Test
+	@DisplayName("게시글 좋아요는 처음 요청일 때만 저장된다.")
+	void 게시글_좋아요_성공() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+		when(artistBoardPostLikeRepository.existsByUserIdAndPostId(USER_ID, 10L)).thenReturn(false);
+
+		artistBoardService.likePost(1L, 10L, USER_ID);
+
+		verify(artistBoardPostLikeRepository).save(any());
+	}
+
+	@Test
+	@DisplayName("이미 좋아요한 게시글은 예외를 발생시킨다.")
+	void 게시글_좋아요_중복_실패() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+		when(artistBoardPostLikeRepository.existsByUserIdAndPostId(USER_ID, 10L)).thenReturn(true);
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> artistBoardService.likePost(1L, 10L, USER_ID)
+		);
+
+		assertEquals(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST, exception.getErrorCode());
+		verify(artistBoardPostLikeRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("좋아요 저장 중 중복 충돌이 나면 이미 좋아요 에러를 응답한다.")
+	void 게시글_좋아요_동시성_중복충돌_실패() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+		when(artistBoardPostLikeRepository.existsByUserIdAndPostId(USER_ID, 10L)).thenReturn(false);
+		org.mockito.Mockito.doThrow(new DataIntegrityViolationException("duplicate"))
+			.when(artistBoardPostLikeRepository).save(any());
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> artistBoardService.likePost(1L, 10L, USER_ID)
+		);
+
+		assertEquals(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST, exception.getErrorCode());
+	}
+
+	@Test
+	@DisplayName("게시글 좋아요 취소는 사용자-게시글 기준으로 삭제한다.")
+	void 게시글_좋아요_취소_성공() {
+		ArtistBoardPost post = mock(ArtistBoardPost.class);
+
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(10L, 1L)).thenReturn(java.util.Optional.of(post));
+
+		artistBoardService.unlikePost(1L, 10L, USER_ID);
+
+		verify(artistBoardPostLikeRepository).deleteByUserIdAndPostId(USER_ID, 10L);
+	}
+
+	@Test
 	@DisplayName("존재하지 않는 게시글에 댓글을 조회하면 예외가 발생한다.")
 	void 댓글_조회_게시글없음_실패() {
 		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
@@ -232,6 +317,25 @@ class ArtistBoardServiceTest {
 		CustomException exception = assertThrows(
 			CustomException.class,
 			() -> artistBoardService.getComments(1L, 999L, USER_ID, ArtistBoardCommentFilter.ALL)
+		);
+
+		assertEquals(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST, exception.getErrorCode());
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 게시글에 좋아요를 요청하면 예외가 발생한다.")
+	void 게시글_좋아요_게시글없음_실패() {
+		when(artistService.getBoardAccess(1L, USER_ID)).thenReturn(
+			ArtistResponse.BoardAccess.builder()
+				.joined(true)
+				.accessible(true)
+				.build()
+		);
+		when(artistBoardPostRepository.findByIdAndArtistId(999L, 1L)).thenReturn(java.util.Optional.empty());
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> artistBoardService.likePost(1L, 999L, USER_ID)
 		);
 
 		assertEquals(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST, exception.getErrorCode());

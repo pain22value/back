@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,6 +19,7 @@ import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentAuthor
 import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentFilter;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardComment;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardPost;
+import com.truve.platform.musical.board.domain.entity.ArtistBoardPostLike;
 import com.truve.platform.musical.board.dto.BoardRequest;
 import com.truve.platform.musical.board.dto.BoardResponse;
 import com.truve.platform.musical.board.repository.ArtistBoardCommentRepository;
@@ -122,6 +124,35 @@ public class ArtistBoardService {
 			.build();
 
 		artistBoardCommentRepository.save(comment);
+	}
+
+	@Transactional
+	public void likePost(Long artistId, Long postId, UUID userId) {
+		validateBoardAccessible(artistId, userId);
+		ArtistBoardPost post = getPost(artistId, postId);
+
+		Preconditions.validate(
+			!artistBoardPostLikeRepository.existsByUserIdAndPostId(userId, postId),
+			ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST
+		);
+
+		ArtistBoardPostLike postLike = ArtistBoardPostLike.builder()
+			.userId(userId)
+			.post(post)
+			.build();
+
+		try {
+			artistBoardPostLikeRepository.save(postLike);
+		} catch (DataIntegrityViolationException e) {
+			throw new com.truve.platform.common.exception.CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST);
+		}
+	}
+
+	@Transactional
+	public void unlikePost(Long artistId, Long postId, UUID userId) {
+		validateBoardAccessible(artistId, userId);
+		getPost(artistId, postId);
+		artistBoardPostLikeRepository.deleteByUserIdAndPostId(userId, postId);
 	}
 
 	private void validateBoardAccessible(Long artistId, UUID userId) {
