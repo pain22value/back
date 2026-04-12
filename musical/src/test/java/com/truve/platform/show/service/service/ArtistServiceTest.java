@@ -26,6 +26,9 @@ import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.show.domain.entity.Artist;
+import com.truve.platform.musical.show.domain.entity.ArtistMembership;
+import com.truve.platform.musical.show.domain.constant.ArtistMembershipStatus;
+import com.truve.platform.musical.show.domain.constant.MembershipPaymentMethod;
 import com.truve.platform.musical.show.dto.ArtistResponse;
 import com.truve.platform.musical.show.repository.ArtistLikeRepository;
 import com.truve.platform.musical.show.repository.ArtistMembershipRepository;
@@ -148,6 +151,50 @@ class ArtistServiceTest {
 		assertThat(response.getArtist().getProfileImageUrl()).isEqualTo("https://img.example/lee.png");
 		assertThat(response.getCurrentShows()).hasSize(1);
 		assertThat(response.getCurrentShows().get(0).getPosterUrl()).isEqualTo("https://img.example/current.png");
+	}
+
+	@Test
+	@DisplayName("아티스트 게시판 접근 가능 여부 조회는 활성 멤버십이면 joined와 accessible을 true로 응답한다.")
+	void 아티스트_게시판_접근가능여부_조회_성공() {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		Artist artist = org.mockito.Mockito.mock(Artist.class);
+		ArtistMembership membership = ArtistMembership.builder()
+			.userId(userId)
+			.artist(artist)
+			.status(ArtistMembershipStatus.ACTIVE)
+			.monthlyAmount(5_000L)
+			.paymentMethod(MembershipPaymentMethod.TOSS_PAY)
+			.build();
+
+		when(artistRepository.existsById(1L)).thenReturn(true);
+		when(artistMembershipRepository.findByUserIdAndArtistId(userId, 1L)).thenReturn(Optional.of(membership));
+
+		ArtistResponse.BoardAccess response = artistService.getBoardAccess(1L, userId);
+
+		assertThat(response.getJoined()).isTrue();
+		assertThat(response.getAccessible()).isTrue();
+	}
+
+	@Test
+	@DisplayName("비로그인 아티스트 게시판 접근 가능 여부 조회는 joined와 accessible을 false로 응답한다.")
+	void 비로그인_아티스트_게시판_접근가능여부_조회_성공() {
+		when(artistRepository.existsById(1L)).thenReturn(true);
+
+		ArtistResponse.BoardAccess response = artistService.getBoardAccess(1L, null);
+
+		assertThat(response.getJoined()).isFalse();
+		assertThat(response.getAccessible()).isFalse();
+		verify(artistMembershipRepository, never()).findByUserIdAndArtistId(any(), anyLong());
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 아티스트 게시판 접근 가능 여부 조회는 예외를 발생시킨다.")
+	void 존재하지않는_아티스트_게시판_접근가능여부_조회_실패() {
+		when(artistRepository.existsById(999L)).thenReturn(false);
+
+		CustomException exception = assertThrows(CustomException.class, () -> artistService.getBoardAccess(999L, null));
+
+		assertEquals(ErrorCode.NOT_FOUND_ARTIST, exception.getErrorCode());
 	}
 
 	@Test

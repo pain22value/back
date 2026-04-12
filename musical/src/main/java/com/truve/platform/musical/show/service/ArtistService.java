@@ -59,6 +59,18 @@ public class ArtistService {
 			.build();
 	}
 
+	@Transactional(readOnly = true)
+	public ArtistResponse.BoardAccess getBoardAccess(Long artistId, UUID userId) {
+		Preconditions.validate(artistRepository.existsById(artistId), ErrorCode.NOT_FOUND_ARTIST);
+
+		boolean joined = hasJoinedMembership(artistId, userId);
+
+		return ArtistResponse.BoardAccess.builder()
+			.joined(joined)
+			.accessible(joined)
+			.build();
+	}
+
 	@Transactional
 	public void likeArtist(Long artistId, UUID userId) {
 		Preconditions.validate(artistRepository.existsById(artistId), ErrorCode.NOT_FOUND_ARTIST);
@@ -117,12 +129,16 @@ public class ArtistService {
 	}
 
 	private ArtistResponse.Membership toMembershipResponse(Long artistId, UUID userId) {
-		boolean joined = userId != null && artistMembershipRepository.findByUserIdAndArtistId(userId, artistId)
-			.map(ArtistMembership::hasActiveEntitlement)
-			.orElse(false);
+		boolean joined = hasJoinedMembership(artistId, userId);
 		return ArtistResponse.Membership.builder()
 			.joined(joined)
 			.build();
+	}
+
+	private boolean hasJoinedMembership(Long artistId, UUID userId) {
+		return userId != null && artistMembershipRepository.findByUserIdAndArtistId(userId, artistId)
+			.map(ArtistMembership::hasActiveEntitlement)
+			.orElse(false);
 	}
 
 	private List<ArtistResponse.Notice> getNotices(Long artistId) {

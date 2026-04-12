@@ -39,6 +39,14 @@ public class ArtistResponse {
 	@Getter
 	@AllArgsConstructor
 	@Builder
+	public static class BoardAccess {
+		private Boolean joined;
+		private Boolean accessible;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
 	public static class Notice {
 		private Long noticeId;
 		private String content;
