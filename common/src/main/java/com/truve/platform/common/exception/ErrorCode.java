@@ -22,6 +22,8 @@ public enum ErrorCode {
 	INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "유효하지 않은 닉네임입니다.", "A11"),
 	ALREADY_EXISTS_NICKNAME(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다.", "A12"),
 	ALREADY_WITHDRAWN_USER(HttpStatus.BAD_REQUEST, "이미 탈퇴한 회원입니다.", "A13"),
+	INVALID_AUTH_PROVIDER(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 로그인 제공자입니다.", "A14"),
+	INVALID_SOCIAL_REGISTRATION_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 가입 토큰입니다.", "A15"),
 
 	NOT_FOUND_PAYMENT(HttpStatus.BAD_REQUEST, "존재하지 않는 결제입니다.", "P01"),
 	INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "유효하지 않은 결제 금액입니다.", "P02"),
@@ -51,6 +53,7 @@ public enum ErrorCode {
 	INVALID_SHOW_SCHEDULE(HttpStatus.BAD_REQUEST, "잘못된 공연 정보입니다.", "T09"),
 	EXCEEDED_MAX_TICKET_COUNT(HttpStatus.BAD_REQUEST, "인당 최대 4매까지 예매 가능합니다.", "T10"),
 	INVALID_HOLD_SEAT(HttpStatus.BAD_REQUEST, "타인이 점유한 좌석입니다.", "T11"),
+	SUSPECTED_MACRO_ACTIVITY(HttpStatus.BAD_REQUEST, "매크로 의심 유저입니다.", "T12"),
 
 	INVALID_RESERVATION_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 예약 상태입니다.", "B01"),
 	CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "관람일 당일에는 취소가 불가능합니다.", "B02"),
@@ -67,6 +70,8 @@ public enum ErrorCode {
 	ALREADY_LIKED_ARTIST_BOARD_POST(HttpStatus.BAD_REQUEST, "이미 좋아요한 아티스트 게시글입니다.", "M07"),
 	NOT_FOUND_ARTIST_BOARD_COMMENT(HttpStatus.NOT_FOUND, "존재하지 않는 아티스트 댓글입니다.", "M08"),
 	ALREADY_LIKED_ARTIST_BOARD_COMMENT(HttpStatus.BAD_REQUEST, "이미 좋아요한 아티스트 댓글입니다.", "M09"),
+	NOT_FOUND_ARTIST_MEMBERSHIP(HttpStatus.NOT_FOUND, "가입된 아티스트 멤버십이 없습니다.", "M10"),
+	MEMBERSHIP_PAYMENT_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "멤버십 결제가 아직 완료되지 않았습니다.", "M11"),
 
 	ALREADY_EXIST_REVIEW(HttpStatus.BAD_REQUEST, "이미 유저가 리뷰를 작성했습니다.", "MR01"),
 	NOT_CHARM_POINT(HttpStatus.BAD_REQUEST, "매력 포인트가 아닙니다.", "MR02"),
