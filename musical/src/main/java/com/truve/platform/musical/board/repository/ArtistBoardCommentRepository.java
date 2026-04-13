@@ -2,6 +2,7 @@ package com.truve.platform.musical.board.repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -20,6 +21,12 @@ public interface ArtistBoardCommentRepository extends JpaRepository<ArtistBoardC
 		long getCommentCount();
 	}
 
+	interface ReplyCountProjection {
+		Long getParentCommentId();
+
+		long getReplyCount();
+	}
+
 	@Query("""
 		select
 			c.post.id as postId,
@@ -30,21 +37,39 @@ public interface ArtistBoardCommentRepository extends JpaRepository<ArtistBoardC
 		""")
 	List<PostCommentCountProjection> countCommentsByPostIds(@Param("postIds") Collection<Long> postIds);
 
-	@EntityGraph(attributePaths = {"post", "post.artist"})
-	List<ArtistBoardComment> findByPostIdOrderByCreatedAtDescIdDesc(Long postId);
+	@Query("""
+		select
+			c.parentComment.id as parentCommentId,
+			count(c.id) as replyCount
+		from ArtistBoardComment c
+		where c.parentComment.id in :parentCommentIds
+		group by c.parentComment.id
+		""")
+	List<ReplyCountProjection> countRepliesByParentCommentIds(@Param("parentCommentIds") Collection<Long> parentCommentIds);
 
-	@EntityGraph(attributePaths = {"post", "post.artist"})
-	List<ArtistBoardComment> findByPostIdAndUserIdOrderByCreatedAtDescIdDesc(Long postId, UUID userId);
+	@EntityGraph(attributePaths = {"post", "post.artist", "parentComment"})
+	List<ArtistBoardComment> findByPostIdAndParentCommentIsNullOrderByCreatedAtDescIdDesc(Long postId);
 
-	@EntityGraph(attributePaths = {"post", "post.artist"})
-	List<ArtistBoardComment> findByPostIdAndAuthorTypeOrderByCreatedAtDescIdDesc(
+	@EntityGraph(attributePaths = {"post", "post.artist", "parentComment"})
+	List<ArtistBoardComment> findByPostIdAndParentCommentIsNullAndUserIdOrderByCreatedAtDescIdDesc(Long postId, UUID userId);
+
+	@EntityGraph(attributePaths = {"post", "post.artist", "parentComment"})
+	List<ArtistBoardComment> findByPostIdAndParentCommentIsNullAndAuthorTypeOrderByCreatedAtDescIdDesc(
 		Long postId,
 		ArtistBoardCommentAuthorType authorType
 	);
 
+	@EntityGraph(attributePaths = {"post", "post.artist", "parentComment"})
+	List<ArtistBoardComment> findByParentCommentIdOrderByCreatedAtDescIdDesc(Long parentCommentId);
+
+	@EntityGraph(attributePaths = {"post", "post.artist", "parentComment"})
+	Optional<ArtistBoardComment> findByIdAndPostId(Long commentId, Long postId);
+
 	long countByPostId(Long postId);
 
-	long countByPostIdAndUserId(Long postId, UUID userId);
+	long countByPostIdAndParentCommentIsNull(Long postId);
 
-	long countByPostIdAndAuthorType(Long postId, ArtistBoardCommentAuthorType authorType);
+	long countByPostIdAndParentCommentIsNullAndUserId(Long postId, UUID userId);
+
+	long countByPostIdAndParentCommentIsNullAndAuthorType(Long postId, ArtistBoardCommentAuthorType authorType);
 }

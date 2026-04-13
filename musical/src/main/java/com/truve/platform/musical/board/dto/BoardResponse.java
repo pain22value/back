@@ -81,6 +81,19 @@ public class BoardResponse {
 	@Getter
 	@AllArgsConstructor
 	@Builder
+	public static class ReplyList {
+		private List<CommentItem> replies;
+
+		public static ReplyList of(List<CommentItem> replies) {
+			return ReplyList.builder()
+				.replies(replies)
+				.build();
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	@Builder
 	public static class CommentSummary {
 		private long totalCount;
 		private long myCount;
@@ -104,6 +117,9 @@ public class BoardResponse {
 		private String authorName;
 		private String authorThumbnailUrl;
 		private String content;
+		private long likeCount;
+		private boolean likedByMe;
+		private long replyCount;
 		@JsonProperty("isMine")
 		private boolean mine;
 		@JsonProperty("isArtist")
@@ -115,6 +131,9 @@ public class BoardResponse {
 			String authorName,
 			String authorThumbnailUrl,
 			String content,
+			long likeCount,
+			boolean likedByMe,
+			long replyCount,
 			boolean isMine,
 			boolean isArtist
 		) {
@@ -124,6 +143,9 @@ public class BoardResponse {
 				.authorName(authorName)
 				.authorThumbnailUrl(authorThumbnailUrl)
 				.content(content)
+				.likeCount(likeCount)
+				.likedByMe(likedByMe)
+				.replyCount(replyCount)
 				.mine(isMine)
 				.artist(isArtist)
 				.build();

@@ -65,6 +65,8 @@ public enum ErrorCode {
 	FORBIDDEN_ARTIST_BOARD_ACCESS(HttpStatus.FORBIDDEN, "아티스트 게시판 접근 권한이 없습니다.", "M05"),
 	NOT_FOUND_ARTIST_BOARD_POST(HttpStatus.NOT_FOUND, "존재하지 않는 아티스트 게시글입니다.", "M06"),
 	ALREADY_LIKED_ARTIST_BOARD_POST(HttpStatus.BAD_REQUEST, "이미 좋아요한 아티스트 게시글입니다.", "M07"),
+	NOT_FOUND_ARTIST_BOARD_COMMENT(HttpStatus.NOT_FOUND, "존재하지 않는 아티스트 댓글입니다.", "M08"),
+	ALREADY_LIKED_ARTIST_BOARD_COMMENT(HttpStatus.BAD_REQUEST, "이미 좋아요한 아티스트 댓글입니다.", "M09"),
 
 	ALREADY_EXIST_REVIEW(HttpStatus.BAD_REQUEST, "이미 유저가 리뷰를 작성했습니다.", "MR01"),
 	NOT_CHARM_POINT(HttpStatus.BAD_REQUEST, "매력 포인트가 아닙니다.", "MR02"),

@@ -18,11 +18,13 @@ import com.truve.platform.common.support.Preconditions;
 import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentAuthorType;
 import com.truve.platform.musical.board.domain.constant.ArtistBoardCommentFilter;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardComment;
+import com.truve.platform.musical.board.domain.entity.ArtistBoardCommentLike;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardPost;
 import com.truve.platform.musical.board.domain.entity.ArtistBoardPostLike;
 import com.truve.platform.musical.board.dto.BoardRequest;
 import com.truve.platform.musical.board.dto.BoardResponse;
 import com.truve.platform.musical.board.repository.ArtistBoardCommentRepository;
+import com.truve.platform.musical.board.repository.ArtistBoardCommentLikeRepository;
 import com.truve.platform.musical.board.repository.ArtistBoardPostLikeRepository;
 import com.truve.platform.musical.board.repository.ArtistBoardPostRepository;
 import com.truve.platform.musical.s3.S3Service;
@@ -45,6 +47,7 @@ public class ArtistBoardService {
 	private final ArtistBoardPostRepository artistBoardPostRepository;
 	private final ArtistBoardPostLikeRepository artistBoardPostLikeRepository;
 	private final ArtistBoardCommentRepository artistBoardCommentRepository;
+	private final ArtistBoardCommentLikeRepository artistBoardCommentLikeRepository;
 	private final ArtistService artistService;
 	private final S3Service s3Service;
 	private final UserRepository userRepository;
@@ -88,22 +91,44 @@ public class ArtistBoardService {
 		validateBoardAccessible(artistId, userId);
 		ArtistBoardPost post = getPost(artistId, postId);
 
-		List<ArtistBoardComment> comments = getCommentsByFilter(postId, userId, filter);
+		List<ArtistBoardComment> comments = getRootCommentsByFilter(postId, userId, filter);
 		Map<UUID, User> usersByUserId = findUsersByUserId(comments);
 		Map<Long, Artist> artistsByArtistId = findArtistsByArtistId(comments);
+		Map<Long, Long> likeCounts = findCommentLikeCounts(comments);
+		Set<Long> likedCommentIds = findLikedCommentIds(comments, userId);
+		Map<Long, Long> replyCounts = findReplyCounts(comments);
 
 		List<BoardResponse.CommentItem> items = comments.stream()
-			.map(comment -> toCommentItem(comment, userId, usersByUserId, artistsByArtistId))
+			.map(comment -> toCommentItem(comment, userId, usersByUserId, artistsByArtistId, likeCounts, likedCommentIds, replyCounts))
 			.toList();
 
 		return BoardResponse.CommentList.of(
 			BoardResponse.CommentSummary.of(
-				artistBoardCommentRepository.countByPostId(post.getId()),
-				artistBoardCommentRepository.countByPostIdAndUserId(post.getId(), userId),
-				artistBoardCommentRepository.countByPostIdAndAuthorType(post.getId(), ArtistBoardCommentAuthorType.ARTIST)
+				artistBoardCommentRepository.countByPostIdAndParentCommentIsNull(post.getId()),
+				artistBoardCommentRepository.countByPostIdAndParentCommentIsNullAndUserId(post.getId(), userId),
+				artistBoardCommentRepository.countByPostIdAndParentCommentIsNullAndAuthorType(post.getId(), ArtistBoardCommentAuthorType.ARTIST)
 			),
 			items
 		);
+	}
+
+	@Transactional(readOnly = true)
+	public BoardResponse.ReplyList getReplies(Long artistId, Long postId, Long commentId, UUID userId) {
+		validateBoardAccessible(artistId, userId);
+		getPost(artistId, postId);
+		ArtistBoardComment parentComment = getComment(postId, commentId);
+
+		List<ArtistBoardComment> replies = artistBoardCommentRepository.findByParentCommentIdOrderByCreatedAtDescIdDesc(parentComment.getId());
+		Map<UUID, User> usersByUserId = findUsersByUserId(replies);
+		Map<Long, Artist> artistsByArtistId = findArtistsByArtistId(replies);
+		Map<Long, Long> likeCounts = findCommentLikeCounts(replies);
+		Set<Long> likedCommentIds = findLikedCommentIds(replies, userId);
+
+		List<BoardResponse.CommentItem> items = replies.stream()
+			.map(reply -> toCommentItem(reply, userId, usersByUserId, artistsByArtistId, likeCounts, likedCommentIds, Map.of()))
+			.toList();
+
+		return BoardResponse.ReplyList.of(items);
 	}
 
 	@Transactional
@@ -113,6 +138,7 @@ public class ArtistBoardService {
 
 		ArtistBoardComment comment = ArtistBoardComment.builder()
 			.post(post)
+			.parentComment(null)
 			.authorType(ArtistBoardCommentAuthorType.MEMBER)
 			.userId(userId)
 			.artistId(null)
@@ -120,6 +146,24 @@ public class ArtistBoardService {
 			.build();
 
 		artistBoardCommentRepository.save(comment);
+	}
+
+	@Transactional
+	public void createReply(Long artistId, Long postId, Long commentId, UUID userId, BoardRequest.CreateComment request) {
+		validateBoardAccessible(artistId, userId);
+		ArtistBoardPost post = getPost(artistId, postId);
+		ArtistBoardComment parentComment = getComment(postId, commentId);
+
+		ArtistBoardComment reply = ArtistBoardComment.builder()
+			.post(post)
+			.parentComment(parentComment)
+			.authorType(ArtistBoardCommentAuthorType.MEMBER)
+			.userId(userId)
+			.artistId(null)
+			.content(request.getContent().trim())
+			.build();
+
+		artistBoardCommentRepository.save(reply);
 	}
 
 	@Transactional
@@ -151,6 +195,37 @@ public class ArtistBoardService {
 		artistBoardPostLikeRepository.deleteByUserIdAndPostId(userId, postId);
 	}
 
+	@Transactional
+	public void likeComment(Long artistId, Long postId, Long commentId, UUID userId) {
+		validateBoardAccessible(artistId, userId);
+		getPost(artistId, postId);
+		ArtistBoardComment comment = getComment(postId, commentId);
+
+		Preconditions.validate(
+			!artistBoardCommentLikeRepository.existsByUserIdAndCommentId(userId, commentId),
+			ErrorCode.ALREADY_LIKED_ARTIST_BOARD_COMMENT
+		);
+
+		ArtistBoardCommentLike commentLike = ArtistBoardCommentLike.builder()
+			.userId(userId)
+			.comment(comment)
+			.build();
+
+		try {
+			artistBoardCommentLikeRepository.save(commentLike);
+		} catch (DataIntegrityViolationException e) {
+			throw new com.truve.platform.common.exception.CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_COMMENT);
+		}
+	}
+
+	@Transactional
+	public void unlikeComment(Long artistId, Long postId, Long commentId, UUID userId) {
+		validateBoardAccessible(artistId, userId);
+		getPost(artistId, postId);
+		getComment(postId, commentId);
+		artistBoardCommentLikeRepository.deleteByUserIdAndCommentId(userId, commentId);
+	}
+
 	private void validateBoardAccessible(Long artistId, UUID userId) {
 		ArtistResponse.BoardAccess boardAccess = artistService.getBoardAccess(artistId, userId);
 		Preconditions.validate(Boolean.TRUE.equals(boardAccess.getAccessible()), ErrorCode.FORBIDDEN_ARTIST_BOARD_ACCESS);
@@ -159,6 +234,11 @@ public class ArtistBoardService {
 	private ArtistBoardPost getPost(Long artistId, Long postId) {
 		return artistBoardPostRepository.findByIdAndArtistId(postId, artistId)
 			.orElseThrow(() -> new com.truve.platform.common.exception.CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST));
+	}
+
+	private ArtistBoardComment getComment(Long postId, Long commentId) {
+		return artistBoardCommentRepository.findByIdAndPostId(commentId, postId)
+			.orElseThrow(() -> new com.truve.platform.common.exception.CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_COMMENT));
 	}
 
 	private BoardResponse.PostItem toPostItem(
@@ -182,15 +262,58 @@ public class ArtistBoardService {
 		);
 	}
 
-	private List<ArtistBoardComment> getCommentsByFilter(Long postId, UUID userId, ArtistBoardCommentFilter filter) {
+	private List<ArtistBoardComment> getRootCommentsByFilter(Long postId, UUID userId, ArtistBoardCommentFilter filter) {
 		return switch (filter) {
-			case ALL -> artistBoardCommentRepository.findByPostIdOrderByCreatedAtDescIdDesc(postId);
-			case MINE -> artistBoardCommentRepository.findByPostIdAndUserIdOrderByCreatedAtDescIdDesc(postId, userId);
-			case ARTIST -> artistBoardCommentRepository.findByPostIdAndAuthorTypeOrderByCreatedAtDescIdDesc(
+			case ALL -> artistBoardCommentRepository.findByPostIdAndParentCommentIsNullOrderByCreatedAtDescIdDesc(postId);
+			case MINE -> artistBoardCommentRepository.findByPostIdAndParentCommentIsNullAndUserIdOrderByCreatedAtDescIdDesc(postId, userId);
+			case ARTIST -> artistBoardCommentRepository.findByPostIdAndParentCommentIsNullAndAuthorTypeOrderByCreatedAtDescIdDesc(
 				postId,
 				ArtistBoardCommentAuthorType.ARTIST
 			);
 		};
+	}
+
+	private Map<Long, Long> findCommentLikeCounts(List<ArtistBoardComment> comments) {
+		List<Long> commentIds = comments.stream()
+			.map(ArtistBoardComment::getId)
+			.toList();
+		if (commentIds.isEmpty()) {
+			return Map.of();
+		}
+
+		return artistBoardCommentLikeRepository.countLikesByCommentIds(commentIds).stream()
+			.collect(Collectors.toMap(
+				ArtistBoardCommentLikeRepository.CommentLikeCountProjection::getCommentId,
+				ArtistBoardCommentLikeRepository.CommentLikeCountProjection::getLikeCount
+			));
+	}
+
+	private Set<Long> findLikedCommentIds(List<ArtistBoardComment> comments, UUID userId) {
+		if (userId == null || comments.isEmpty()) {
+			return Set.of();
+		}
+
+		List<Long> commentIds = comments.stream()
+			.map(ArtistBoardComment::getId)
+			.toList();
+
+		return artistBoardCommentLikeRepository.findLikedCommentIds(userId, commentIds).stream()
+			.collect(Collectors.toSet());
+	}
+
+	private Map<Long, Long> findReplyCounts(List<ArtistBoardComment> comments) {
+		List<Long> commentIds = comments.stream()
+			.map(ArtistBoardComment::getId)
+			.toList();
+		if (commentIds.isEmpty()) {
+			return Map.of();
+		}
+
+		return artistBoardCommentRepository.countRepliesByParentCommentIds(commentIds).stream()
+			.collect(Collectors.toMap(
+				ArtistBoardCommentRepository.ReplyCountProjection::getParentCommentId,
+				ArtistBoardCommentRepository.ReplyCountProjection::getReplyCount
+			));
 	}
 
 	private Map<UUID, User> findUsersByUserId(List<ArtistBoardComment> comments) {
@@ -229,17 +352,24 @@ public class ArtistBoardService {
 		ArtistBoardComment comment,
 		UUID userId,
 		Map<UUID, User> usersByUserId,
-		Map<Long, Artist> artistsByArtistId
+		Map<Long, Artist> artistsByArtistId,
+		Map<Long, Long> likeCounts,
+		Set<Long> likedCommentIds,
+		Map<Long, Long> replyCounts
 	) {
 		boolean isArtist = comment.getAuthorType() == ArtistBoardCommentAuthorType.ARTIST;
 		boolean isMine = userId != null && userId.equals(comment.getUserId());
+		Long commentId = comment.getId();
 
 		return BoardResponse.CommentItem.of(
-			comment.getId(),
+			commentId,
 			comment.getCreatedAt(),
 			resolveAuthorName(comment, usersByUserId, artistsByArtistId),
 			resolveAuthorThumbnailUrl(comment, artistsByArtistId),
 			comment.getContent(),
+			likeCounts.getOrDefault(commentId, 0L),
+			likedCommentIds.contains(commentId),
+			replyCounts.getOrDefault(commentId, 0L),
 			isMine,
 			isArtist
 		);

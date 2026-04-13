@@ -28,6 +28,10 @@ public class ArtistBoardComment extends BaseEntity {
 	@JoinColumn(name = "post_id", nullable = false)
 	private ArtistBoardPost post;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "parent_comment_id")
+	private ArtistBoardComment parentComment;
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "author_type", nullable = false)
 	private ArtistBoardCommentAuthorType authorType;
@@ -44,12 +48,14 @@ public class ArtistBoardComment extends BaseEntity {
 	@Builder
 	private ArtistBoardComment(
 		ArtistBoardPost post,
+		ArtistBoardComment parentComment,
 		ArtistBoardCommentAuthorType authorType,
 		UUID userId,
 		Long artistId,
 		String content
 	) {
 		this.post = post;
+		this.parentComment = parentComment;
 		this.authorType = authorType;
 		this.userId = userId;
 		this.artistId = artistId;

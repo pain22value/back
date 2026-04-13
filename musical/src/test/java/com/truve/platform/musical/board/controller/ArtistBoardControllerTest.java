@@ -121,6 +121,9 @@ class ArtistBoardControllerTest {
 					"멤버닉네임",
 					null,
 					"댓글 내용",
+					5L,
+					true,
+					2L,
 					true,
 					false
 				)
@@ -139,8 +142,43 @@ class ArtistBoardControllerTest {
 			.andExpect(jsonPath("$.data.summary.artistCount").value(1))
 			.andExpect(jsonPath("$.data.comments[0].commentId").value(101))
 			.andExpect(jsonPath("$.data.comments[0].authorName").value("멤버닉네임"))
+			.andExpect(jsonPath("$.data.comments[0].likeCount").value(5))
+			.andExpect(jsonPath("$.data.comments[0].likedByMe").value(true))
+			.andExpect(jsonPath("$.data.comments[0].replyCount").value(2))
 			.andExpect(jsonPath("$.data.comments[0].isMine").value(true))
 			.andExpect(jsonPath("$.data.comments[0].isArtist").value(false));
+	}
+
+	@Test
+	@DisplayName("답글 조회에 성공하면 200 OK와 답글 목록을 응답한다.")
+	void 답글_조회_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		BoardResponse.ReplyList response = BoardResponse.ReplyList.of(
+			List.of(
+				BoardResponse.CommentItem.of(
+					201L,
+					LocalDateTime.of(2026, 4, 12, 14, 0),
+					"테스트유저",
+					null,
+					"답글 내용",
+					1L,
+					false,
+					0L,
+					true,
+					false
+				)
+			)
+		);
+
+		given(artistBoardService.getReplies(1L, 10L, 101L, userId)).willReturn(response);
+
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"))
+			.andExpect(jsonPath("$.data.replies[0].commentId").value(201))
+			.andExpect(jsonPath("$.data.replies[0].likeCount").value(1))
+			.andExpect(jsonPath("$.data.replies[0].replyCount").value(0));
 	}
 
 	@Test
@@ -152,6 +190,22 @@ class ArtistBoardControllerTest {
 		willDoNothing().given(artistBoardService).createComment(1L, 10L, userId, request);
 
 		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+				.header("X-User-Id", userId)
+				.contentType("application/json")
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+	}
+
+	@Test
+	@DisplayName("게시글 답글 작성에 성공하면 200 OK를 응답한다.")
+	void 게시글_답글_작성_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		BoardRequest.CreateComment request = new BoardRequest.CreateComment("답글 작성");
+
+		willDoNothing().given(artistBoardService).createReply(1L, 10L, 101L, userId, request);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
 				.header("X-User-Id", userId)
 				.contentType("application/json")
 				.content(objectMapper.writeValueAsString(request)))
@@ -183,6 +237,17 @@ class ArtistBoardControllerTest {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M06"));
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 댓글 답글 조회는 404를 응답한다.")
+	void 답글_조회_댓글없음_실패() throws Exception {
+		willThrow(new CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_COMMENT))
+			.given(artistBoardService).getReplies(anyLong(), anyLong(), anyLong(), nullable(UUID.class));
+
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 999L))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.code").value("M08"));
 	}
 
 	@Test
@@ -218,6 +283,43 @@ class ArtistBoardControllerTest {
 		willDoNothing().given(artistBoardService).unlikePost(1L, 10L, userId);
 
 		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+	}
+
+	@Test
+	@DisplayName("댓글 좋아요 등록에 성공하면 200 OK를 응답한다.")
+	void 댓글_좋아요_등록_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willDoNothing().given(artistBoardService).likeComment(1L, 10L, 101L, userId);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("ok"));
+	}
+
+	@Test
+	@DisplayName("이미 좋아요한 댓글은 400을 응답한다.")
+	void 댓글_좋아요_등록_중복_실패() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willThrow(new CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_COMMENT))
+			.given(artistBoardService).likeComment(1L, 10L, 101L, userId);
+
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
+				.header("X-User-Id", userId))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("M09"));
+	}
+
+	@Test
+	@DisplayName("댓글 좋아요 취소에 성공하면 200 OK를 응답한다.")
+	void 댓글_좋아요_취소_성공() throws Exception {
+		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		willDoNothing().given(artistBoardService).unlikeComment(1L, 10L, 101L, userId);
+
+		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
