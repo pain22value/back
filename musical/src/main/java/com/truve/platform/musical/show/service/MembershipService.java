@@ -171,6 +171,7 @@ public class MembershipService {
 			formatMembershipDate(membership.getJoinedAt()),
 			formatMembershipDate(membership.getNextBillingAt()),
 			calculateRemainingDays(membership.getNextBillingAt(), now),
+			calculateTogetherDays(membership.getJoinedAt(), now),
 			membership.getMonthlyAmount(),
 			membership.getStatus() == ArtistMembershipStatus.ACTIVE
 		);
@@ -199,5 +200,13 @@ public class MembershipService {
 
 		long remainingDays = ChronoUnit.DAYS.between(now.toLocalDate(), nextBillingAt.toLocalDate());
 		return Math.max(remainingDays, 0L);
+	}
+
+	private long calculateTogetherDays(LocalDateTime joinedAt, LocalDateTime now) {
+		if (joinedAt == null) {
+			return 0L;
+		}
+
+		return Math.max(ChronoUnit.DAYS.between(joinedAt.toLocalDate(), now.toLocalDate()) + 1, 0L);
 	}
 }

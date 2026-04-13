@@ -234,9 +234,11 @@ class MembershipServiceTest {
 		assertThat(response.getMemberships().get(0).getProfileImageUrl()).isEqualTo("https://cdn/leejaehwan.png");
 		assertThat(response.getMemberships().get(0).getStatus()).isEqualTo("ACTIVE");
 		assertThat(response.getMemberships().get(0).getStatusLabel()).isEqualTo("멤버십 가입중");
+		assertThat(response.getMemberships().get(0).getTogetherDays()).isGreaterThan(0L);
 		assertThat(response.getMemberships().get(0).isCancelable()).isTrue();
 		assertThat(response.getMemberships().get(1).getStatus()).isEqualTo("CANCEL_SCHEDULED");
 		assertThat(response.getMemberships().get(1).getStatusLabel()).isEqualTo("해지 예정");
+		assertThat(response.getMemberships().get(1).getTogetherDays()).isGreaterThan(0L);
 		assertThat(response.getMemberships().get(1).isCancelable()).isFalse();
 	}
 
