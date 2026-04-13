@@ -138,6 +138,17 @@ public class MembershipService {
 		);
 	}
 
+	@Transactional
+	public void cancel(Long membershipId, UUID userId) {
+		ArtistMembership membership = artistMembershipRepository.findById(membershipId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ARTIST_MEMBERSHIP));
+
+		Preconditions.validate(membership.getUserId().equals(userId), ErrorCode.NOT_FOUND_ARTIST_MEMBERSHIP);
+		Preconditions.validate(membership.getStatus() == ArtistMembershipStatus.ACTIVE, ErrorCode.MEMBERSHIP_NOT_CANCELABLE);
+
+		membership.requestCancel();
+	}
+
 	private MembershipResponse.MyMembershipItem toMyMembershipItem(ArtistMembership membership, LocalDateTime now) {
 		return MembershipResponse.MyMembershipItem.of(
 			membership.getId(),
