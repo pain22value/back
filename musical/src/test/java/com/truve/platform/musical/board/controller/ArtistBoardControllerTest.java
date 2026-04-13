@@ -72,7 +72,7 @@ class ArtistBoardControllerTest {
 
 		given(artistBoardService.getPosts(1L, userId)).willReturn(response);
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts", 1L)
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board", 1L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
@@ -90,7 +90,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.FORBIDDEN_ARTIST_BOARD_ACCESS))
 			.given(artistBoardService).getPosts(anyLong(), nullable(UUID.class));
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts", 1L))
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board", 1L))
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M05"));
@@ -102,7 +102,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.NOT_FOUND_ARTIST))
 			.given(artistBoardService).getPosts(anyLong(), nullable(UUID.class));
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts", 999L))
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board", 999L))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M02"));
@@ -132,7 +132,7 @@ class ArtistBoardControllerTest {
 
 		given(artistBoardService.getComments(1L, 10L, userId, ArtistBoardCommentFilter.ALL)).willReturn(response);
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/{postId}/comments", 1L, 10L)
 				.header("X-User-Id", userId)
 				.param("filter", "ALL"))
 			.andExpect(status().isOk())
@@ -172,7 +172,7 @@ class ArtistBoardControllerTest {
 
 		given(artistBoardService.getReplies(1L, 10L, 101L, userId)).willReturn(response);
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"))
@@ -189,7 +189,7 @@ class ArtistBoardControllerTest {
 
 		willDoNothing().given(artistBoardService).createComment(1L, 10L, userId, request);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/comments", 1L, 10L)
 				.header("X-User-Id", userId)
 				.contentType("application/json")
 				.content(objectMapper.writeValueAsString(request)))
@@ -205,7 +205,7 @@ class ArtistBoardControllerTest {
 
 		willDoNothing().given(artistBoardService).createReply(1L, 10L, 101L, userId, request);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/replies", 1L, 10L, 101L)
 				.header("X-User-Id", userId)
 				.contentType("application/json")
 				.content(objectMapper.writeValueAsString(request)))
@@ -219,7 +219,7 @@ class ArtistBoardControllerTest {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		BoardRequest.CreateComment request = new BoardRequest.CreateComment(" ");
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 10L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/comments", 1L, 10L)
 				.header("X-User-Id", userId)
 				.contentType("application/json")
 				.content(objectMapper.writeValueAsString(request)))
@@ -233,7 +233,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_POST))
 			.given(artistBoardService).getComments(anyLong(), anyLong(), nullable(UUID.class), org.mockito.ArgumentMatchers.any());
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments", 1L, 999L))
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/{postId}/comments", 1L, 999L))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
 			.andExpect(jsonPath("$.code").value("M06"));
@@ -245,7 +245,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.NOT_FOUND_ARTIST_BOARD_COMMENT))
 			.given(artistBoardService).getReplies(anyLong(), anyLong(), anyLong(), nullable(UUID.class));
 
-		mockMvc.perform(get("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/replies", 1L, 10L, 999L))
+		mockMvc.perform(get("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/replies", 1L, 10L, 999L))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value("M08"));
 	}
@@ -256,7 +256,7 @@ class ArtistBoardControllerTest {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		willDoNothing().given(artistBoardService).likePost(1L, 10L, userId);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/likes", 1L, 10L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
@@ -269,7 +269,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_POST))
 			.given(artistBoardService).likePost(1L, 10L, userId);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/likes", 1L, 10L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.errorType").value("CLIENT_ERROR"))
@@ -282,7 +282,7 @@ class ArtistBoardControllerTest {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		willDoNothing().given(artistBoardService).unlikePost(1L, 10L, userId);
 
-		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/posts/{postId}/likes", 1L, 10L)
+		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/{postId}/likes", 1L, 10L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
@@ -294,7 +294,7 @@ class ArtistBoardControllerTest {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		willDoNothing().given(artistBoardService).likeComment(1L, 10L, 101L, userId);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
@@ -307,7 +307,7 @@ class ArtistBoardControllerTest {
 		willThrow(new CustomException(ErrorCode.ALREADY_LIKED_ARTIST_BOARD_COMMENT))
 			.given(artistBoardService).likeComment(1L, 10L, 101L, userId);
 
-		mockMvc.perform(post("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
+		mockMvc.perform(post("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("M09"));
@@ -319,7 +319,7 @@ class ArtistBoardControllerTest {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		willDoNothing().given(artistBoardService).unlikeComment(1L, 10L, 101L, userId);
 
-		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/posts/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
+		mockMvc.perform(delete("/api/musical/artists/{artistId}/board/{postId}/comments/{commentId}/likes", 1L, 10L, 101L)
 				.header("X-User-Id", userId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("ok"));
