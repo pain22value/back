@@ -67,7 +67,51 @@ public class MembershipService {
 
 		paymentPublisher.publish(PaymentEventCommand.Create.of(savedMembership));
 
-		return MembershipResponse.CreatePayment.of(artistId, artistDetail.getArtistName(), savedMembership);
+		return MembershipResponse.CreatePayment.of(
+			artistId,
+			artistDetail.getArtistName(),
+			savedMembership.getMonthlyAmount(),
+			savedMembership.getOrderId(),
+			savedMembership.getPaymentMethod().getDisplayName()
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public MembershipResponse.Complete complete(Long artistId, UUID userId) {
+		ArtistRepository.ArtistDetailProjection artistDetail = artistRepository.findDetailById(artistId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ARTIST));
+
+		ArtistMembership membership = artistMembershipRepository.findByUserIdAndArtistId(userId, artistId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ARTIST_MEMBERSHIP));
+
+		Preconditions.validate(membership.hasActiveEntitlement(), ErrorCode.MEMBERSHIP_PAYMENT_NOT_COMPLETED);
+
+		return MembershipResponse.Complete.of(
+			artistId,
+			artistDetail.getArtistName(),
+			membership.getMonthlyAmount(),
+			formatCompleteDate(membership.getJoinedAt()),
+			formatCompleteDate(membership.getNextBillingAt())
+		);
+	}
+
+	@Transactional
+	public void confirm(String orderId) {
+		activate(orderId);
+	}
+
+	@Transactional
+	public void depositReceive(String orderId) {
+		activate(orderId);
+	}
+
+	private void activate(String orderId) {
+		artistMembershipRepository.findByOrderId(orderId)
+			.ifPresent(ArtistMembership::confirm);
+	}
+
+	private String formatCompleteDate(LocalDateTime value) {
+		return value == null ? null : value.format(COMPLETE_DATE_FORMATTER);
 	}
 
 	@Transactional(readOnly = true)

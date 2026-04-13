@@ -1,7 +1,5 @@
 package com.truve.platform.musical.show.dto;
 
-import com.truve.platform.musical.show.domain.entity.ArtistMembership;
-
 public class MembershipResponse {
 
 	public static class CreatePayment {
@@ -28,14 +26,14 @@ public class MembershipResponse {
 			this.paymentMethod = paymentMethod;
 		}
 
-		public static CreatePayment of(Long artistId, String artistName, ArtistMembership membership) {
+		public static CreatePayment of(Long artistId, String artistName, Long amount, String orderId, String paymentMethod) {
 			return new CreatePayment(
 				artistId,
 				artistName,
 				"월간 멤버십",
-				membership.getMonthlyAmount(),
-				membership.getOrderId(),
-				membership.getPaymentMethod().getDisplayName()
+				amount,
+				orderId,
+				paymentMethod
 			);
 		}
 
