@@ -49,15 +49,26 @@ public class MembershipService {
 
 		ArtistMembership membership = artistMembershipRepository.findByUserIdAndArtistId(userId, artistId)
 			.orElse(null);
-		Preconditions.validate(membership == null || !membership.hasActiveEntitlement(), ErrorCode.ALREADY_JOINED_ARTIST_MEMBERSHIP);
+		Preconditions.validate(
+			membership == null || !membership.hasActiveEntitlement(),
+			ErrorCode.ALREADY_JOINED_ARTIST_MEMBERSHIP
+		);
 
 		Artist artist = artistRepository.getReferenceById(artistId);
 		String orderId = MembershipOrderIdGenerator.generate();
+
 		if (membership == null) {
-			membership = ArtistMembership.preparePayment(userId, artist, orderId, MONTHLY_MEMBERSHIP_AMOUNT, request.getPaymentMethod());
+			membership = ArtistMembership.preparePayment(
+				userId,
+				artist,
+				orderId,
+				MONTHLY_MEMBERSHIP_AMOUNT,
+				request.getPaymentMethod()
+			);
 		} else {
 			membership.preparePayment(orderId, MONTHLY_MEMBERSHIP_AMOUNT, request.getPaymentMethod());
 		}
+
 		ArtistMembership savedMembership;
 		try {
 			savedMembership = artistMembershipRepository.save(membership);
