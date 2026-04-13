@@ -1,5 +1,6 @@
 package com.truve.platform.musical.show.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.truve.platform.common.support.BaseEntity;
@@ -55,6 +56,12 @@ public class ArtistMembership extends BaseEntity {
 	@Column(name = "payment_method", nullable = false)
 	private MembershipPaymentMethod paymentMethod;
 
+	@Column(name = "joined_at")
+	private LocalDateTime joinedAt;
+
+	@Column(name = "next_billing_at")
+	private LocalDateTime nextBillingAt;
+
 	@Builder
 	private ArtistMembership(
 		UUID userId,
@@ -62,7 +69,9 @@ public class ArtistMembership extends BaseEntity {
 		ArtistMembershipStatus status,
 		String orderId,
 		Long monthlyAmount,
-		MembershipPaymentMethod paymentMethod
+		MembershipPaymentMethod paymentMethod,
+		LocalDateTime joinedAt,
+		LocalDateTime nextBillingAt
 	) {
 		this.userId = userId;
 		this.artist = artist;
@@ -70,6 +79,8 @@ public class ArtistMembership extends BaseEntity {
 		this.orderId = orderId;
 		this.monthlyAmount = monthlyAmount;
 		this.paymentMethod = paymentMethod;
+		this.joinedAt = joinedAt;
+		this.nextBillingAt = nextBillingAt;
 	}
 
 	public static ArtistMembership preparePayment(
@@ -86,6 +97,8 @@ public class ArtistMembership extends BaseEntity {
 			.orderId(orderId)
 			.monthlyAmount(monthlyAmount)
 			.paymentMethod(paymentMethod)
+			.joinedAt(null)
+			.nextBillingAt(null)
 			.build();
 	}
 
@@ -102,5 +115,15 @@ public class ArtistMembership extends BaseEntity {
 		this.orderId = orderId;
 		this.monthlyAmount = monthlyAmount;
 		this.paymentMethod = paymentMethod;
+		this.joinedAt = null;
+		this.nextBillingAt = null;
+	}
+
+	public void expireCancellation(LocalDateTime now) {
+		if (this.status == ArtistMembershipStatus.CANCEL_SCHEDULED
+			&& this.nextBillingAt != null
+			&& !this.nextBillingAt.isAfter(now)) {
+			this.status = ArtistMembershipStatus.CANCELED;
+		}
 	}
 }
