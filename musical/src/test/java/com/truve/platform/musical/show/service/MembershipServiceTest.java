@@ -343,4 +343,51 @@ class MembershipServiceTest {
 
 		assertEquals(ErrorCode.MEMBERSHIP_PAYMENT_NOT_COMPLETED, exception.getErrorCode());
 	}
+
+	@Test
+	@DisplayName("활성 멤버십 해지 요청 시 CANCEL_SCHEDULED로 전이된다.")
+	void 멤버십_해지_성공() {
+		Artist artist = org.mockito.Mockito.mock(Artist.class);
+		ArtistMembership membership = ArtistMembership.builder()
+			.userId(USER_ID)
+			.artist(artist)
+			.status(ArtistMembershipStatus.ACTIVE)
+			.orderId("M20260408111111")
+			.monthlyAmount(MONTHLY_AMOUNT)
+			.paymentMethod(MembershipPaymentMethod.TOSS_PAY)
+			.joinedAt(LocalDateTime.now().minusDays(5))
+			.nextBillingAt(LocalDateTime.now().plusDays(20))
+			.build();
+
+		when(artistMembershipRepository.findById(3L)).thenReturn(java.util.Optional.of(membership));
+
+		membershipService.cancel(3L, USER_ID);
+
+		assertThat(membership.getStatus()).isEqualTo(ArtistMembershipStatus.CANCEL_SCHEDULED);
+	}
+
+	@Test
+	@DisplayName("해지 불가능한 멤버십 상태면 해지 요청에 실패한다.")
+	void 멤버십_해지_실패() {
+		Artist artist = org.mockito.Mockito.mock(Artist.class);
+		ArtistMembership membership = ArtistMembership.builder()
+			.userId(USER_ID)
+			.artist(artist)
+			.status(ArtistMembershipStatus.CANCEL_SCHEDULED)
+			.orderId("M20260408111111")
+			.monthlyAmount(MONTHLY_AMOUNT)
+			.paymentMethod(MembershipPaymentMethod.TOSS_PAY)
+			.joinedAt(LocalDateTime.now().minusDays(5))
+			.nextBillingAt(LocalDateTime.now().plusDays(20))
+			.build();
+
+		when(artistMembershipRepository.findById(3L)).thenReturn(java.util.Optional.of(membership));
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> membershipService.cancel(3L, USER_ID)
+		);
+
+		assertEquals(ErrorCode.MEMBERSHIP_NOT_CANCELABLE, exception.getErrorCode());
+	}
 }
