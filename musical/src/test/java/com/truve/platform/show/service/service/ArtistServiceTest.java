@@ -26,9 +26,6 @@ import com.truve.platform.common.exception.ErrorCode;
 import com.truve.platform.common.response.Paging;
 import com.truve.platform.musical.s3.S3Service;
 import com.truve.platform.musical.show.domain.entity.Artist;
-import com.truve.platform.musical.show.domain.entity.ArtistMembership;
-import com.truve.platform.musical.show.domain.constant.ArtistMembershipStatus;
-import com.truve.platform.musical.show.domain.constant.MembershipPaymentMethod;
 import com.truve.platform.musical.show.dto.ArtistResponse;
 import com.truve.platform.musical.show.repository.ArtistLikeRepository;
 import com.truve.platform.musical.show.repository.ArtistMembershipRepository;
@@ -122,7 +119,7 @@ class ArtistServiceTest {
 	}
 
 	@Test
-	@DisplayName("비로그인 아티스트 상세 조회는 liked, joined를 false로 응답한다.")
+	@DisplayName("비로그인 아티스트 상세 조회는 개발 연동용으로 joined를 true로 응답한다.")
 	void 아티스트_상세_조회_비로그인_성공() {
 		ArtistRepository.ArtistDetailProjection artist = org.mockito.Mockito.mock(ArtistRepository.ArtistDetailProjection.class);
 		ShowCastingRepository.ArtistShowSummaryProjection currentShow = org.mockito.Mockito.mock(ShowCastingRepository.ArtistShowSummaryProjection.class);
@@ -147,27 +144,18 @@ class ArtistServiceTest {
 		ArtistResponse.Detail response = artistService.getDetail(1L, null);
 
 		assertThat(response.getArtist().getIsLiked()).isFalse();
-		assertThat(response.getMembership().getJoined()).isFalse();
+		assertThat(response.getMembership().getJoined()).isTrue();
 		assertThat(response.getArtist().getProfileImageUrl()).isEqualTo("https://img.example/lee.png");
 		assertThat(response.getCurrentShows()).hasSize(1);
 		assertThat(response.getCurrentShows().get(0).getPosterUrl()).isEqualTo("https://img.example/current.png");
 	}
 
 	@Test
-	@DisplayName("아티스트 게시판 접근 가능 여부 조회는 활성 멤버십이면 joined와 accessible을 true로 응답한다.")
+	@DisplayName("아티스트 게시판 접근 가능 여부 조회는 개발 연동용으로 joined와 accessible을 true로 응답한다.")
 	void 아티스트_게시판_접근가능여부_조회_성공() {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-		Artist artist = org.mockito.Mockito.mock(Artist.class);
-		ArtistMembership membership = ArtistMembership.builder()
-			.userId(userId)
-			.artist(artist)
-			.status(ArtistMembershipStatus.ACTIVE)
-			.monthlyAmount(5_000L)
-			.paymentMethod(MembershipPaymentMethod.TOSS_PAY)
-			.build();
 
 		when(artistRepository.existsById(1L)).thenReturn(true);
-		when(artistMembershipRepository.findByUserIdAndArtistId(userId, 1L)).thenReturn(Optional.of(membership));
 
 		ArtistResponse.BoardAccess response = artistService.getBoardAccess(1L, userId);
 
@@ -176,14 +164,14 @@ class ArtistServiceTest {
 	}
 
 	@Test
-	@DisplayName("비로그인 아티스트 게시판 접근 가능 여부 조회는 joined와 accessible을 false로 응답한다.")
+	@DisplayName("비로그인 아티스트 게시판 접근 가능 여부 조회는 개발 연동용으로 joined와 accessible을 true로 응답한다.")
 	void 비로그인_아티스트_게시판_접근가능여부_조회_성공() {
 		when(artistRepository.existsById(1L)).thenReturn(true);
 
 		ArtistResponse.BoardAccess response = artistService.getBoardAccess(1L, null);
 
-		assertThat(response.getJoined()).isFalse();
-		assertThat(response.getAccessible()).isFalse();
+		assertThat(response.getJoined()).isTrue();
+		assertThat(response.getAccessible()).isTrue();
 		verify(artistMembershipRepository, never()).findByUserIdAndArtistId(any(), anyLong());
 	}
 

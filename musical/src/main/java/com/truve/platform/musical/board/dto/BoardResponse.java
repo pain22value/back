@@ -16,6 +16,12 @@ public class BoardResponse {
 	@Builder
 	public static class PostFeed {
 		private List<PostItem> posts;
+
+		public static PostFeed of(List<PostItem> posts) {
+			return PostFeed.builder()
+				.posts(posts)
+				.build();
+		}
 	}
 
 	@Getter
@@ -31,6 +37,30 @@ public class BoardResponse {
 		private long likeCount;
 		private long commentCount;
 		private boolean likedByMe;
+
+		public static PostItem of(
+			Long postId,
+			LocalDateTime createdAt,
+			String artistName,
+			String artistThumbnailUrl,
+			String content,
+			List<String> imageUrls,
+			long likeCount,
+			long commentCount,
+			boolean likedByMe
+		) {
+			return PostItem.builder()
+				.postId(postId)
+				.createdAt(createdAt)
+				.artistName(artistName)
+				.artistThumbnailUrl(artistThumbnailUrl)
+				.content(content)
+				.imageUrls(imageUrls)
+				.likeCount(likeCount)
+				.commentCount(commentCount)
+				.likedByMe(likedByMe)
+				.build();
+		}
 	}
 
 	@Getter
@@ -39,6 +69,13 @@ public class BoardResponse {
 	public static class CommentList {
 		private CommentSummary summary;
 		private List<CommentItem> comments;
+
+		public static CommentList of(CommentSummary summary, List<CommentItem> comments) {
+			return CommentList.builder()
+				.summary(summary)
+				.comments(comments)
+				.build();
+		}
 	}
 
 	@Getter
@@ -48,6 +85,14 @@ public class BoardResponse {
 		private long totalCount;
 		private long myCount;
 		private long artistCount;
+
+		public static CommentSummary of(long totalCount, long myCount, long artistCount) {
+			return CommentSummary.builder()
+				.totalCount(totalCount)
+				.myCount(myCount)
+				.artistCount(artistCount)
+				.build();
+		}
 	}
 
 	@Getter
@@ -60,8 +105,28 @@ public class BoardResponse {
 		private String authorThumbnailUrl;
 		private String content;
 		@JsonProperty("isMine")
-		private boolean isMine;
+		private boolean mine;
 		@JsonProperty("isArtist")
-		private boolean isArtist;
+		private boolean artist;
+
+		public static CommentItem of(
+			Long commentId,
+			LocalDateTime createdAt,
+			String authorName,
+			String authorThumbnailUrl,
+			String content,
+			boolean isMine,
+			boolean isArtist
+		) {
+			return CommentItem.builder()
+				.commentId(commentId)
+				.createdAt(createdAt)
+				.authorName(authorName)
+				.authorThumbnailUrl(authorThumbnailUrl)
+				.content(content)
+				.mine(isMine)
+				.artist(isArtist)
+				.build();
+		}
 	}
 }

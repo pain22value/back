@@ -112,24 +112,20 @@ class ArtistBoardControllerTest {
 	@DisplayName("게시글 댓글 조회에 성공하면 200 OK와 댓글 목록을 응답한다.")
 	void 게시글_댓글_조회_성공() throws Exception {
 		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-		BoardResponse.CommentList response = BoardResponse.CommentList.builder()
-			.summary(BoardResponse.CommentSummary.builder()
-				.totalCount(4L)
-				.myCount(2L)
-				.artistCount(1L)
-				.build())
-			.comments(List.of(
-				BoardResponse.CommentItem.builder()
-					.commentId(101L)
-					.createdAt(LocalDateTime.of(2026, 4, 12, 13, 0))
-					.authorName("멤버닉네임")
-					.authorThumbnailUrl(null)
-					.content("댓글 내용")
-					.isMine(true)
-					.isArtist(false)
-					.build()
-			))
-			.build();
+		BoardResponse.CommentList response = BoardResponse.CommentList.of(
+			BoardResponse.CommentSummary.of(4L, 2L, 1L),
+			List.of(
+				BoardResponse.CommentItem.of(
+					101L,
+					LocalDateTime.of(2026, 4, 12, 13, 0),
+					"멤버닉네임",
+					null,
+					"댓글 내용",
+					true,
+					false
+				)
+			)
+		);
 
 		given(artistBoardService.getComments(1L, 10L, userId, ArtistBoardCommentFilter.ALL)).willReturn(response);
 

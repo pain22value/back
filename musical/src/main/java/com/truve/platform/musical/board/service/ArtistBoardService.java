@@ -56,9 +56,7 @@ public class ArtistBoardService {
 
 		List<ArtistBoardPost> posts = artistBoardPostRepository.findByArtistIdOrderByCreatedAtDescIdDesc(artistId);
 		if (posts.isEmpty()) {
-			return BoardResponse.PostFeed.builder()
-				.posts(List.of())
-				.build();
+			return BoardResponse.PostFeed.of(List.of());
 		}
 
 		List<Long> postIds = posts.stream()
@@ -82,9 +80,7 @@ public class ArtistBoardService {
 			.map(post -> toPostItem(post, likeCounts, commentCounts, likedPostIds))
 			.toList();
 
-		return BoardResponse.PostFeed.builder()
-			.posts(items)
-			.build();
+		return BoardResponse.PostFeed.of(items);
 	}
 
 	@Transactional(readOnly = true)
@@ -100,14 +96,14 @@ public class ArtistBoardService {
 			.map(comment -> toCommentItem(comment, userId, usersByUserId, artistsByArtistId))
 			.toList();
 
-		return BoardResponse.CommentList.builder()
-			.summary(BoardResponse.CommentSummary.builder()
-				.totalCount(artistBoardCommentRepository.countByPostId(post.getId()))
-				.myCount(artistBoardCommentRepository.countByPostIdAndUserId(post.getId(), userId))
-				.artistCount(artistBoardCommentRepository.countByPostIdAndAuthorType(post.getId(), ArtistBoardCommentAuthorType.ARTIST))
-				.build())
-			.comments(items)
-			.build();
+		return BoardResponse.CommentList.of(
+			BoardResponse.CommentSummary.of(
+				artistBoardCommentRepository.countByPostId(post.getId()),
+				artistBoardCommentRepository.countByPostIdAndUserId(post.getId(), userId),
+				artistBoardCommentRepository.countByPostIdAndAuthorType(post.getId(), ArtistBoardCommentAuthorType.ARTIST)
+			),
+			items
+		);
 	}
 
 	@Transactional
@@ -173,17 +169,17 @@ public class ArtistBoardService {
 	) {
 		Long postId = post.getId();
 
-		return BoardResponse.PostItem.builder()
-			.postId(postId)
-			.createdAt(post.getCreatedAt())
-			.artistName(post.getArtist().getName())
-			.artistThumbnailUrl(toImageUrl(post.getArtist().getProfileImg()))
-			.content(post.getContent())
-			.imageUrls(toImageUrls(post.getImageKeys()))
-			.likeCount(likeCounts.getOrDefault(postId, 0L))
-			.commentCount(commentCounts.getOrDefault(postId, 0L))
-			.likedByMe(likedPostIds.contains(postId))
-			.build();
+		return BoardResponse.PostItem.of(
+			postId,
+			post.getCreatedAt(),
+			post.getArtist().getName(),
+			toImageUrl(post.getArtist().getProfileImg()),
+			post.getContent(),
+			toImageUrls(post.getImageKeys()),
+			likeCounts.getOrDefault(postId, 0L),
+			commentCounts.getOrDefault(postId, 0L),
+			likedPostIds.contains(postId)
+		);
 	}
 
 	private List<ArtistBoardComment> getCommentsByFilter(Long postId, UUID userId, ArtistBoardCommentFilter filter) {
@@ -238,15 +234,15 @@ public class ArtistBoardService {
 		boolean isArtist = comment.getAuthorType() == ArtistBoardCommentAuthorType.ARTIST;
 		boolean isMine = userId != null && userId.equals(comment.getUserId());
 
-		return BoardResponse.CommentItem.builder()
-			.commentId(comment.getId())
-			.createdAt(comment.getCreatedAt())
-			.authorName(resolveAuthorName(comment, usersByUserId, artistsByArtistId))
-			.authorThumbnailUrl(resolveAuthorThumbnailUrl(comment, artistsByArtistId))
-			.content(comment.getContent())
-			.isMine(isMine)
-			.isArtist(isArtist)
-			.build();
+		return BoardResponse.CommentItem.of(
+			comment.getId(),
+			comment.getCreatedAt(),
+			resolveAuthorName(comment, usersByUserId, artistsByArtistId),
+			resolveAuthorThumbnailUrl(comment, artistsByArtistId),
+			comment.getContent(),
+			isMine,
+			isArtist
+		);
 	}
 
 	private String resolveAuthorName(
