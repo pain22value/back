@@ -293,11 +293,10 @@ class MembershipServiceTest {
 	@Test
 	@DisplayName("활성 멤버십이 있으면 가입 완료 응답을 반환한다.")
 	void 멤버십_가입완료_조회_성공() {
-		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		Artist artist = org.mockito.Mockito.mock(Artist.class);
-		ArtistRepository.ArtistDetailProjection artistDetail = org.mockito.Mockito.mock(ArtistRepository.ArtistDetailProjection.class);
+		ArtistRepository.ArtistDetailProjection artistDetail = mockArtistDetailProjection();
 		ArtistMembership membership = ArtistMembership.preparePayment(
-			userId,
+			USER_ID,
 			artist,
 			"M20260402123458",
 			5_000L,
@@ -306,10 +305,9 @@ class MembershipServiceTest {
 		membership.confirm();
 
 		when(artistRepository.findDetailById(101L)).thenReturn(java.util.Optional.of(artistDetail));
-		when(artistDetail.getArtistName()).thenReturn("고은성");
-		when(artistMembershipRepository.findByUserIdAndArtistId(userId, 101L)).thenReturn(java.util.Optional.of(membership));
+		when(artistMembershipRepository.findByUserIdAndArtistId(USER_ID, 101L)).thenReturn(java.util.Optional.of(membership));
 
-		MembershipResponse.Complete response = membershipService.complete(101L, userId);
+		MembershipResponse.Complete response = membershipService.complete(101L, USER_ID);
 
 		assertThat(response.getArtistId()).isEqualTo(101L);
 		assertThat(response.getArtistName()).isEqualTo("고은성");
@@ -322,11 +320,10 @@ class MembershipServiceTest {
 	@Test
 	@DisplayName("아직 결제가 완료되지 않은 멤버십이면 가입 완료 조회에 실패한다.")
 	void 멤버십_가입완료_조회_실패() {
-		UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
 		Artist artist = org.mockito.Mockito.mock(Artist.class);
 		ArtistRepository.ArtistDetailProjection artistDetail = org.mockito.Mockito.mock(ArtistRepository.ArtistDetailProjection.class);
 		ArtistMembership membership = ArtistMembership.preparePayment(
-			userId,
+			USER_ID,
 			artist,
 			"M20260402123459",
 			5_000L,
@@ -334,11 +331,11 @@ class MembershipServiceTest {
 		);
 
 		when(artistRepository.findDetailById(101L)).thenReturn(java.util.Optional.of(artistDetail));
-		when(artistMembershipRepository.findByUserIdAndArtistId(userId, 101L)).thenReturn(java.util.Optional.of(membership));
+		when(artistMembershipRepository.findByUserIdAndArtistId(USER_ID, 101L)).thenReturn(java.util.Optional.of(membership));
 
 		CustomException exception = assertThrows(
 			CustomException.class,
-			() -> membershipService.complete(101L, userId)
+			() -> membershipService.complete(101L, USER_ID)
 		);
 
 		assertEquals(ErrorCode.MEMBERSHIP_PAYMENT_NOT_COMPLETED, exception.getErrorCode());
@@ -389,5 +386,18 @@ class MembershipServiceTest {
 		);
 
 		assertEquals(ErrorCode.MEMBERSHIP_NOT_CANCELABLE, exception.getErrorCode());
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 멤버십 해지 요청은 실패한다.")
+	void 존재하지않는_멤버십_해지_실패() {
+		when(artistMembershipRepository.findById(999L)).thenReturn(java.util.Optional.empty());
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> membershipService.cancel(999L, USER_ID)
+		);
+
+		assertEquals(ErrorCode.NOT_FOUND_ARTIST_MEMBERSHIP, exception.getErrorCode());
 	}
 }
