@@ -59,7 +59,10 @@ public class ScheduledSeat extends BaseEntity {
 		this.status = SeatStatus.HOLD;
 	}
 
-	public void cancelSeat() {
+	public void releaseSeat() {
+		if (this.status == SeatStatus.SOLD) {
+			return;
+		}
 		this.status = SeatStatus.AVAILABLE;
 	}
 

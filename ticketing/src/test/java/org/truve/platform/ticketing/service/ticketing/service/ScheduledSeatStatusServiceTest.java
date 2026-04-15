@@ -87,6 +87,27 @@ class ScheduledSeatStatusServiceTest {
 		assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_CORRECT_SEAT);
 	}
 
+	@Test
+	@DisplayName("RELEASE 요청이면 HOLD 좌석을 AVAILABLE로 되돌리고 SOLD는 유지한다.")
+	void release요청_좌석해제_성공() {
+		TicketingEventCommand.HoldReleased event = new TicketingEventCommand.HoldReleased(
+			"R-001",
+			UUID.fromString("11111111-1111-1111-1111-111111111111"),
+			List.of(10L, 11L, 12L)
+		);
+		ScheduledSeat holdSeat = createScheduledSeat(10L, SeatStatus.HOLD);
+		ScheduledSeat availableSeat = createScheduledSeat(11L, SeatStatus.AVAILABLE);
+		ScheduledSeat soldSeat = createScheduledSeat(12L, SeatStatus.SOLD);
+		given(scheduledSeatRepository.findAllById(event.getScheduledSeatIds()))
+			.willReturn(List.of(holdSeat, availableSeat, soldSeat));
+
+		scheduledSeatStatusService.releaseSeats(event);
+
+		assertThat(holdSeat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
+		assertThat(availableSeat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
+		assertThat(soldSeat.getStatus()).isEqualTo(SeatStatus.SOLD);
+	}
+
 	private ScheduledSeat createScheduledSeat(Long scheduledSeatId, SeatStatus status) {
 		Seat seat = Seat.builder()
 			.seatRow("A")

@@ -175,6 +175,10 @@ public class BookingService {
 		Reservation reservation = reservationRepository.findByNumber(reservationNumber);
 
 		List<Long> ticketIds = request.getTicketIds();
+		List<Long> scheduledSeatIds = reservation.getTickets().stream()
+			.filter(ticket -> ticketIds.contains(ticket.getId()))
+			.map(Ticket::getScheduledSeatId)
+			.toList();
 		LocalDateTime canceledAt = LocalDateTime.now();
 
 		reservation.validateTicketId(ticketIds);
@@ -188,6 +192,7 @@ public class BookingService {
 		);
 
 		reservation.cancel(ticketIds, canceledAt);
+		ticketingPublisher.publish(TicketingEventCommand.HoldReleased.of(reservation, scheduledSeatIds));
 
 		return new BookingResponse.CanceledTickets(ticketIds);
 	}

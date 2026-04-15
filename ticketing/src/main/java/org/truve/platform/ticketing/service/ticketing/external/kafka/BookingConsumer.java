@@ -26,6 +26,8 @@ public class BookingConsumer {
 		switch (type) {
 			case "HOLD_REQUESTED" ->
 				scheduledSeatStatusService.holdSeats(jsonConverter.convert(payload, TicketingEventCommand.HoldRequested.class));
+			case "HOLD_RELEASED" ->
+				scheduledSeatStatusService.releaseSeats(jsonConverter.convert(payload, TicketingEventCommand.HoldReleased.class));
 		}
 	}
 }

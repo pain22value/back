@@ -22,8 +22,10 @@ import org.truve.platform.ticketing.service.booking.domain.entity.Ticket;
 import org.truve.platform.ticketing.service.booking.domain.entity.embedded.ShowInfo;
 import org.truve.platform.ticketing.service.booking.dto.BookingRequest;
 import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
+import org.truve.platform.ticketing.service.booking.external.client.payment.PaymentClient;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingClient;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
 import org.truve.platform.ticketing.service.booking.external.kafka.TicketingEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.TicketingPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
@@ -37,6 +39,10 @@ class BookingServiceTest {
 	private TicketingClient ticketingClient;
 	@Mock
 	private TicketingPublisher ticketingPublisher;
+	@Mock
+	private PaymentPublisher paymentPublisher;
+	@Mock
+	private PaymentClient paymentClient;
 
 	@InjectMocks
 	private BookingService bookingService;
@@ -120,6 +126,32 @@ class BookingServiceTest {
 
 		// then
 		assertThat(res.getTickets()).hasSize(2);
+	}
+
+	@Test
+	@DisplayName("예매 취소 시 결제 취소 후 HOLD_RELEASED 이벤트를 발행한다.")
+	void 예매취소_좌석해제이벤트발행_성공() {
+		Reservation reservation = createReservation();
+		BookingRequest.Cancel request = new BookingRequest.Cancel("단순변심", List.of(1L));
+		given(reservationRepository.findByNumber("R-001")).willReturn(reservation);
+
+		BookingResponse.CanceledTickets response = bookingService.cancel("R-001", request);
+
+		ArgumentCaptor<TicketingEventCommand.TicketingEvent> eventCaptor =
+			ArgumentCaptor.forClass(TicketingEventCommand.TicketingEvent.class);
+		verify(paymentClient).cancel(eq("R-001"), anyString(), any());
+		verify(ticketingPublisher).publish(eventCaptor.capture());
+
+		TicketingEventCommand.HoldReleased holdReleased =
+			(TicketingEventCommand.HoldReleased) eventCaptor.getValue();
+
+		assertAll(
+			() -> assertThat(response.getCanceledTicketIds()).containsExactly(1L),
+			() -> assertThat(holdReleased.getReservationNumber()).isEqualTo("R-001"),
+			() -> assertThat(holdReleased.getScheduledSeatIds()).containsExactly(1L),
+			() -> assertThat(reservation.getTickets().getFirst().isCanceled()).isTrue(),
+			() -> assertThat(reservation.getTickets().getLast().isCanceled()).isFalse()
+		);
 	}
 
 	private Reservation createReservation() {

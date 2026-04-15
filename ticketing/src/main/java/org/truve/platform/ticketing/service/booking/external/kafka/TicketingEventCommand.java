@@ -43,4 +43,27 @@ public class TicketingEventCommand {
 			return "HOLD_REQUESTED";
 		}
 	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class HoldReleased implements TicketingEvent {
+		private String reservationNumber;
+		private UUID userId;
+		private List<Long> scheduledSeatIds;
+
+		public static HoldReleased of(Reservation reservation, List<Long> scheduledSeatIds) {
+			return HoldReleased.builder()
+				.reservationNumber(reservation.getNumber())
+				.userId(reservation.getUserId())
+				.scheduledSeatIds(List.copyOf(scheduledSeatIds))
+				.build();
+		}
+
+		@Override
+		public String getEventType() {
+			return "HOLD_RELEASED";
+		}
+	}
 }
