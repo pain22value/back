@@ -24,6 +24,8 @@ import org.truve.platform.ticketing.service.booking.dto.BookingRequest;
 import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingClient;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.external.kafka.TicketingEventCommand;
+import org.truve.platform.ticketing.service.booking.external.kafka.TicketingPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,8 @@ class BookingServiceTest {
 	private ReservationRepository reservationRepository;
 	@Mock
 	private TicketingClient ticketingClient;
+	@Mock
+	private TicketingPublisher ticketingPublisher;
 
 	@InjectMocks
 	private BookingService bookingService;
@@ -63,14 +67,22 @@ class BookingServiceTest {
 
 		// then
 		ArgumentCaptor<Reservation> captor = ArgumentCaptor.forClass(Reservation.class);
+		ArgumentCaptor<TicketingEventCommand.TicketingEvent> eventCaptor =
+			ArgumentCaptor.forClass(TicketingEventCommand.TicketingEvent.class);
 		verify(reservationRepository).save(captor.capture());
+		verify(ticketingPublisher).publish(eventCaptor.capture());
 		Reservation savedReservation = captor.getValue();
+		TicketingEventCommand.HoldRequested holdRequested =
+			(TicketingEventCommand.HoldRequested) eventCaptor.getValue();
 
 		assertAll(
 			() -> assertThat(savedReservation.calculateTicketAmount()).isEqualTo(60000L),
 			() -> assertThat(savedReservation.getGradeSummary()).isEqualTo("VIP석 2인\nS석 1인"),
 			() -> assertThat(savedReservation.getTickets()).hasSize(3),
 			() -> assertThat(savedReservation.getServiceFee()).isEqualTo(6000L),
+			() -> assertThat(holdRequested.getReservationNumber()).isEqualTo(savedReservation.getNumber()),
+			() -> assertThat(holdRequested.getUserId()).isEqualTo(userId),
+			() -> assertThat(holdRequested.getScheduledSeatIds()).containsExactlyElementsOf(seatIds),
 			() -> {
 				assertNotNull(savedReservation.getTickets());
 				assertThat(savedReservation.getTickets().get(1).getPriceSnapshot()).isEqualTo(20000L);

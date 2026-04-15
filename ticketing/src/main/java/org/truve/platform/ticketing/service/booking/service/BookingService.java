@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.truve.platform.ticketing.service.booking.domain.entity.Reservation;
@@ -23,6 +24,8 @@ import org.truve.platform.ticketing.service.booking.external.client.ticketing.Ti
 import org.truve.platform.ticketing.service.booking.external.kafka.BookingEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
+import org.truve.platform.ticketing.service.booking.external.kafka.TicketingEventCommand;
+import org.truve.platform.ticketing.service.booking.external.kafka.TicketingPublisher;
 import org.truve.platform.ticketing.service.booking.repository.ReservationRepository;
 import org.truve.platform.ticketing.service.booking.util.NumberGenerator;
 
@@ -39,6 +42,7 @@ public class BookingService {
 	private final TicketingClient ticketingClient;
 	private final PaymentPublisher paymentPublisher;
 	private final PaymentClient paymentClient;
+	private final TicketingPublisher ticketingPublisher;
 
 	@Transactional
 	public BookingResponse.Create create(UUID userId, BookingRequest.Create request) {
@@ -49,6 +53,7 @@ public class BookingService {
 		reservation.addTickets(tickets);
 
 		reservationRepository.save(reservation);
+		ticketingPublisher.publish(TicketingEventCommand.HoldRequested.of(reservation, request.getSeatIds()));
 		return new BookingResponse.Create(reservation.getNumber());
 	}
 
