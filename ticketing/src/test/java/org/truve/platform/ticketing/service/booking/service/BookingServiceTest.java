@@ -49,9 +49,9 @@ class BookingServiceTest {
 		List<Long> seatIds = List.of(10L, 11L, 12L);
 		BookingRequest.Create request = new BookingRequest.Create(seatIds);
 
-		TicketingResponse.Seat seat1 = new TicketingResponse.Seat("Section1", 1L, "VIP", "A", 10L, 10000L);
-		TicketingResponse.Seat seat2 = new TicketingResponse.Seat("Section2", 2L, "S", "B", 20L, 20000L);
-		TicketingResponse.Seat seat3 = new TicketingResponse.Seat("Section3", 3L, "VIP", "C", 30L, 30000L);
+		TicketingResponse.Seat seat1 = new TicketingResponse.Seat(10L, "Section1", 1L, "VIP", "A", 10L, 10000L);
+		TicketingResponse.Seat seat2 = new TicketingResponse.Seat(11L, "Section2", 2L, "S", "B", 20L, 20000L);
+		TicketingResponse.Seat seat3 = new TicketingResponse.Seat(12L, "Section3", 3L, "VIP", "C", 30L, 30000L);
 		List<TicketingResponse.Seat> seats = List.of(seat1, seat2, seat3);
 		TicketingResponse.SeatInfo seatInfo = new TicketingResponse.SeatInfo(
 			1L,
@@ -77,12 +77,13 @@ class BookingServiceTest {
 
 		assertAll(
 			() -> assertThat(savedReservation.calculateTicketAmount()).isEqualTo(60000L),
-			() -> assertThat(savedReservation.getGradeSummary()).isEqualTo("VIP석 2인\nS석 1인"),
-			() -> assertThat(savedReservation.getTickets()).hasSize(3),
-			() -> assertThat(savedReservation.getServiceFee()).isEqualTo(6000L),
-			() -> assertThat(holdRequested.getReservationNumber()).isEqualTo(savedReservation.getNumber()),
-			() -> assertThat(holdRequested.getUserId()).isEqualTo(userId),
-			() -> assertThat(holdRequested.getScheduledSeatIds()).containsExactlyElementsOf(seatIds),
+				() -> assertThat(savedReservation.getGradeSummary()).isEqualTo("VIP석 2인\nS석 1인"),
+				() -> assertThat(savedReservation.getTickets()).hasSize(3),
+				() -> assertThat(savedReservation.getServiceFee()).isEqualTo(6000L),
+				() -> assertThat(savedReservation.getTickets().getFirst().getScheduledSeatId()).isEqualTo(10L),
+				() -> assertThat(holdRequested.getReservationNumber()).isEqualTo(savedReservation.getNumber()),
+				() -> assertThat(holdRequested.getUserId()).isEqualTo(userId),
+				() -> assertThat(holdRequested.getScheduledSeatIds()).containsExactlyElementsOf(seatIds),
 			() -> {
 				assertNotNull(savedReservation.getTickets());
 				assertThat(savedReservation.getTickets().get(1).getPriceSnapshot()).isEqualTo(20000L);
@@ -133,9 +134,9 @@ class BookingServiceTest {
 				.build()
 		);
 
-		Ticket ticket1 = Ticket.create(reservation, "T-001", "VIP", 120000L, "1층 A구역 1열 1번");
+		Ticket ticket1 = Ticket.create(reservation, "T-001", "VIP", 120000L, "1층 A구역 1열 1번", 1L);
 		ReflectionTestUtils.setField(ticket1, "id", 1L);
-		Ticket ticket2 = Ticket.create(reservation, "T-002", "VIP", 120000L, "1층 A구역 1열 2번");
+		Ticket ticket2 = Ticket.create(reservation, "T-002", "VIP", 120000L, "1층 A구역 1열 2번", 2L);
 		ReflectionTestUtils.setField(ticket2, "id", 2L);
 
 		List<Ticket> tickets = List.of(ticket1, ticket2);

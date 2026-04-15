@@ -68,14 +68,15 @@ public class BookingService {
 
 	private List<Ticket> createTickets(TicketingResponse.SeatInfo seatInfo, Reservation reservation) {
 		return seatInfo.getSeats().stream().map(
-			seat -> Ticket.create(
-				reservation,
-				NumberGenerator.generateTicketNumber(),
-				seat.getGradeName(),
-				seat.getPrice(),
-				createSeatDetail(seat)
-			)
-		).toList();
+				seat -> Ticket.create(
+					reservation,
+					NumberGenerator.generateTicketNumber(),
+					seat.getGradeName(),
+					seat.getPrice(),
+					createSeatDetail(seat),
+					seat.getScheduledSeatId()
+				)
+			).toList();
 	}
 
 	private String createGradeSummary(TicketingResponse.SeatInfo seatInfo) {
