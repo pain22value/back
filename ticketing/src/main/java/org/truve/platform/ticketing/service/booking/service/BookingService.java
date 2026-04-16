@@ -150,6 +150,11 @@ public class BookingService {
 			event.getMethod(),
 			VirtualAccount.from(event.getVirtualAccount())
 		);
+
+		List<Long> scheduledSeatIds = reservation.getTickets().stream()
+			.map(Ticket::getScheduledSeatId)
+			.toList();
+		ticketingPublisher.publish(TicketingEventCommand.SoldConfirmed.of(reservation, scheduledSeatIds));
 	}
 
 	@Transactional

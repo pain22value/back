@@ -32,4 +32,11 @@ public class ScheduledSeatStatusService {
 		Preconditions.validate(scheduledSeats.size() == event.getScheduledSeatIds().size(), ErrorCode.NOT_CORRECT_SEAT);
 		scheduledSeats.forEach(ScheduledSeat::releaseSeat);
 	}
+
+	@Transactional
+	public void purchaseSeats(TicketingEventCommand.SoldConfirmed event) {
+		List<ScheduledSeat> scheduledSeats = scheduledSeatRepository.findAllById(event.getScheduledSeatIds());
+		Preconditions.validate(scheduledSeats.size() == event.getScheduledSeatIds().size(), ErrorCode.NOT_CORRECT_SEAT);
+		scheduledSeats.forEach(ScheduledSeat::purchaseSeat);
+	}
 }

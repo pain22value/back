@@ -108,6 +108,62 @@ class ScheduledSeatStatusServiceTest {
 		assertThat(soldSeat.getStatus()).isEqualTo(SeatStatus.SOLD);
 	}
 
+	@Test
+	@DisplayName("SOLD_CONFIRMED 요청이면 HOLD 좌석을 SOLD 상태로 변경한다.")
+	void sold요청_좌석구매_성공() {
+		TicketingEventCommand.SoldConfirmed event = new TicketingEventCommand.SoldConfirmed(
+			"R-001",
+			UUID.fromString("11111111-1111-1111-1111-111111111111"),
+			List.of(10L, 11L)
+		);
+		ScheduledSeat seat1 = createScheduledSeat(10L, SeatStatus.HOLD);
+		ScheduledSeat seat2 = createScheduledSeat(11L, SeatStatus.HOLD);
+		given(scheduledSeatRepository.findAllById(event.getScheduledSeatIds())).willReturn(List.of(seat1, seat2));
+
+		scheduledSeatStatusService.purchaseSeats(event);
+
+		assertThat(seat1.getStatus()).isEqualTo(SeatStatus.SOLD);
+		assertThat(seat2.getStatus()).isEqualTo(SeatStatus.SOLD);
+	}
+
+	@Test
+	@DisplayName("이미 SOLD인 좌석에 SOLD_CONFIRMED 요청이 오면 예외가 발생한다.")
+	void sold요청_이미SOLD_예외발생() {
+		TicketingEventCommand.SoldConfirmed event = new TicketingEventCommand.SoldConfirmed(
+			"R-001",
+			UUID.fromString("11111111-1111-1111-1111-111111111111"),
+			List.of(10L)
+		);
+		ScheduledSeat soldSeat = createScheduledSeat(10L, SeatStatus.SOLD);
+		given(scheduledSeatRepository.findAllById(event.getScheduledSeatIds())).willReturn(List.of(soldSeat));
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> scheduledSeatStatusService.purchaseSeats(event)
+		);
+
+		assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ALREADY_SOLD_SEAT);
+	}
+
+	@Test
+	@DisplayName("좌석 개수가 맞지 않으면 NOT_CORRECT_SEAT 예외가 발생한다.")
+	void sold요청_좌석개수불일치() {
+		TicketingEventCommand.SoldConfirmed event = new TicketingEventCommand.SoldConfirmed(
+			"R-001",
+			UUID.fromString("11111111-1111-1111-1111-111111111111"),
+			List.of(10L, 11L)
+		);
+		given(scheduledSeatRepository.findAllById(event.getScheduledSeatIds()))
+			.willReturn(List.of(createScheduledSeat(10L, SeatStatus.HOLD)));
+
+		CustomException exception = assertThrows(
+			CustomException.class,
+			() -> scheduledSeatStatusService.purchaseSeats(event)
+		);
+
+		assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_CORRECT_SEAT);
+	}
+
 	private ScheduledSeat createScheduledSeat(Long scheduledSeatId, SeatStatus status) {
 		Seat seat = Seat.builder()
 			.seatRow("A")

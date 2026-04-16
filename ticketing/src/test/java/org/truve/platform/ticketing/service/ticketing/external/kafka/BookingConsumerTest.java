@@ -63,6 +63,22 @@ class BookingConsumerTest {
 	}
 
 	@Test
+	@DisplayName("SOLD_CONFIRMED 이벤트면 좌석 구매 서비스에 위임한다.")
+	void sold이벤트_소비성공() {
+		TicketingEventCommand.SoldConfirmed event = new TicketingEventCommand.SoldConfirmed(
+			"R-001",
+			UUID.fromString("11111111-1111-1111-1111-111111111111"),
+			List.of(10L, 11L)
+		);
+		given(jsonConverter.convert("payload", TicketingEventCommand.SoldConfirmed.class)).willReturn(event);
+
+		bookingConsumer.consume("payload", "SOLD_CONFIRMED");
+
+		verify(jsonConverter).convert("payload", TicketingEventCommand.SoldConfirmed.class);
+		verify(scheduledSeatStatusService).purchaseSeats(event);
+	}
+
+	@Test
 	@DisplayName("알 수 없는 이벤트 타입이면 아무 작업도 하지 않는다.")
 	void 알수없는이벤트_무시() {
 		bookingConsumer.consume("payload", "UNKNOWN");

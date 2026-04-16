@@ -25,6 +25,7 @@ import org.truve.platform.ticketing.service.booking.dto.BookingResponse;
 import org.truve.platform.ticketing.service.booking.external.client.payment.PaymentClient;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingClient;
 import org.truve.platform.ticketing.service.booking.external.client.ticketing.TicketingResponse;
+import org.truve.platform.ticketing.service.booking.external.kafka.BookingEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.PaymentPublisher;
 import org.truve.platform.ticketing.service.booking.external.kafka.TicketingEventCommand;
 import org.truve.platform.ticketing.service.booking.external.kafka.TicketingPublisher;
@@ -79,17 +80,17 @@ class BookingServiceTest {
 		verify(ticketingPublisher).publish(eventCaptor.capture());
 		Reservation savedReservation = captor.getValue();
 		TicketingEventCommand.HoldRequested holdRequested =
-			(TicketingEventCommand.HoldRequested) eventCaptor.getValue();
+			(TicketingEventCommand.HoldRequested)eventCaptor.getValue();
 
 		assertAll(
 			() -> assertThat(savedReservation.calculateTicketAmount()).isEqualTo(60000L),
-				() -> assertThat(savedReservation.getGradeSummary()).isEqualTo("VIP석 2인\nS석 1인"),
-				() -> assertThat(savedReservation.getTickets()).hasSize(3),
-				() -> assertThat(savedReservation.getServiceFee()).isEqualTo(6000L),
-				() -> assertThat(savedReservation.getTickets().getFirst().getScheduledSeatId()).isEqualTo(10L),
-				() -> assertThat(holdRequested.getReservationNumber()).isEqualTo(savedReservation.getNumber()),
-				() -> assertThat(holdRequested.getUserId()).isEqualTo(userId),
-				() -> assertThat(holdRequested.getScheduledSeatIds()).containsExactlyElementsOf(seatIds),
+			() -> assertThat(savedReservation.getGradeSummary()).isEqualTo("VIP석 2인\nS석 1인"),
+			() -> assertThat(savedReservation.getTickets()).hasSize(3),
+			() -> assertThat(savedReservation.getServiceFee()).isEqualTo(6000L),
+			() -> assertThat(savedReservation.getTickets().getFirst().getScheduledSeatId()).isEqualTo(10L),
+			() -> assertThat(holdRequested.getReservationNumber()).isEqualTo(savedReservation.getNumber()),
+			() -> assertThat(holdRequested.getUserId()).isEqualTo(userId),
+			() -> assertThat(holdRequested.getScheduledSeatIds()).containsExactlyElementsOf(seatIds),
 			() -> {
 				assertNotNull(savedReservation.getTickets());
 				assertThat(savedReservation.getTickets().get(1).getPriceSnapshot()).isEqualTo(20000L);
@@ -97,6 +98,33 @@ class BookingServiceTest {
 				assertThat(savedReservation.getTickets().get(1).getUsedAt()).isNull();
 				assertThat(savedReservation.getTickets().getFirst().getSeatDetail()).isEqualTo("1층 Section1구역 A열 10번");
 			}
+		);
+	}
+
+	@Test
+	@DisplayName("결제가 확정되면 예약 상태를 업데이트하고 SOLD_CONFIRMED 이벤트를 발행한다.")
+	void 결제확정_SOLD_이벤트_발행() {
+		// given
+		Reservation reservation = createReservation();
+		given(reservationRepository.findByNumber("R-001")).willReturn(reservation);
+
+		BookingEventCommand.Confirmed event = new BookingEventCommand.Confirmed(
+			"R-001", LocalDateTime.now(), LocalDateTime.now(), "카드", null
+		);
+
+		// when
+		bookingService.confirm(event);
+
+		// then
+		ArgumentCaptor<TicketingEventCommand.TicketingEvent> eventCaptor =
+			ArgumentCaptor.forClass(TicketingEventCommand.TicketingEvent.class);
+		verify(ticketingPublisher).publish(eventCaptor.capture());
+
+		TicketingEventCommand.SoldConfirmed soldConfirmed =
+			(TicketingEventCommand.SoldConfirmed)eventCaptor.getValue();
+		assertAll(
+			() -> assertThat(soldConfirmed.getReservationNumber()).isEqualTo("R-001"),
+			() -> assertThat(soldConfirmed.getScheduledSeatIds()).containsExactly(1L, 2L)
 		);
 	}
 
@@ -143,7 +171,7 @@ class BookingServiceTest {
 		verify(ticketingPublisher).publish(eventCaptor.capture());
 
 		TicketingEventCommand.HoldReleased holdReleased =
-			(TicketingEventCommand.HoldReleased) eventCaptor.getValue();
+			(TicketingEventCommand.HoldReleased)eventCaptor.getValue();
 
 		assertAll(
 			() -> assertThat(response.getCanceledTicketIds()).containsExactly(1L),

@@ -66,4 +66,27 @@ public class TicketingEventCommand {
 			return "HOLD_RELEASED";
 		}
 	}
+
+	@Getter
+	@Builder
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class SoldConfirmed implements TicketingEvent {
+		private String reservationNumber;
+		private UUID userId;
+		private List<Long> scheduledSeatIds;
+
+		public static SoldConfirmed of(Reservation reservation, List<Long> scheduledSeatIds) {
+			return SoldConfirmed.builder()
+				.reservationNumber(reservation.getNumber())
+				.userId(reservation.getUserId())
+				.scheduledSeatIds(List.copyOf(scheduledSeatIds))
+				.build();
+		}
+
+		@Override
+		public String getEventType() {
+			return "SOLD_CONFIRMED";
+		}
+	}
 }

@@ -28,6 +28,8 @@ public class BookingConsumer {
 				scheduledSeatStatusService.holdSeats(jsonConverter.convert(payload, TicketingEventCommand.HoldRequested.class));
 			case "HOLD_RELEASED" ->
 				scheduledSeatStatusService.releaseSeats(jsonConverter.convert(payload, TicketingEventCommand.HoldReleased.class));
+			case "SOLD_CONFIRMED" ->
+				scheduledSeatStatusService.purchaseSeats(jsonConverter.convert(payload, TicketingEventCommand.SoldConfirmed.class));
 		}
 	}
 }
