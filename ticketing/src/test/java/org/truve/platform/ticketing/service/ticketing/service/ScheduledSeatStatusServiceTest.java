@@ -1,8 +1,8 @@
 package org.truve.platform.ticketing.service.ticketing.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.BDDMockito.given;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -88,7 +88,7 @@ class ScheduledSeatStatusServiceTest {
 	}
 
 	@Test
-	@DisplayName("RELEASE 요청이면 HOLD 좌석을 AVAILABLE로 되돌리고 SOLD는 유지한다.")
+	@DisplayName("RELEASE 요청이면 좌석 상태를 AVAILABLE로 되돌린다.")
 	void release요청_좌석해제_성공() {
 		TicketingEventCommand.HoldReleased event = new TicketingEventCommand.HoldReleased(
 			"R-001",
@@ -105,7 +105,7 @@ class ScheduledSeatStatusServiceTest {
 
 		assertThat(holdSeat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
 		assertThat(availableSeat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-		assertThat(soldSeat.getStatus()).isEqualTo(SeatStatus.SOLD);
+		assertThat(soldSeat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
 	}
 
 	@Test
