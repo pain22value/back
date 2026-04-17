@@ -8,4 +8,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 @NoRepositoryBean
 public interface OutboxEventRepository<T extends OutboxEvent> extends JpaRepository<T, Long> {
 	List<T> findByStatus(OutboxStatus status);
+
+	void deleteByStatus(OutboxStatus status);
 }

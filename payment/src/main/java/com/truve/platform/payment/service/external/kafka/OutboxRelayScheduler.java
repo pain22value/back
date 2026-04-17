@@ -28,4 +28,10 @@ public class OutboxRelayScheduler {
 			outboxRelayExecutor.execute(pending);
 		}
 	}
+
+	@Scheduled(cron = "0 0 3 * * *")
+	@Transactional
+	public void deletePublished() {
+		outboxRepository.deleteByStatus(OutboxStatus.PUBLISHED);
+	}
 }
