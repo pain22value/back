@@ -27,8 +27,8 @@ public class OutboxRelayExecutor {
 				kafkaTemplate.send(record).get();
 
 				event.markPublished();
-				log.info("[Outbox Relay] Published - topic: {}, key: {}, eventType: {}",
-					event.getTopic(), event.getMessageKey(), event.getEventType());
+				log.info("[Outbox Relay] Published - topic: {}, key: {}, eventType: {}, payload: {}",
+					event.getTopic(), event.getMessageKey(), event.getEventType(), event.getPayload());
 			} catch (Exception e) {
 				event.markFailed();
 				log.error("[Outbox Relay] Failed - id: {}, retryCount: {}", event.getId(), event.getRetryCount(), e);
