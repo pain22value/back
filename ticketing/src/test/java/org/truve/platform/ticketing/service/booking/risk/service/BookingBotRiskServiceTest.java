@@ -71,6 +71,9 @@ class BookingBotRiskServiceTest {
 		);
 
 		// then
-		assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PAYMENT_RESTRICTED_BY_RISK);
+		assertAll(
+			() -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.PAYMENT_RESTRICTED_BY_RISK),
+			() -> assertThat(exception.getMessage()).contains("후 다시 시도해 주세요")
+		);
 	}
 }
